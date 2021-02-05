@@ -1,10 +1,12 @@
 package service
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/app/config"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -23,6 +25,10 @@ var (
 		"ARKF": "ARK_FINTECH_INNOVATION_ETF_ARKF_HOLDINGS",
 	}
 	downloaderFolder = config.Config.DataFolder + "/downloader/"
+)
+
+var (
+	errDownloadCSV = errors.New("download csv failed")
 )
 
 func init() {
@@ -50,14 +56,7 @@ func generateFilePath(arkType string) string {
 	return config.Config.DataFolder + "/downloader/" + time.Now().Format("20060102") + arkType + ".csv"
 }
 
-func DownloadCSV(url string, filename string) error {
-	out, err := os.Create(filename)
-	if err != nil {
-		glog.Errorf("create file failed, filename: %s, err: %v", filename, err)
-		return err
-	}
-	defer out.Close()
-
+func DownloadARKCSV(url string, filename string) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		glog.Errorf("download CSV failed, url: %s, err: %v", url, err)
@@ -65,7 +64,14 @@ func DownloadCSV(url string, filename string) error {
 	}
 	defer resp.Body.Close()
 
-	_, err = io.Copy(out, resp.Body)
+	body, _ := ioutil.ReadAll(resp.Body)
+	offset := bytes.Index(body, []byte(",,,,,,,"))
+	if offset == -1 {
+		glog.Errorf("incorrect csv format")
+		return errDownloadCSV
+	}
+
+	err = ioutil.WriteFile(filename, body[:offset], os.ModePerm)
 	if err != nil {
 		glog.Errorf("copy resp data to file failed, err: %v", err)
 		return err

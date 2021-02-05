@@ -10,7 +10,7 @@ func TestDownloadCSV(t *testing.T) {
 		arkType  = "ARKK"
 		fileName = generateFilePath(arkType)
 	)
-	err := DownloadCSV(generateArkCSVURL(arkType), fileName)
+	err := DownloadARKCSV(generateArkCSVURL(arkType), fileName)
 	if err != nil {
 		glog.Errorf("failed to download csv, err: %v", err)
 		return
