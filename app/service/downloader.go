@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/config"
+	"github.com/skeyic/ark-robot/utils"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -59,15 +60,7 @@ func NewDownloader() *Downloader {
 }
 
 func (d *Downloader) init() {
-	_, err := os.Stat(downloaderFolder)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.MkdirAll(downloaderFolder, 0777)
-			if err != nil {
-				glog.Fatal(err)
-			}
-		}
-	}
+	utils.CheckFolder(downloaderFolder)
 	glog.V(4).Infof("downloader init completed")
 }
 
