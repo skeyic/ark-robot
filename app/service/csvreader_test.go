@@ -11,7 +11,7 @@ func TestCSVRead(t *testing.T) {
 	flag.Set("v", "10")
 	flag.Parse()
 
-	r := &CSVReader{filepath: generateFilePath("ARKK")}
+	r := NewCSVReader("C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data\\downloader\\2021-02-06-11-57-53-ARKK.csv")
 	records, err := r.Load()
 	if err != nil {
 		glog.Errorf("failed to load, error: %v", err)
@@ -19,7 +19,9 @@ func TestCSVRead(t *testing.T) {
 	}
 	glog.V(4).Infof("RECORDS: %+v", records)
 
-	if len(records) >= 2 {
-		glog.V(4).Infof(records[1][0])
+	glog.V(4).Infof("CSV Validate: %v", ValidateARKCSV(records))
+
+	for idx, record := range records[1:] {
+		glog.V(4).Infof("RECORD IDX: %d, stockHolding: %+v, value: %v", idx, NewStockHoldingFromRecord(record), record)
 	}
 }

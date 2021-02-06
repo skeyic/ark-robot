@@ -15,6 +15,12 @@ type CSVReader struct {
 	filepath string
 }
 
+func NewCSVReader(filename string) *CSVReader {
+	return &CSVReader{
+		filepath: filename,
+	}
+}
+
 func (c *CSVReader) Load() ([][]string, error) {
 	f, err := os.Open(c.filepath)
 	if err != nil {
