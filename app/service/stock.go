@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/golang/glog"
 	"strconv"
 	"time"
 )
@@ -51,7 +52,8 @@ func NewStockHoldings(date time.Time, fund string, holdings []*StockHolding) *St
 	}
 
 	for _, holding := range holdings {
-		s.Holdings[holding.Fund] = holding
+		glog.V(4).Infof("NewStockHoldings: %+v", holding)
+		s.Holdings[holding.Ticker] = holding
 	}
 
 	return s
@@ -72,6 +74,23 @@ type StockTrading struct {
 	Weight float64
 }
 
+func NewStockTradingFromRecord(record []string) *StockTrading {
+	date, _ := time.Parse("1/2/2006", record[1])
+	shards, _ := strconv.ParseFloat(record[6], 64)
+	weight, _ := strconv.ParseFloat(record[7], 64)
+
+	return &StockTrading{
+		Date:      date,
+		Direction: record[2],
+		Fund:      record[0],
+		Ticker:    record[3],
+		Cusip:     record[4],
+		Company:   record[5],
+		Shards:    shards,
+		Weight:    weight,
+	}
+}
+
 type StockTradings struct {
 	Date     time.Time
 	Fund     string
@@ -86,7 +105,7 @@ func NewStockTradings(date time.Time, fund string, tradings []*StockTrading) *St
 	}
 
 	for _, trading := range tradings {
-		s.Tradings[trading.Fund] = trading
+		s.Tradings[trading.Ticker] = trading
 	}
 
 	return s

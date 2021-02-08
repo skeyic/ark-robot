@@ -17,5 +17,5 @@ func TestDownloadCSV(t *testing.T) {
 		return
 	}
 
-	<-make(chan struct{}, 1)
+	//<-make(chan struct{}, 1)
 }

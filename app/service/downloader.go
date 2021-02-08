@@ -101,7 +101,7 @@ func (d *Downloader) DownloadARKCSV(arkType string) error {
 	}
 
 	glog.V(4).Infof("download CSV %s completed", filename)
-	go ThePorter.Catalog(filename)
+	ThePorter.Catalog(filename)
 
 	return nil
 }

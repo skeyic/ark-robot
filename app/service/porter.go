@@ -100,5 +100,5 @@ func (p *Porter) Catalog(csvFileName string) {
 		panic(fmt.Sprintf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err))
 	}
 
-	TheResearcher.AddStockHoldings(NewStockHoldings(theDate, theFund, stockHolding))
+	TheLibrary.AddStockHoldings(NewStockHoldings(theDate, theFund, stockHolding))
 }
