@@ -15,7 +15,8 @@ github.com/golang/glog
 # github.com/jinzhu/configor v1.2.1
 ## explicit
 github.com/jinzhu/configor
-# golang.org/x/text v0.3.2
+# golang.org/x/text v0.3.3
+## explicit
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal/identifier
 golang.org/x/text/transform

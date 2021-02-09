@@ -38,6 +38,12 @@ func NewStockHoldingFromRecord(record []string) *StockHolding {
 	}
 }
 
+func (s *StockHolding) Merge(d *StockHolding) {
+	s.Shards += d.Shards
+	s.MarketValue += d.MarketValue
+	s.Weight += d.Weight
+}
+
 type StockHoldings struct {
 	Date     time.Time
 	Fund     string
@@ -53,7 +59,12 @@ func NewStockHoldings(date time.Time, fund string, holdings []*StockHolding) *St
 
 	for _, holding := range holdings {
 		glog.V(4).Infof("NewStockHoldings: %+v", holding)
-		s.Holdings[holding.Ticker] = holding
+		theStock := s.Holdings[holding.Ticker]
+		if theStock == nil {
+			s.Holdings[holding.Ticker] = holding
+		} else {
+			s.Holdings[holding.Ticker].Merge(holding)
+		}
 	}
 
 	return s

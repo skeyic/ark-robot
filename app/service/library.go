@@ -95,7 +95,6 @@ func (r *Library) AddStockHoldings(s *StockHoldings) {
 	r.HistoryStockHoldings[s.Date][s.Fund] = s
 	if r.CurrentStockHoldings[s.Fund] == nil || r.CurrentStockHoldings[s.Fund].Date.Before(s.Date) {
 		r.CurrentStockHoldings[s.Fund] = s
-		glog.V(4).Infof("ADD s to CurrentStockHoldings: %+v", s)
 	}
 	r.lock.Unlock()
 	r.MustSave()
