@@ -26,7 +26,10 @@ var (
 		"ARKG": "ARK_GENOMIC_REVOLUTION_MULTISECTOR_ETF_ARKG_HOLDINGS",
 		"ARKF": "ARK_FINTECH_INNOVATION_ETF_ARKF_HOLDINGS",
 	}
-	downloaderFolder = config.Config.DataFolder + "/downloader/"
+	downloaderFolder        = config.Config.DataFolder + "/downloader/"
+	downloaderUTCStartHour  = 0 // UTC 00:00
+	downloaderCheckInterval = 4 * time.Hour
+	downloaderRetryWaitTime = 5 * time.Minute
 )
 
 var (
@@ -62,6 +65,10 @@ func NewDownloader() *Downloader {
 func (d *Downloader) init() {
 	utils.CheckFolder(downloaderFolder)
 	glog.V(4).Infof("downloader init completed")
+}
+
+func (d *Downloader) process() {
+
 }
 
 func (d *Downloader) DownloadAllARKCSVs() error {

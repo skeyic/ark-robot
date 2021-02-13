@@ -1,0 +1,6 @@
+neuron:
+  restart: always
+  image: localhost:5000/ark-robot
+  command: /application/ark-robot -logtostderr -v=4
+  environment:
+    DATA_FOLDER: /data

@@ -40,6 +40,25 @@ func NewLibrary() *Library {
 	return r
 }
 
+func (r *Library) GetLatestHoldingDate() time.Time {
+	var (
+		latestTime = time.Time{}
+	)
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	if r.CurrentStockHoldings != nil {
+		for fund, holdings := range r.CurrentStockHoldings {
+			glog.V(10).Infof("Fund %s, latest date: %s", fund, holdings.Date)
+			if latestTime.IsZero() || latestTime.After(holdings.Date) {
+				latestTime = holdings.Date
+			}
+		}
+	}
+
+	return latestTime
+}
+
 func (r *Library) init() {
 	utils.CheckFolder(libraryFolder)
 	err := r.LoadFromFileStore()

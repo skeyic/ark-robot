@@ -2,8 +2,10 @@ package service
 
 import (
 	"flag"
+	"fmt"
 	"github.com/golang/glog"
 	"testing"
+	"time"
 )
 
 func TestDownloadCSV(t *testing.T) {
@@ -18,4 +20,8 @@ func TestDownloadCSV(t *testing.T) {
 	}
 
 	//<-make(chan struct{}, 1)
+}
+
+func TestDonwloadTime(t *testing.T) {
+	fmt.Printf("NOW: %d", time.Now().UTC().Day())
 }

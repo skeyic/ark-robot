@@ -95,10 +95,20 @@ func (p *Porter) Catalog(csvFileName string) {
 	theDate := stockHolding[0].Date
 	theFund := stockHolding[0].Fund
 	newPath := generatePorterFilePath(theFund, theDate)
+
+	// return if the file already exists
+	_, err = os.Stat(newPath)
+	if !os.IsNotExist(err) {
+		glog.V(4).Infof("file %s already exists, return", newPath)
+		return
+	}
+
 	err = os.Rename(csvFileName, newPath)
 	if err != nil {
 		panic(fmt.Sprintf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err))
 	}
 
 	TheLibrary.AddStockHoldings(NewStockHoldings(theDate, theFund, stockHolding))
+	glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
+	utils.SendAlertV2("Add to library", fmt.Sprintf("Add %s at %s to library", theFund, theDate))
 }
