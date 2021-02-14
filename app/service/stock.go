@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/golang/glog"
 	"strconv"
 	"time"
 )
@@ -58,7 +57,7 @@ func NewStockHoldings(date time.Time, fund string, holdings []*StockHolding) *St
 	}
 
 	for _, holding := range holdings {
-		glog.V(4).Infof("NewStockHoldings: %+v", holding)
+		//glog.V(4).Infof("NewStockHoldings: %+v", holding)
 		theStock := s.Holdings[holding.Ticker]
 		if theStock == nil {
 			s.Holdings[holding.Ticker] = holding

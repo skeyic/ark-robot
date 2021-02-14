@@ -85,7 +85,12 @@ func (r *Library) LoadFromFileStore() error {
 		return err
 	}
 
-	glog.V(4).Infof("library after load: %+v", r)
+	glog.V(10).Infof("library after load: %+v", r)
+	return nil
+}
+
+func (r *Library) LoadFromDirectory() error {
+
 	return nil
 }
 

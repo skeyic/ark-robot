@@ -6,6 +6,7 @@ import (
 	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -111,4 +112,59 @@ func (p *Porter) Catalog(csvFileName string) {
 	TheLibrary.AddStockHoldings(NewStockHoldings(theDate, theFund, stockHolding))
 	glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
 	utils.SendAlertV2("Add to library", fmt.Sprintf("Add %s at %s to library", theFund, theDate))
+}
+
+func (p *Porter) ListAllCSVs() (files []string, err error) {
+	walkFunc := func(path string, info os.FileInfo, err error) error {
+		if info == nil {
+			return nil
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if strings.HasSuffix(info.Name(), "csv") {
+			files = append(files, path)
+		}
+		return nil
+	}
+
+	for _, fund := range allARKTypes {
+		err = filepath.Walk(porterFolder+fund, walkFunc)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (p *Porter) ReadCSV(csvFileName string) (err error) {
+	var (
+		stockHolding []*StockHolding
+	)
+	records, err := NewCSVReader(csvFileName).Load()
+	if err != nil {
+		glog.Errorf("failed to read csv file: %s, err: %v", csvFileName, err)
+		return
+	}
+
+	if !ValidateARKCSV(records) {
+		glog.Errorf("failed to validate csv file: %s", csvFileName)
+		return
+	}
+
+	for _, record := range records[1:] {
+		stockHolding = append(stockHolding, NewStockHoldingFromRecord(record))
+	}
+
+	if len(stockHolding) == 0 {
+		panic("We will never reach here, but the compiler does not think so")
+	}
+
+	theDate := stockHolding[0].Date
+	theFund := stockHolding[0].Fund
+
+	TheLibrary.AddStockHoldings(NewStockHoldings(theDate, theFund, stockHolding))
+	glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
+	return
 }

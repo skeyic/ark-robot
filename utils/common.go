@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"flag"
 	"github.com/golang/glog"
 	"os"
 )
@@ -15,4 +16,10 @@ func CheckFolder(path string) {
 			}
 		}
 	}
+}
+
+func EnableGlogForTesting() {
+	flag.Set("logtostderr", "true")
+	flag.Set("v", "10")
+	flag.Parse()
 }
