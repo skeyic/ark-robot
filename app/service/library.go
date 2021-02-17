@@ -65,6 +65,10 @@ func (r *Library) init() {
 	if err != nil {
 		panic(fmt.Sprintf("failed to load library from the saved file, err: %v", err))
 	}
+	//err := r.LoadFromDirectory()
+	//if err != nil {
+	//	panic(fmt.Sprintf("failed to load library from the saved csv file, err: %v", err))
+	//}
 	glog.V(4).Infof("library init completed")
 }
 
@@ -89,7 +93,24 @@ func (r *Library) LoadFromFileStore() error {
 	return nil
 }
 
-func (r *Library) LoadFromDirectory() error {
+func (r *Library) LoadFromDirectory() (err error) {
+	// Load all holdings
+	files, err := ThePorter.ListAllCSVs()
+	if err != nil {
+		glog.Errorf("failed to list all csv files, err: %v", err)
+		return
+	}
+
+	for _, theFile := range files {
+		glog.V(10).Infof("File: %s", theFile)
+		err = ThePorter.ReadCSV(theFile)
+		if err != nil {
+			glog.Errorf("failed to read csv file %s, err: %v", theFile, err)
+			return
+		}
+	}
+
+	// Generate all tradings
 
 	return nil
 }

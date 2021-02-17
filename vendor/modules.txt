@@ -12,6 +12,9 @@ github.com/emersion/go-sasl
 # github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 ## explicit
 github.com/golang/glog
+# github.com/grd/statistics v0.0.0-20130405091615-5af75da930c9
+## explicit
+github.com/grd/statistics
 # github.com/jinzhu/configor v1.2.1
 ## explicit
 github.com/jinzhu/configor
