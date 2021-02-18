@@ -194,25 +194,23 @@ func (s TradingList) Len() int {
 }
 
 // Buy > Relative Buy > Sell > Relative Sell > Do Nothing > Keep
-// Buy more > Buy less
-// Sell less > Sell more
-// Keep more > keep less
+// More > Less
 var directionWeightMap = map[TradeDirection]float64{
 	TradeBuy:          6,
 	TradeRelativeBuy:  5,
-	TradeSell:         -4,
-	TradeRelativeSell: -3,
+	TradeSell:         4,
+	TradeRelativeSell: 3,
 	TradeDoNothing:    2,
 	TradeKeep:         1,
 }
 
 func (s TradingList) Less(i, j int) bool {
-	if directionWeightMap[s[i].FixedDirection]*directionWeightMap[s[i].FixedDirection] < directionWeightMap[s[j].FixedDirection]*directionWeightMap[s[j].FixedDirection] ||
-		s[i].Percent*directionWeightMap[s[i].FixedDirection] < s[j].Percent*directionWeightMap[s[j].FixedDirection] {
-		return false
+	if directionWeightMap[s[i].FixedDirection] == directionWeightMap[s[j].FixedDirection] {
+		return s[i].Percent > s[j].Percent
 	}
-	return true
+	return directionWeightMap[s[i].FixedDirection] > directionWeightMap[s[j].FixedDirection]
 }
+
 func (s TradingList) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
@@ -238,7 +236,7 @@ func RemoveAbnormalData(pl statistics.Float64) statistics.Float64 {
 	return npl
 }
 
-const theMaxVariance = 0.0001
+const theMaxVariance = 0.001
 
 func PickAbnormalData(pl statistics.Float64) (statistics.Float64, statistics.Float64) {
 	var (
@@ -328,10 +326,10 @@ func (s TradingList) SetFixDirection() {
 }
 
 type StockTradings struct {
-	Date     time.Time
-	Fund     string
-	Tradings map[string]*StockTrading
-	TradingList
+	Date        time.Time
+	Fund        string
+	Tradings    map[string]*StockTrading
+	TradingList TradingList
 }
 
 func NewStockTradings(date time.Time, fund string, tradings []*StockTrading) *StockTradings {

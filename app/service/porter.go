@@ -111,7 +111,9 @@ func (p *Porter) Catalog(csvFileName string) {
 
 	TheLibrary.AddStockHoldings(NewStockHoldings(theDate, theFund, stockHolding))
 	glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
-	utils.SendAlertV2("Add to library", fmt.Sprintf("Add %s at %s to library", theFund, theDate))
+	if config.Config.DebugMode {
+		utils.SendAlertV2("Add to library", fmt.Sprintf("Add %s at %s to library", theFund, theDate))
+	}
 }
 
 func (p *Porter) ListAllCSVs() (files []string, err error) {

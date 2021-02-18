@@ -1,16 +1,14 @@
 package service
 
 import (
-	"flag"
 	"github.com/golang/glog"
+	"github.com/skeyic/ark-robot/utils"
 	"testing"
 	"time"
 )
 
 func Test_LibraryInit(t *testing.T) {
-	flag.Set("logtostderr", "true")
-	flag.Set("v", "10")
-	flag.Parse()
+	utils.EnableGlogForTesting()
 
 	//glog.V(4).Infof("The LIBRARY: %+v", TheLibrary)
 	err := TheLibrary.LoadFromDirectory()
@@ -33,8 +31,8 @@ func Test_LibraryInit(t *testing.T) {
 
 	// ARKW	02/16/2021	Sell	SE	81141R100	SEA LTD	31,931	0.0964
 	//glog.V(4).Infof("SE P: %+v", TheLibrary.HistoryStockHoldings[pDate]["ARKW"].Holdings["SE"])
-	glog.V(4).Infof("SE C: %+v", TheLibrary.HistoryStockHoldings[cDate]["ARKW"].Holdings["SE"])
-	glog.V(4).Infof("SE C: %+v", TheLibrary.HistoryStockHoldings[pDate]["ARKW"].Holdings["SE"])
+	//glog.V(4).Infof("SE C: %+v", TheLibrary.HistoryStockHoldings[cDate]["ARKW"].Holdings["SE"])
+	//glog.V(4).Infof("SE C: %+v", TheLibrary.HistoryStockHoldings[pDate]["ARKW"].Holdings["SE"])
 
 	tradings := TheLibrary.HistoryStockHoldings[cDate]["ARKW"].GenerateTrading(TheLibrary.HistoryStockHoldings[pDate]["ARKW"])
 
@@ -49,12 +47,28 @@ func Test_LibraryInit(t *testing.T) {
 	//33	ARKW	02/16/2021	Sell	SE	81141R100	SEA LTD	31,931	0.0964
 
 	tradings.SetFixDirection()
-	for _, trading := range tradings.SortedTradingList() {
+	for idx, trading := range tradings.SortedTradingList() {
 		//if trading.Ticker == "PLTR" || trading.Ticker == "PSTG" || trading.Ticker == "PD" || trading.Ticker == "Z" ||
 		//	trading.Ticker == "API" || trading.Ticker == "SE" {
 		//	glog.V(4).Infof("TRADING: %+v", trading)
 		//	glog.V(4).Infof("TICKER: %s, DIRECTION: %s, FDIRECTION: %s, SHARDS: %f, PERCENT: %f", trading.Ticker, trading.Direction, trading.FixedDirection, trading.Shards, trading.Percent)
 		//}
-		glog.V(4).Infof("TICKER: %s, DIRECTION: %s, FDIRECTION: %s, SHARDS: %f, PERCENT: %f", trading.Ticker, trading.Direction, trading.FixedDirection, trading.Shards, trading.Percent)
+		glog.V(4).Infof("IDX: %d, TICKER: %s, DIRECTION: %s, FDIRECTION: %s, SHARDS: %f, PERCENT: %f", idx, trading.Ticker, trading.Direction, trading.FixedDirection, trading.Shards, trading.Percent)
+	}
+}
+
+func Test_GenerateTradings(t *testing.T) {
+	utils.EnableGlogForTesting()
+	TheLibrary.GenerateTradings()
+}
+
+func Test_GenerateTradings2(t *testing.T) {
+	utils.EnableGlogForTesting()
+	for date, hTradings := range TheLibrary.HistoryStockTradings {
+		for fund, tradings := range hTradings {
+			for idx, trading := range tradings.SortedTradingList() {
+				glog.V(4).Infof("%s %s, IDX: %d, TICKER: %s, FDIRECTION: %s, DIRECTION: %s, SHARDS: %f, PERCENT: %f", date.Format("2006/01/02"), fund, idx, trading.Ticker, trading.FixedDirection, trading.Direction, trading.Shards, trading.Percent)
+			}
+		}
 	}
 }

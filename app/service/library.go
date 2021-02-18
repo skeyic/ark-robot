@@ -7,6 +7,7 @@ import (
 	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
 	"os"
+	"sort"
 	"sync"
 	"time"
 )
@@ -156,4 +157,59 @@ func (r *Library) AddStockTradings(s *StockTradings) {
 	}
 	r.lock.Unlock()
 	r.MustSave()
+}
+
+func (r *Library) AddStockTradingsWithoutLock(s *StockTradings) {
+	if r.HistoryStockTradings[s.Date] == nil {
+		r.HistoryStockTradings[s.Date] = make(map[string]*StockTradings)
+	}
+	r.HistoryStockTradings[s.Date][s.Fund] = s
+	if r.LatestStockTradings[s.Fund] == nil || r.LatestStockTradings[s.Fund].Date.Before(s.Date) {
+		r.LatestStockTradings[s.Fund] = s
+	}
+	r.MustSave()
+}
+
+type timeList []time.Time
+
+func (s timeList) Len() int {
+	return len(s)
+}
+
+func (s timeList) Less(i, j int) bool {
+	return s[i].Before(s[j])
+}
+
+func (s timeList) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (r *Library) GenerateTradings() {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	var (
+		dateList timeList
+	)
+
+	for theDate := range r.HistoryStockHoldings {
+		dateList = append(dateList, theDate)
+	}
+
+	sort.Sort(dateList)
+	//for idx, date := range dateList {
+	//	glog.V(4).Infof("IDX: %d, DATE: %s", idx, date)
+	//}
+
+	if dateList == nil {
+		return
+	}
+
+	for i := 1; i < len(dateList); i++ {
+		for _, theFund := range allARKTypes {
+			tradings := TheLibrary.HistoryStockHoldings[dateList[i]][theFund].GenerateTrading(TheLibrary.HistoryStockHoldings[dateList[i-1]][theFund])
+			tradings.SetFixDirection()
+			r.AddStockTradingsWithoutLock(tradings)
+		}
+	}
 }
