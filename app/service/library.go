@@ -23,7 +23,7 @@ var (
 
 type Library struct {
 	lock                 *sync.RWMutex
-	CurrentStockHoldings map[string]*StockHoldings
+	LatestStockHoldings  map[string]*StockHoldings
 	LatestStockTradings  map[string]*StockTradings
 	HistoryStockHoldings map[time.Time]map[string]*StockHoldings
 	HistoryStockTradings map[time.Time]map[string]*StockTradings
@@ -32,7 +32,7 @@ type Library struct {
 func NewLibrary() *Library {
 	r := &Library{
 		lock:                 &sync.RWMutex{},
-		CurrentStockHoldings: make(map[string]*StockHoldings),
+		LatestStockHoldings:  make(map[string]*StockHoldings),
 		LatestStockTradings:  make(map[string]*StockTradings),
 		HistoryStockHoldings: make(map[time.Time]map[string]*StockHoldings),
 		HistoryStockTradings: make(map[time.Time]map[string]*StockTradings),
@@ -48,8 +48,8 @@ func (r *Library) GetLatestHoldingDate() time.Time {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
-	if r.CurrentStockHoldings != nil {
-		for fund, holdings := range r.CurrentStockHoldings {
+	if r.LatestStockHoldings != nil {
+		for fund, holdings := range r.LatestStockHoldings {
 			glog.V(10).Infof("Fund %s, latest date: %s", fund, holdings.Date)
 			if latestTime.IsZero() || latestTime.After(holdings.Date) {
 				latestTime = holdings.Date
@@ -139,8 +139,8 @@ func (r *Library) AddStockHoldings(s *StockHoldings) {
 		r.HistoryStockHoldings[s.Date] = make(map[string]*StockHoldings)
 	}
 	r.HistoryStockHoldings[s.Date][s.Fund] = s
-	if r.CurrentStockHoldings[s.Fund] == nil || r.CurrentStockHoldings[s.Fund].Date.Before(s.Date) {
-		r.CurrentStockHoldings[s.Fund] = s
+	if r.LatestStockHoldings[s.Fund] == nil || r.LatestStockHoldings[s.Fund].Date.Before(s.Date) {
+		r.LatestStockHoldings[s.Fund] = s
 	}
 	r.lock.Unlock()
 	r.MustSave()

@@ -25,7 +25,7 @@ func Test_LibraryInit(t *testing.T) {
 	//	glog.V(4).Infof("KEY: %s, VALUE: %+v", key, value)
 	//}
 
-	//for key, value := range TheLibrary.CurrentStockHoldings["ARKW"].Holdings {
+	//for key, value := range TheLibrary.LatestStockHoldings["ARKW"].Holdings {
 	//	glog.V(4).Infof("KEY: %s, VALUE: %+v", key, value)
 	//}
 

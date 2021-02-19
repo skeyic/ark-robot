@@ -17,10 +17,10 @@ func TestAnalyseTrading(t *testing.T) {
 	//
 	//glog.V(4).Infof("TRADING: %+v", huyaTrading)
 	//
-	//for key, value := range TheLibrary.CurrentStockHoldings[huyaTrading.Fund].Holdings {
+	//for key, value := range TheLibrary.LatestStockHoldings[huyaTrading.Fund].Holdings {
 	//	glog.V(4).Infof("KEY: %s, VALUE: %+v", key, value)
 	//}
 	//
-	//glog.V(4).Infof("SOLD PERCENTS: %f", CalcSoldPercent(huyaTrading, TheLibrary.CurrentStockHoldings[huyaTrading.Fund]))
+	//glog.V(4).Infof("SOLD PERCENTS: %f", CalcSoldPercent(huyaTrading, TheLibrary.LatestStockHoldings[huyaTrading.Fund]))
 
 }
