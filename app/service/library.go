@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
@@ -62,10 +61,10 @@ func (r *Library) GetLatestHoldingDate() time.Time {
 
 func (r *Library) init() {
 	utils.CheckFolder(libraryFolder)
-	err := r.LoadFromFileStore()
-	if err != nil {
-		panic(fmt.Sprintf("failed to load library from the saved file, err: %v", err))
-	}
+	//err := r.LoadFromFileStore()
+	//if err != nil {
+	//	panic(fmt.Sprintf("failed to load library from the saved file, err: %v", err))
+	//}
 	//err := r.LoadFromDirectory()
 	//if err != nil {
 	//	panic(fmt.Sprintf("failed to load library from the saved csv file, err: %v", err))
@@ -210,6 +209,7 @@ func (r *Library) GenerateTradings() {
 			tradings := TheLibrary.HistoryStockHoldings[dateList[i]][theFund].GenerateTrading(TheLibrary.HistoryStockHoldings[dateList[i-1]][theFund])
 			tradings.SetFixDirection()
 			r.AddStockTradingsWithoutLock(tradings)
+			TheStockLibraryMaster.AddStockTradings(tradings)
 		}
 	}
 }

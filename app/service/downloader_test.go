@@ -22,6 +22,6 @@ func TestDownloadCSV(t *testing.T) {
 	//<-make(chan struct{}, 1)
 }
 
-func TestDonwloadTime(t *testing.T) {
+func TestDownloadTime(t *testing.T) {
 	fmt.Printf("NOW: %d", time.Now().UTC().Day())
 }

@@ -59,6 +59,11 @@ func Test_LibraryInit(t *testing.T) {
 
 func Test_GenerateTradings(t *testing.T) {
 	utils.EnableGlogForTesting()
+	err := TheLibrary.LoadFromDirectory()
+	if err != nil {
+		glog.Errorf("failed to load from directory, err: %v", err)
+		return
+	}
 	TheLibrary.GenerateTradings()
 }
 
