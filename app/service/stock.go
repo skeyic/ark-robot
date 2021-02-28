@@ -236,7 +236,7 @@ func RemoveAbnormalData(pl statistics.Float64) statistics.Float64 {
 	return npl
 }
 
-const theMaxVariance = 0.001
+const theMaxVariance = 0.0001
 
 func PickAbnormalData(pl statistics.Float64) (statistics.Float64, statistics.Float64) {
 	var (
@@ -264,70 +264,72 @@ func PickAbnormalData(pl statistics.Float64) (statistics.Float64, statistics.Flo
 	return npl, apl
 }
 
-func (s TradingList) SetFixDirection() {
-	var (
-		positivePercents         = statistics.Float64{}
-		negativePercents         = statistics.Float64{}
-		positiveNum, negativeNum int
-	)
-
-	for _, trading := range s {
-		if trading.Direction == TradeSell {
-			negativePercents = append(negativePercents, trading.Percent*-1)
-			negativeNum++
-		} else if trading.Direction == TradeBuy {
-			positivePercents = append(positivePercents, trading.Percent)
-			positiveNum++
-		}
-	}
-
-	allThePercents := positivePercents
-	if positiveNum < negativeNum {
-		allThePercents = negativePercents
-	}
-
-	theNormalPercents, theAbnormalPercents := PickAbnormalData(allThePercents)
-	glog.V(10).Infof("NORMAL: %+v", theNormalPercents)
-	glog.V(10).Infof("ABNORMAL: %+v", theAbnormalPercents)
-	means := statistics.Mean(&theNormalPercents)
-	glog.V(10).Infof("MEANS: %f", means)
-
-	for _, trading := range s {
-		var (
-			isKeep      = false
-			thisPercent = trading.Percent
-		)
-
-		if (positiveNum < negativeNum && trading.Direction == TradeSell) ||
-			(positiveNum > negativeNum && trading.Direction == TradeBuy) {
-			for _, normalPercent := range theNormalPercents {
-				if trading.Direction == TradeSell {
-					thisPercent *= -1
-				}
-				if thisPercent == normalPercent {
-					isKeep = true
-					break
-				}
-			}
-		}
-
-		if isKeep {
-			trading.FixedDirection = TradeKeep
-		} else {
-			if means < 0 && trading.Direction == TradeSell && trading.Percent < means*-1 {
-				trading.FixedDirection = TradeRelativeBuy
-			} else if means > 0 && trading.Direction == TradeBuy && trading.Percent < means {
-				trading.FixedDirection = TradeRelativeSell
-			} else {
-				trading.FixedDirection = trading.Direction
-			}
-		}
-	}
-}
+//func (s TradingList) SetFixDirection() {
+//	var (
+//		positivePercents         = statistics.Float64{}
+//		negativePercents         = statistics.Float64{}
+//		positiveNum, negativeNum int
+//	)
+//
+//	for _, trading := range s {
+//		if trading.Direction == TradeSell {
+//			negativePercents = append(negativePercents, trading.Percent*-1)
+//			negativeNum++
+//		} else if trading.Direction == TradeBuy {
+//			positivePercents = append(positivePercents, trading.Percent)
+//			positiveNum++
+//		}
+//	}
+//
+//	allThePercents := positivePercents
+//	if positiveNum < negativeNum {
+//		allThePercents = negativePercents
+//	}
+//
+//	theNormalPercents, theAbnormalPercents := PickAbnormalData(allThePercents)
+//	glog.V(10).Infof("NORMAL: %+v", theNormalPercents)
+//	glog.V(10).Infof("ABNORMAL: %+v", theAbnormalPercents)
+//	means := statistics.Mean(&theNormalPercents)
+//	glog.V(10).Infof("MEANS: %f", means)
+//
+//	for _, trading := range s {
+//		var (
+//			isKeep      = false
+//			thisPercent = trading.Percent
+//		)
+//
+//		if (positiveNum < negativeNum && trading.Direction == TradeSell) ||
+//			(positiveNum > negativeNum && trading.Direction == TradeBuy) {
+//			for _, normalPercent := range theNormalPercents {
+//				if trading.Direction == TradeSell {
+//					thisPercent *= -1
+//				}
+//				if thisPercent == normalPercent {
+//					isKeep = true
+//					break
+//				}
+//			}
+//		}
+//
+//		if isKeep {
+//			trading.FixedDirection = TradeKeep
+//		} else {
+//			if means < 0 && trading.Direction == TradeSell && trading.Percent < means*-1 {
+//				trading.FixedDirection = TradeRelativeBuy
+//			} else if means > 0 && trading.Direction == TradeBuy && trading.Percent < means {
+//				trading.FixedDirection = TradeRelativeSell
+//			} else {
+//				trading.FixedDirection = trading.Direction
+//			}
+//		}
+//	}
+//}
 
 type StockTradings struct {
 	Date        time.Time
 	Fund        string
+	Direction   TradeDirection
+	Percent     float64
 	Tradings    map[string]*StockTrading
 	TradingList TradingList
 }
@@ -359,5 +361,75 @@ func (s *StockTradings) SortedTradingList() TradingList {
 }
 
 func (s *StockTradings) SetFixDirection() {
-	s.TradingList.SetFixDirection()
+	var (
+		positivePercents         = statistics.Float64{}
+		negativePercents         = statistics.Float64{}
+		positiveNum, negativeNum int
+	)
+
+	for _, trading := range s.TradingList {
+		if trading.Direction == TradeSell {
+			negativePercents = append(negativePercents, trading.Percent*-1)
+			negativeNum++
+		} else if trading.Direction == TradeBuy {
+			positivePercents = append(positivePercents, trading.Percent)
+			positiveNum++
+		}
+	}
+
+	allThePercents := positivePercents
+	if positiveNum < negativeNum {
+		allThePercents = negativePercents
+	}
+
+	theNormalPercents, theAbnormalPercents := PickAbnormalData(allThePercents)
+	glog.V(10).Infof("NORMAL: %+v", theNormalPercents)
+	glog.V(10).Infof("ABNORMAL: %+v", theAbnormalPercents)
+	means := statistics.Mean(&theNormalPercents)
+	glog.V(10).Infof("MEANS: %f", means)
+
+	if means < 0 {
+		s.Percent = means * -1
+		s.Direction = TradeSell
+	} else if means > 0 {
+		s.Percent = means
+		s.Direction = TradeBuy
+	} else {
+		s.Percent = 0
+		s.Direction = TradeDoNothing
+	}
+
+	for _, trading := range s.TradingList {
+		var (
+			isKeep      = false
+			thisPercent = trading.Percent
+		)
+
+		if (positiveNum < negativeNum && trading.Direction == TradeSell) ||
+			(positiveNum > negativeNum && trading.Direction == TradeBuy) {
+			if trading.Direction == TradeSell {
+				thisPercent *= -1
+			}
+			for _, normalPercent := range theNormalPercents {
+				if thisPercent == normalPercent {
+					isKeep = true
+					break
+				}
+			}
+		}
+
+		if isKeep {
+			trading.FixedDirection = TradeKeep
+		} else {
+			glog.V(4).Infof("thisPercent: %f, means: %f", trading.Percent, means)
+			if means < 0 && trading.Direction == TradeSell && trading.Percent < means*-1 {
+				trading.FixedDirection = TradeRelativeBuy
+			} else if means > 0 && trading.Direction == TradeBuy && trading.Percent < means {
+				trading.FixedDirection = TradeRelativeSell
+			} else {
+				trading.FixedDirection = trading.Direction
+			}
+		}
+	}
+
 }

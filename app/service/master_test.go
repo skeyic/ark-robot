@@ -2,6 +2,8 @@ package service
 
 import (
 	"flag"
+	"github.com/golang/glog"
+	"github.com/skeyic/ark-robot/utils"
 	"testing"
 )
 
@@ -10,4 +12,71 @@ func Test_MasterStart(t *testing.T) {
 	flag.Set("v", "10")
 	flag.Parse()
 	TheMaster.Start()
+}
+
+func Test_MasterFreshInit(t *testing.T) {
+	var (
+		err error
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.FreshInit()
+	if err != nil {
+		glog.Errorf("failed to fresh init the master, err: %v", err)
+		return
+	}
+}
+
+func Test_MasterReport(t *testing.T) {
+	var (
+		err    error
+		report = &Report{}
+	)
+
+	utils.EnableGlogForTesting()
+
+	err = TheLibrary.LoadFromFileStore()
+	if err != nil {
+		glog.Errorf("failed to load library, err: %v", err)
+		return
+	}
+
+	err = TheStockLibraryMaster.LoadAllStocks()
+	if err != nil {
+		glog.Errorf("failed to load stock library master, err: %v", err)
+		return
+	}
+
+	//stockCurrentHoldings := TheStockLibraryMaster.GetStockCurrentHolding("MORGAN STANLEY GOVT INSTL 8035", "ARKF")
+	//glog.V(4).Infof("HOLDINGS: %+v", stockCurrentHoldings)
+
+	latestTradings := TheLibrary.LatestStockTradings
+	for _, tradings := range latestTradings {
+		for _, trading := range tradings.SortedTradingList() {
+			stockCurrentHoldings := TheStockLibraryMaster.GetStockCurrentHolding(trading.Ticker, trading.Fund)
+			report.StockReports = append(report.StockReports, &StockReport{
+				Date:                  trading.Date.Format("2006/01/02"),
+				StockTicker:           trading.Ticker,
+				Fund:                  trading.Fund,
+				CurrentHoldingShards:  stockCurrentHoldings.Shards,
+				HistoryShards:         [3]float64{}, //
+				CurrentDirection:      trading.Direction,
+				FixDirection:          trading.FixedDirection,
+				CurrentTradingShards:  trading.Shards,
+				CurrentTradingPercent: trading.Percent,
+				FundDirection:         tradings.Direction,
+				FundTradingPercent:    tradings.Percent,
+			},
+			)
+		}
+	}
+
+	for _, r := range report.StockReports {
+		if r.FixDirection == TradeKeep && r.StockTicker != "RPTX" {
+			continue
+		}
+		glog.V(4).Infof("%s STOCK: %s, FUND: %s, CurrentHoldingShards: %f, DIRECTION: %s, FixDIRECTION: %s, SHARDS: %f, PERCENT: %f, FundDirection: %s, FundPERCENT: %f", r.Date, r.StockTicker, r.Fund, r.CurrentHoldingShards,
+			r.CurrentDirection, r.FixDirection, r.CurrentTradingShards, r.CurrentTradingPercent, r.FundDirection, r.FundTradingPercent)
+	}
+
 }

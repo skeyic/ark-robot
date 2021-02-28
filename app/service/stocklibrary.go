@@ -115,6 +115,20 @@ func (r *StockLibraryMaster) AddStockTradings(tradings *StockTradings) {
 	}
 }
 
+func (r *StockLibraryMaster) GetStockCurrentHolding(ticker, fund string) *StockHolding {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	stockLibrary := r.StockLibraries[ticker]
+	if stockLibrary != nil {
+		if stockLibrary.LatestStockHolding != nil {
+			return stockLibrary.LatestStockHolding[fund]
+		}
+	}
+
+	return nil
+}
+
 type StockLibrary struct {
 	lock                 *sync.RWMutex
 	Ticker               string

@@ -19,7 +19,7 @@ func TestStockLibrary(t *testing.T) {
 	//	glog.V(4).Infof("TICKER: %s, STOCK: %+v", ticker, stock)
 	//}
 
-	jd := TheStockLibraryMaster.StockLibraries["JD"]
+	jd := TheStockLibraryMaster.StockLibraries["RPTX"]
 	if jd == nil {
 		panic("JD not found")
 	}

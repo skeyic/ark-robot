@@ -37,6 +37,37 @@ func (m *Master) GetLatestDate() time.Time {
 	return m.latestDate
 }
 
+// Init the holding, trading and stock library from the stored holdings in directory
+func (m *Master) FreshInit() error {
+	var (
+		err error
+	)
+
+	err = TheLibrary.LoadFromDirectory()
+	if err != nil {
+		glog.Errorf("failed to load holding library from directory, err: %v", err)
+		return err
+	}
+
+	TheLibrary.GenerateTradings()
+
+	err = TheStockLibraryMaster.LoadAllStocks()
+	if err != nil {
+		glog.Errorf("failed to load stock library master from directory, err: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (m *Master) ReportLatestTrading() *Report {
+	var (
+		report = &Report{}
+	)
+
+	return report
+}
+
 func (m *Master) Start() {
 	var (
 		ticker   = time.NewTicker(masterProcessTimeInterval)

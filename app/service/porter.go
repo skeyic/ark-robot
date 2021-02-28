@@ -109,7 +109,9 @@ func (p *Porter) Catalog(csvFileName string) {
 		panic(fmt.Sprintf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err))
 	}
 
-	TheLibrary.AddStockHoldings(NewStockHoldings(theDate, theFund, stockHolding))
+	holdings := NewStockHoldings(theDate, theFund, stockHolding)
+	TheLibrary.AddStockHoldings(holdings)
+	TheStockLibraryMaster.AddStockHoldings(holdings)
 	glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
 	if config.Config.DebugMode {
 		utils.SendAlertV2("Add to library", fmt.Sprintf("Add %s at %s to library", theFund, theDate))
@@ -166,7 +168,9 @@ func (p *Porter) ReadCSV(csvFileName string) (err error) {
 	theDate := stockHolding[0].Date
 	theFund := stockHolding[0].Fund
 
-	TheLibrary.AddStockHoldings(NewStockHoldings(theDate, theFund, stockHolding))
+	holding := NewStockHoldings(theDate, theFund, stockHolding)
+	TheLibrary.AddStockHoldings(holding)
+	TheStockLibraryMaster.AddStockHoldings(holding)
 	glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
 	return
 }

@@ -89,7 +89,6 @@ func (r *Library) LoadFromFileStore() error {
 		return err
 	}
 
-	glog.V(10).Infof("library after load: %+v", r)
 	return nil
 }
 
@@ -109,8 +108,6 @@ func (r *Library) LoadFromDirectory() (err error) {
 			return
 		}
 	}
-
-	// Generate all tradings
 
 	return nil
 }

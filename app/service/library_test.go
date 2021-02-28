@@ -17,8 +17,8 @@ func Test_LibraryInit(t *testing.T) {
 		return
 	}
 
-	pDate, _ := time.Parse("2006-01-02", "2021-02-12")
-	cDate, _ := time.Parse("2006-01-02", "2021-02-16")
+	pDate, _ := time.Parse("2006-01-02", "2021-02-25")
+	cDate, _ := time.Parse("2006-01-02", "2021-02-26")
 	//tDate, _ := time.Parse("2006-01-02", "2021-02-10")
 
 	//for key, value := range TheLibrary.HistoryStockHoldings[date]["ARKW"].Holdings {
@@ -34,7 +34,7 @@ func Test_LibraryInit(t *testing.T) {
 	//glog.V(4).Infof("SE C: %+v", TheLibrary.HistoryStockHoldings[cDate]["ARKW"].Holdings["SE"])
 	//glog.V(4).Infof("SE C: %+v", TheLibrary.HistoryStockHoldings[pDate]["ARKW"].Holdings["SE"])
 
-	tradings := TheLibrary.HistoryStockHoldings[cDate]["ARKW"].GenerateTrading(TheLibrary.HistoryStockHoldings[pDate]["ARKW"])
+	tradings := TheLibrary.HistoryStockHoldings[cDate]["ARKG"].GenerateTrading(TheLibrary.HistoryStockHoldings[pDate]["ARKG"])
 
 	//glog.V(4).Infof("TRADINGS: %+v", tradings.Tradings)
 	//glog.V(4).Infof("TRADINGS SE: %+v", tradings.Tradings["SE"])
@@ -76,4 +76,5 @@ func Test_GenerateTradings2(t *testing.T) {
 			}
 		}
 	}
+	// CHECK RPTX
 }
