@@ -51,15 +51,18 @@ func Test_MasterReport(t *testing.T) {
 	//glog.V(4).Infof("HOLDINGS: %+v", stockCurrentHoldings)
 
 	latestTradings := TheLibrary.LatestStockTradings
-	for _, tradings := range latestTradings {
+	for _, fund := range allARKTypes {
+		tradings := latestTradings[fund]
 		for _, trading := range tradings.SortedTradingList() {
 			stockCurrentHoldings := TheStockLibraryMaster.GetStockCurrentHolding(trading.Ticker, trading.Fund)
 			if report.Date == "" {
-				report.Date = trading.Date.Format("2006/01/02")
+				report.Date = trading.Date.Format("2006-01-02")
 			}
 			report.StockReports = append(report.StockReports, &StockReport{
-				Date:                  trading.Date.Format("2006/01/02"),
+				Date:                  trading.Date.Format("2006-01-02"),
 				StockTicker:           trading.Ticker,
+				Company:               trading.Company,
+				Cusip:                 trading.Cusip,
 				Fund:                  trading.Fund,
 				CurrentHoldingShards:  stockCurrentHoldings.Shards,
 				HistoryShards:         [3]float64{}, //
@@ -82,7 +85,7 @@ func Test_MasterReport(t *testing.T) {
 	//		r.CurrentDirection, r.FixDirection, r.CurrentTradingShards, r.CurrentTradingPercent, r.FundDirection, r.FundTradingPercent)
 	//}
 
-	err = report.ToExcel()
+	err = report.ToExcel(false)
 	if err != nil {
 		glog.Errorf("Report to excel failed, err: %v", err)
 		return

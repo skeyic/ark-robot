@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/config"
@@ -29,7 +30,20 @@ type Report struct {
 	StockReports []*StockReport
 }
 
-func (r *Report) ToExcel() error {
+func toSkipTrade(direction TradeDirection) bool {
+	return false
+	//return direction == TradeDoNothing || direction == TradeKeep
+}
+
+func toSkipTicker(ticker string) bool {
+	return ticker == "MORGAN STANLEY GOVT INSTL 8035"
+}
+
+func toPercentString(percent float64) string {
+	return fmt.Sprintf("%.3f", percent) + "%"
+}
+
+func (r *Report) ToExcel(full bool) error {
 	var (
 		err      error
 		fileName = r.ExcelPath()
@@ -52,21 +66,31 @@ func (r *Report) ToExcel() error {
 		return err
 	}
 
-	for idx, stockReport := range r.StockReports {
+	var idx = 4
+	for _, stockReport := range r.StockReports {
+		if !full && (toSkipTrade(stockReport.FixDirection) ||
+			toSkipTicker(stockReport.StockTicker)) {
+			continue
+		}
+
 		// Leave the example to test
-		line := strconv.Itoa(idx + 4)
+		line := strconv.Itoa(idx)
 		f.SetCellValue(sheet, "A"+line, stockReport.StockTicker)
-		f.SetCellValue(sheet, "B"+line, stockReport.Fund)
-		f.SetCellValue(sheet, "C"+line, stockReport.CurrentDirection)
-		f.SetCellValue(sheet, "D"+line, stockReport.FixDirection)
-		f.SetCellValue(sheet, "E"+line, stockReport.CurrentTradingShards)
-		f.SetCellValue(sheet, "F"+line, stockReport.CurrentTradingPercent)
-		f.SetCellValue(sheet, "G"+line, stockReport.CurrentHoldingShards)
+		f.SetCellValue(sheet, "B"+line, stockReport.Company)
+		f.SetCellValue(sheet, "C"+line, stockReport.Cusip)
+		f.SetCellValue(sheet, "D"+line, stockReport.Fund)
+		f.SetCellValue(sheet, "E"+line, stockReport.CurrentDirection)
+		f.SetCellValue(sheet, "F"+line, stockReport.FixDirection)
+		f.SetCellValue(sheet, "G"+line, stockReport.CurrentTradingShards)
+		f.SetCellValue(sheet, "H"+line, toPercentString(stockReport.CurrentTradingPercent))
+		f.SetCellValue(sheet, "I"+line, stockReport.CurrentHoldingShards)
 		//f.SetCellValue(sheet, "H"+line, stockReport.CurrentDirection)
 		//f.SetCellValue(sheet, "I"+line, stockReport.CurrentDirection)
 		//f.SetCellValue(sheet, "J"+line, stockReport.CurrentDirection)
-		f.SetCellValue(sheet, "K"+line, stockReport.FundDirection)
-		f.SetCellValue(sheet, "L"+line, stockReport.FundTradingPercent)
+		f.SetCellValue(sheet, "M"+line, stockReport.FundDirection)
+		f.SetCellValue(sheet, "N"+line, toPercentString(stockReport.FundTradingPercent))
+
+		idx++
 	}
 
 	err = f.Save()
@@ -110,6 +134,8 @@ func (r *Report) InitExcelFromTemplate() error {
 type StockReport struct {
 	Date                 string
 	StockTicker          string
+	Company              string
+	Cusip                string
 	Fund                 string
 	CurrentHoldingShards float64
 	CurrentHoldingWeight float64

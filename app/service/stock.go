@@ -117,11 +117,11 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 			if pHolding.Shards < holding.Shards {
 				trading.Direction = TradeBuy
 				trading.Shards = holding.Shards - pHolding.Shards
-				trading.Percent = trading.Shards / pHolding.Shards
+				trading.Percent = trading.Shards / pHolding.Shards * 100
 			} else if pHolding.Shards > holding.Shards {
 				trading.Direction = TradeSell
 				trading.Shards = pHolding.Shards - holding.Shards
-				trading.Percent = trading.Shards / pHolding.Shards
+				trading.Percent = trading.Shards / pHolding.Shards * 100
 			} else {
 				trading.Direction = TradeDoNothing
 			}
@@ -236,7 +236,7 @@ func RemoveAbnormalData(pl statistics.Float64) statistics.Float64 {
 	return npl
 }
 
-const theMaxVariance = 0.0001
+const theMaxVariance = 0.005
 
 func PickAbnormalData(pl statistics.Float64) (statistics.Float64, statistics.Float64) {
 	var (
@@ -374,6 +374,9 @@ func (s *StockTradings) SetFixDirection() {
 		} else if trading.Direction == TradeBuy {
 			positivePercents = append(positivePercents, trading.Percent)
 			positiveNum++
+		} else if trading.Direction == TradeDoNothing {
+			negativePercents = append(negativePercents, 0)
+			positivePercents = append(positivePercents, 0)
 		}
 	}
 

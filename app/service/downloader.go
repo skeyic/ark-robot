@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	allARKTypes = []string{"ARKK", "ARKQ", "ARKW", "ARKG", "ARKF"}
+	allARKTypes = []string{"ARKF", "ARKG", "ARKK", "ARKQ", "ARKW"}
 	arkMap      = map[string]string{
 		"ARKK": "ARK_INNOVATION_ETF_ARKK_HOLDINGS",
 		"ARKQ": "ARK_AUTONOMOUS_TECHNOLOGY_&_ROBOTICS_ETF_ARKQ_HOLDINGS",
