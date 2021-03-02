@@ -16,7 +16,7 @@ func TestExcel(t *testing.T) {
 		r    = Report{
 			Date: date,
 		}
-		fileName = r.ExcelName()
+		fileName = r.ExcelPath()
 	)
 
 	r.InitExcelFromTemplate()

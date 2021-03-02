@@ -54,6 +54,9 @@ func Test_MasterReport(t *testing.T) {
 	for _, tradings := range latestTradings {
 		for _, trading := range tradings.SortedTradingList() {
 			stockCurrentHoldings := TheStockLibraryMaster.GetStockCurrentHolding(trading.Ticker, trading.Fund)
+			if report.Date == "" {
+				report.Date = trading.Date.Format("2006/01/02")
+			}
 			report.StockReports = append(report.StockReports, &StockReport{
 				Date:                  trading.Date.Format("2006/01/02"),
 				StockTicker:           trading.Ticker,
@@ -71,12 +74,18 @@ func Test_MasterReport(t *testing.T) {
 		}
 	}
 
-	for _, r := range report.StockReports {
-		if r.FixDirection == TradeKeep && r.StockTicker != "RPTX" {
-			continue
-		}
-		glog.V(4).Infof("%s STOCK: %s, FUND: %s, CurrentHoldingShards: %f, DIRECTION: %s, FixDIRECTION: %s, SHARDS: %f, PERCENT: %f, FundDirection: %s, FundPERCENT: %f", r.Date, r.StockTicker, r.Fund, r.CurrentHoldingShards,
-			r.CurrentDirection, r.FixDirection, r.CurrentTradingShards, r.CurrentTradingPercent, r.FundDirection, r.FundTradingPercent)
+	//for _, r := range report.StockReports {
+	//	if r.FixDirection == TradeKeep && r.StockTicker != "RPTX" {
+	//		continue
+	//	}
+	//	glog.V(4).Infof("%s STOCK: %s, FUND: %s, CurrentHoldingShards: %f, DIRECTION: %s, FixDIRECTION: %s, SHARDS: %f, PERCENT: %f, FundDirection: %s, FundPERCENT: %f", r.Date, r.StockTicker, r.Fund, r.CurrentHoldingShards,
+	//		r.CurrentDirection, r.FixDirection, r.CurrentTradingShards, r.CurrentTradingPercent, r.FundDirection, r.FundTradingPercent)
+	//}
+
+	err = report.ToExcel()
+	if err != nil {
+		glog.Errorf("Report to excel failed, err: %v", err)
+		return
 	}
 
 }
