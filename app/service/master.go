@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	masterProcessTimeInterval = 5 * time.Minute
+	masterProcessTimeInterval = 1 * time.Hour
 )
 
 var (

@@ -18,8 +18,7 @@ const (
 )
 
 var (
-	allARKTypes = []string{"ARKK", "ARKQ", "ARKW", "ARKG", "ARKF"}
-	arkMap      = map[string]string{
+	arkMap = map[string]string{
 		"ARKK": "ARK_INNOVATION_ETF_ARKK_HOLDINGS",
 		"ARKQ": "ARK_AUTONOMOUS_TECHNOLOGY_&_ROBOTICS_ETF_ARKQ_HOLDINGS",
 		"ARKW": "ARK_NEXT_GENERATION_INTERNET_ETF_ARKW_HOLDINGS",
@@ -33,7 +32,12 @@ var (
 )
 
 var (
-	errDownloadCSV = errors.New("download csv failed")
+	errDownloadCSV      = errors.New("download csv failed")
+	errFileAlreadyExist = errors.New("file already exist")
+	errRenameFile       = errors.New("rename file failed")
+	errDateNotMatch     = errors.New("date not match")
+	errFundNotMatch     = errors.New("fund not match")
+	errValidateFail     = errors.New("validate failed")
 )
 
 var (
@@ -72,25 +76,62 @@ func (d *Downloader) process() {
 }
 
 func (d *Downloader) DownloadAllARKCSVs() error {
+	var (
+		fileNames   []string
+		arkHoldings = &ARKHoldings{}
+	)
+
+	// Make sure we have downloaded all funds
 	for _, theType := range allARKTypes {
-		err := d.DownloadARKCSV(theType)
+		theFile, err := d.DownloadARKCSV(theType)
 		if err != nil {
 			glog.Errorf("download ARK %s CSV failed, err: %v", theType, err)
 			return err
 		}
+		fileNames = append(fileNames, theFile)
 	}
+
+	for _, fileName := range fileNames {
+		stockHoldings, err := ThePorter.Catalog(fileName)
+		if err != nil {
+			return err
+		}
+
+		err = arkHoldings.AddStockHoldings(stockHoldings)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !arkHoldings.Validation() {
+		return errValidateFail
+	}
+
+	if TheLibrary.GetLatestHoldingDate() == arkHoldings.Date {
+		glog.V(4).Infof("No need to update, latest date: %s", arkHoldings.Date)
+		return nil
+	}
+
+	TheLibrary.AddStockHoldings(arkHoldings)
+	TheStockLibraryMaster.AddStockHoldings(arkHoldings)
+
+	glog.V(4).Infof("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now())
+	if config.Config.DebugMode {
+		utils.SendAlertV2("Add to library", fmt.Sprintf("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now()))
+	}
+
 	return nil
 }
 
-func (d *Downloader) DownloadARKCSV(arkType string) error {
+func (d *Downloader) DownloadARKCSV(arkType string) (string, error) {
 	var (
 		url      = generateArkCSVURL(arkType)
-		filename = generateDownloaderFilePath(arkType)
+		fileName = generateDownloaderFilePath(arkType)
 	)
 	resp, err := http.Get(url)
 	if err != nil {
 		glog.Errorf("download CSV failed, url: %s, err: %v", url, err)
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
@@ -98,17 +139,16 @@ func (d *Downloader) DownloadARKCSV(arkType string) error {
 	offset := bytes.Index(body, []byte(",,,,,,,"))
 	if offset == -1 {
 		glog.Errorf("incorrect csv format")
-		return errDownloadCSV
+		return "", errDownloadCSV
 	}
 
-	err = ioutil.WriteFile(filename, body[:offset], os.ModePerm)
+	err = ioutil.WriteFile(fileName, body[:offset], os.ModePerm)
 	if err != nil {
 		glog.Errorf("copy resp data to file failed, err: %v", err)
-		return err
+		return "", err
 	}
 
-	glog.V(4).Infof("download CSV %s completed", filename)
-	ThePorter.Catalog(filename)
+	glog.V(4).Infof("download CSV %s completed", fileName)
 
-	return nil
+	return fileName, nil
 }

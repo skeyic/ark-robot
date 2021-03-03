@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
@@ -20,20 +21,107 @@ var (
 	TheLibrary = NewLibrary()
 )
 
+var (
+	allARKTypes = []string{"ARKK", "ARKQ", "ARKW", "ARKG", "ARKF"}
+)
+
+type ARKHoldings struct {
+	Date time.Time
+	ARKK *StockHoldings
+	ARKQ *StockHoldings
+	ARKW *StockHoldings
+	ARKG *StockHoldings
+	ARKF *StockHoldings
+}
+
+func NewARKHoldings() *ARKHoldings {
+	return &ARKHoldings{}
+}
+
+func NewARKHoldingsFromDirectory(dir string) (*ARKHoldings, error) {
+	files, err := ThePorter.ListAllCSVs(dir)
+	if err != nil {
+		return nil, err
+	}
+	var arkHoldings = NewARKHoldings()
+	for _, theFile := range files {
+		glog.V(10).Infof("File: %s", theFile)
+		holdings, err := ThePorter.ReadCSV(theFile)
+		if err != nil {
+			glog.Errorf("failed to read csv file %s, err: %v", theFile, err)
+			return nil, err
+		}
+		err = arkHoldings.AddStockHoldings(holdings)
+		if err != nil {
+			glog.Errorf("failed to add stock holdings, err: %v", err)
+			return nil, err
+		}
+	}
+	return arkHoldings, nil
+}
+
+func (a *ARKHoldings) Validation() bool {
+	return !(a.Date.IsZero() || a.ARKK == nil || a.ARKQ == nil ||
+		a.ARKW == nil || a.ARKG == nil || a.ARKF == nil)
+}
+
+func (a *ARKHoldings) AddStockHoldings(s *StockHoldings) error {
+	if a.Date.IsZero() {
+		a.Date = s.Date
+	} else {
+		if a.Date != s.Date {
+			return errDateNotMatch
+		}
+	}
+
+	switch s.Fund {
+	case "ARKK":
+		a.ARKK = s
+	case "ARKQ":
+		a.ARKQ = s
+	case "ARKW":
+		a.ARKW = s
+	case "ARKG":
+		a.ARKG = s
+	case "ARKF":
+		a.ARKF = s
+	default:
+		return errFundNotMatch
+	}
+	return nil
+}
+
+func (a *ARKHoldings) GetFundStockHoldings(fund string) *StockHoldings {
+	switch fund {
+	case "ARKK":
+		return a.ARKK
+	case "ARKQ":
+		return a.ARKQ
+	case "ARKW":
+		return a.ARKW
+	case "ARKG":
+		return a.ARKG
+	case "ARKF":
+		return a.ARKF
+	default:
+		panic(fmt.Sprintf("Incorrect fund type: %s", fund))
+	}
+}
+
 type Library struct {
 	lock                 *sync.RWMutex
-	LatestStockHoldings  map[string]*StockHoldings
+	LatestStockHoldings  *ARKHoldings
 	LatestStockTradings  map[string]*StockTradings
-	HistoryStockHoldings map[time.Time]map[string]*StockHoldings
+	HistoryStockHoldings map[time.Time]*ARKHoldings
 	HistoryStockTradings map[time.Time]map[string]*StockTradings
 }
 
 func NewLibrary() *Library {
 	r := &Library{
 		lock:                 &sync.RWMutex{},
-		LatestStockHoldings:  make(map[string]*StockHoldings),
+		LatestStockHoldings:  NewARKHoldings(),
 		LatestStockTradings:  make(map[string]*StockTradings),
-		HistoryStockHoldings: make(map[time.Time]map[string]*StockHoldings),
+		HistoryStockHoldings: make(map[time.Time]*ARKHoldings),
 		HistoryStockTradings: make(map[time.Time]map[string]*StockTradings),
 	}
 	r.init()
@@ -48,12 +136,7 @@ func (r *Library) GetLatestHoldingDate() time.Time {
 	defer r.lock.RUnlock()
 
 	if r.LatestStockHoldings != nil {
-		for fund, holdings := range r.LatestStockHoldings {
-			glog.V(10).Infof("Fund %s, latest date: %s", fund, holdings.Date)
-			if latestTime.IsZero() || latestTime.After(holdings.Date) {
-				latestTime = holdings.Date
-			}
-		}
+		return r.LatestStockHoldings.Date
 	}
 
 	return latestTime
@@ -94,19 +177,18 @@ func (r *Library) LoadFromFileStore() error {
 
 func (r *Library) LoadFromDirectory() (err error) {
 	// Load all holdings
-	files, err := ThePorter.ListAllCSVs()
+	dates, err := ThePorter.ListAllDates()
 	if err != nil {
 		glog.Errorf("failed to list all csv files, err: %v", err)
 		return
 	}
 
-	for _, theFile := range files {
-		glog.V(10).Infof("File: %s", theFile)
-		err = ThePorter.ReadCSV(theFile)
+	for _, dateFolder := range dates {
+		arkHoldings, err := NewARKHoldingsFromDirectory(dateFolder)
 		if err != nil {
-			glog.Errorf("failed to read csv file %s, err: %v", theFile, err)
-			return
+			return err
 		}
+		TheLibrary.AddStockHoldings(arkHoldings)
 	}
 
 	return nil
@@ -129,14 +211,13 @@ func (r *Library) MustSave() {
 	}
 }
 
-func (r *Library) AddStockHoldings(s *StockHoldings) {
+func (r *Library) AddStockHoldings(a *ARKHoldings) {
 	r.lock.Lock()
-	if r.HistoryStockHoldings[s.Date] == nil {
-		r.HistoryStockHoldings[s.Date] = make(map[string]*StockHoldings)
+	if r.HistoryStockHoldings[a.Date] == nil {
+		r.HistoryStockHoldings[a.Date] = a
 	}
-	r.HistoryStockHoldings[s.Date][s.Fund] = s
-	if r.LatestStockHoldings[s.Fund] == nil || r.LatestStockHoldings[s.Fund].Date.Before(s.Date) {
-		r.LatestStockHoldings[s.Fund] = s
+	if r.LatestStockHoldings == nil || r.LatestStockHoldings.Date.Before(a.Date) {
+		r.LatestStockHoldings = a
 	}
 	r.lock.Unlock()
 	r.MustSave()
@@ -203,7 +284,7 @@ func (r *Library) GenerateTradings() {
 
 	for i := 1; i < len(dateList); i++ {
 		for _, theFund := range allARKTypes {
-			tradings := TheLibrary.HistoryStockHoldings[dateList[i]][theFund].GenerateTrading(TheLibrary.HistoryStockHoldings[dateList[i-1]][theFund])
+			tradings := TheLibrary.HistoryStockHoldings[dateList[i]].GetFundStockHoldings(theFund).GenerateTrading(TheLibrary.HistoryStockHoldings[dateList[i-1]].GetFundStockHoldings(theFund))
 			tradings.SetFixDirection()
 			r.AddStockTradingsWithoutLock(tradings)
 			TheStockLibraryMaster.AddStockTradings(tradings)

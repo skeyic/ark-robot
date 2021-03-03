@@ -20,8 +20,24 @@ import (
 //     - 20210128ARKQ.csv
 //  ...
 
+// Data folder
+// - ARK
+//   - 20210128
+//     - 20210128ARKK.csv
+//     - 20210128ARKF.csv
+//     - 20210128ARKG.csv
+//     - 20210128ARKQ.csv
+//     - 20210128ARKW.csv
+//   - 20210129
+//     - 20210129ARKQ.csv
+//     - 20210129ARKF.csv
+//     - 20210129ARKG.csv
+//     - 20210129ARKQ.csv
+//     - 20210129ARKW.csv
+//  ...
+
 var (
-	porterFolder = config.Config.DataFolder + "/directory/"
+	porterFolder = config.Config.DataFolder + "/ARK/"
 )
 
 var (
@@ -29,7 +45,9 @@ var (
 )
 
 func generatePorterFilePath(fund string, date time.Time) string {
-	return porterFolder + fund + "/" + date.Format("20060102") + fund + ".csv"
+	folderPath := porterFolder + date.Format("20060102")
+	utils.CheckFolder(folderPath)
+	return folderPath + "/" + date.Format("20060102") + fund + ".csv"
 }
 
 func generatePorterCurrentFilePath(fund string) string {
@@ -47,9 +65,6 @@ func NewPorter() *Porter {
 
 func (p *Porter) init() {
 	utils.CheckFolder(porterFolder)
-	for _, arkType := range allARKTypes {
-		utils.CheckFolder(porterFolder + arkType)
-	}
 	glog.V(4).Infof("porter init completed")
 }
 
@@ -72,7 +87,7 @@ func ValidateARKCSV(records [][]string) bool {
 }
 
 // Read the CSV file, add the data in researcher, move and remove the file to correct place
-func (p *Porter) Catalog(csvFileName string) {
+func (p *Porter) Catalog(csvFileName string) (*StockHoldings, error) {
 	var (
 		stockHolding []*StockHolding
 	)
@@ -100,25 +115,57 @@ func (p *Porter) Catalog(csvFileName string) {
 	// return if the file already exists
 	_, err = os.Stat(newPath)
 	if !os.IsNotExist(err) {
-		glog.V(4).Infof("file %s already exists, return", newPath)
-		return
+		glog.Warningf("file %s already exists, return", newPath)
+		return nil, errFileAlreadyExist
 	}
 
 	err = os.Rename(csvFileName, newPath)
 	if err != nil {
-		panic(fmt.Sprintf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err))
+		glog.Errorf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err)
+		return nil, errRenameFile
 	}
 
-	holdings := NewStockHoldings(theDate, theFund, stockHolding)
-	TheLibrary.AddStockHoldings(holdings)
-	TheStockLibraryMaster.AddStockHoldings(holdings)
-	glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
-	if config.Config.DebugMode {
-		utils.SendAlertV2("Add to library", fmt.Sprintf("Add %s at %s to library", theFund, theDate))
-	}
+	return NewStockHoldings(theDate, theFund, stockHolding), nil
+
+	//TheLibrary.AddStockHoldings(holdings)
+	//TheStockLibraryMaster.AddStockHoldings(holdings)
+	//glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
+	//if config.Config.DebugMode {
+	//	utils.SendAlertV2("Add to library", fmt.Sprintf("Add %s at %s to library", theFund, theDate))
+	//}
 }
 
-func (p *Porter) ListAllCSVs() (files []string, err error) {
+func (p *Porter) ListAllDates() (files []string, err error) {
+	walkFunc := func(path string, info os.FileInfo, err error) error {
+		if info == nil {
+			return nil
+		}
+		if info.IsDir() {
+			names := strings.Split(info.Name(), "/")
+			name := names[len(names)-1]
+			glog.V(4).Infof("NAME: %s", name)
+
+			_, err := time.Parse("20060102", name)
+			if err != nil {
+				glog.Errorf("Skip incorrect file name: %s", name)
+				return nil
+			}
+			files = append(files, path)
+
+			return nil
+		}
+		return nil
+	}
+
+	err = filepath.Walk(porterFolder, walkFunc)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (p *Porter) ListAllCSVs(folderPath string) (files []string, err error) {
 	walkFunc := func(path string, info os.FileInfo, err error) error {
 		if info == nil {
 			return nil
@@ -133,7 +180,7 @@ func (p *Porter) ListAllCSVs() (files []string, err error) {
 	}
 
 	for _, fund := range allARKTypes {
-		err = filepath.Walk(porterFolder+fund, walkFunc)
+		err = filepath.Walk(folderPath+fund, walkFunc)
 		if err != nil {
 			return
 		}
@@ -142,19 +189,19 @@ func (p *Porter) ListAllCSVs() (files []string, err error) {
 	return
 }
 
-func (p *Porter) ReadCSV(csvFileName string) (err error) {
+func (p *Porter) ReadCSV(csvFileName string) (*StockHoldings, error) {
 	var (
 		stockHolding []*StockHolding
 	)
 	records, err := NewCSVReader(csvFileName).Load()
 	if err != nil {
 		glog.Errorf("failed to read csv file: %s, err: %v", csvFileName, err)
-		return
+		return nil, err
 	}
 
 	if !ValidateARKCSV(records) {
 		glog.Errorf("failed to validate csv file: %s", csvFileName)
-		return
+		return nil, err
 	}
 
 	for _, record := range records[1:] {
@@ -168,9 +215,20 @@ func (p *Porter) ReadCSV(csvFileName string) (err error) {
 	theDate := stockHolding[0].Date
 	theFund := stockHolding[0].Fund
 
-	holding := NewStockHoldings(theDate, theFund, stockHolding)
-	TheLibrary.AddStockHoldings(holding)
-	TheStockLibraryMaster.AddStockHoldings(holding)
-	glog.V(4).Infof("Add %s at %s to library", theFund, theDate)
-	return
+	// TODO
+	return NewStockHoldings(theDate, theFund, stockHolding), nil
+	//TheLibrary.AddStockHoldings(holding)
+	//TheStockLibraryMaster.AddStockHoldings(holding)
+
+	//newPath := "/Users/carrick/go/src/github.com/skeyic/ark-robot/data/ARK"
+	//utils.CheckFolder("/Users/carrick/go/src/github.com/skeyic/ark-robot/data/ARK")
+	//utils.CheckFolder("/Users/carrick/go/src/github.com/skeyic/ark-robot/data/ARK/" + theDate.Format("20060102"))
+	//
+	//names := strings.Split(csvFileName, "/")
+	//err = os.Rename(csvFileName, "/Users/carrick/go/src/github.com/skeyic/ark-robot/data/ARK/"+
+	//	theDate.Format("20060102")+"/"+names[len(names)-1])
+	//if err != nil {
+	//	panic(fmt.Sprintf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err))
+	//}
+
 }
