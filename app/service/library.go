@@ -22,7 +22,7 @@ var (
 )
 
 var (
-	allARKTypes = []string{"ARKK", "ARKQ", "ARKW", "ARKG", "ARKF"}
+	allARKTypes = []string{"ARKF", "ARKG", "ARKK", "ARKQ", "ARKW"}
 )
 
 type ARKHoldings struct {
