@@ -89,16 +89,18 @@ func (r *StockLibraryMaster) LoadAllStocks() error {
 	return nil
 }
 
-func (r *StockLibraryMaster) AddStockHoldings(holdings *StockHoldings) {
+func (r *StockLibraryMaster) AddStockHoldings(arkHoldings *ARKHoldings) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	for ticker, holding := range holdings.Holdings {
-		stockLibrary := r.StockLibraries[ticker]
-		if stockLibrary == nil {
-			stockLibrary = NewStockLibrary(ticker)
-			r.StockLibraries[ticker] = stockLibrary
+	for _, fund := range allARKTypes {
+		for ticker, holding := range arkHoldings.GetFundStockHoldings(fund).Holdings {
+			stockLibrary := r.StockLibraries[ticker]
+			if stockLibrary == nil {
+				stockLibrary = NewStockLibrary(ticker)
+				r.StockLibraries[ticker] = stockLibrary
+			}
+			stockLibrary.AddStockHolding(holding)
 		}
-		stockLibrary.AddStockHolding(holding)
 	}
 }
 
