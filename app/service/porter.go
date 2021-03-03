@@ -179,11 +179,9 @@ func (p *Porter) ListAllCSVs(folderPath string) (files []string, err error) {
 		return nil
 	}
 
-	for _, fund := range allARKTypes {
-		err = filepath.Walk(folderPath+fund, walkFunc)
-		if err != nil {
-			return
-		}
+	err = filepath.Walk(folderPath, walkFunc)
+	if err != nil {
+		return
 	}
 
 	return
@@ -231,4 +229,25 @@ func (p *Porter) ReadCSV(csvFileName string) (*StockHoldings, error) {
 	//	panic(fmt.Sprintf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err))
 	//}
 
+}
+
+func (p *Porter) LoadFromDirectory() (err error) {
+	// Load all holdings
+	dates, err := ThePorter.ListAllDates()
+	if err != nil {
+		glog.Errorf("failed to list all csv files, err: %v", err)
+		return
+	}
+
+	for _, dateFolder := range dates {
+		glog.V(10).Infof("DATE_FOLDER: %s", dateFolder)
+		arkHoldings, err := NewARKHoldingsFromDirectory(dateFolder)
+		if err != nil {
+			return err
+		}
+		TheLibrary.AddStockHoldings(arkHoldings)
+		TheStockLibraryMaster.AddStockHoldings(arkHoldings)
+	}
+
+	return nil
 }

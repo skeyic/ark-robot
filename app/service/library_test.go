@@ -84,7 +84,7 @@ func Test_LibraryInit2(t *testing.T) {
 	//glog.V(4).Infof("SE C: %+v", TheLibrary.HistoryStockHoldings[cDate]["ARKW"].Holdings["SE"])
 	//glog.V(4).Infof("SE C: %+v", TheLibrary.HistoryStockHoldings[pDate]["ARKW"].Holdings["SE"])
 
-	tradings := TheLibrary.HistoryStockHoldings[cDate]["ARKF"].GenerateTrading(TheLibrary.HistoryStockHoldings[pDate]["ARKF"])
+	tradings := TheLibrary.HistoryStockHoldings[cDate].GetFundStockHoldings("ARKF").GenerateTrading(TheLibrary.HistoryStockHoldings[pDate].GetFundStockHoldings("ARKF"))
 
 	//glog.V(4).Infof("TRADINGS: %+v", tradings.Tradings)
 	//glog.V(4).Infof("TRADINGS SE: %+v", tradings.Tradings["SE"])
@@ -115,16 +115,4 @@ func Test_GenerateTradings(t *testing.T) {
 		return
 	}
 	TheLibrary.GenerateTradings()
-}
-
-func Test_GenerateTradings2(t *testing.T) {
-	utils.EnableGlogForTesting()
-	for date, hTradings := range TheLibrary.HistoryStockTradings {
-		for fund, tradings := range hTradings {
-			for idx, trading := range tradings.SortedTradingList() {
-				glog.V(4).Infof("%s %s, IDX: %d, TICKER: %s, FDIRECTION: %s, DIRECTION: %s, SHARDS: %f, PERCENT: %f", date.Format("2006/01/02"), fund, idx, trading.Ticker, trading.FixedDirection, trading.Direction, trading.Shards, trading.Percent)
-			}
-		}
-	}
-	// CHECK RPTX
 }

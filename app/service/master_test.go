@@ -52,7 +52,7 @@ func Test_MasterReport(t *testing.T) {
 
 	latestTradings := TheLibrary.LatestStockTradings
 	for _, fund := range allARKTypes {
-		tradings := latestTradings[fund]
+		tradings := latestTradings.GetFundStockTradings(fund)
 		for _, trading := range tradings.SortedTradingList() {
 			stockCurrentHoldings := TheStockLibraryMaster.GetStockCurrentHolding(trading.Ticker, trading.Fund)
 			if report.Date == "" {

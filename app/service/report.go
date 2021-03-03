@@ -31,8 +31,8 @@ type Report struct {
 }
 
 func toSkipTrade(direction TradeDirection) bool {
-	return false
-	//return direction == TradeDoNothing || direction == TradeKeep
+	//return false
+	return direction == TradeDoNothing || direction == TradeKeep
 }
 
 func toSkipTicker(ticker string) bool {
@@ -73,6 +73,15 @@ func (r *Report) ToExcel(full bool) error {
 			continue
 		}
 
+		previousHoldings := TheStockLibraryMaster.GetStockPreviousHoldings(stockReport.StockTicker, stockReport.Fund, 3)
+		glog.V(4).Infof("PREVIOUSHOLDINGS: %+v", previousHoldings)
+		getHoldingShards := func(holding *StockHolding) float64 {
+			if holding == nil {
+				return 0
+			}
+			return holding.Shards
+		}
+
 		// Leave the example to test
 		line := strconv.Itoa(idx)
 		f.SetCellValue(sheet, "A"+line, stockReport.StockTicker)
@@ -84,9 +93,9 @@ func (r *Report) ToExcel(full bool) error {
 		f.SetCellValue(sheet, "G"+line, stockReport.CurrentTradingShards)
 		f.SetCellValue(sheet, "H"+line, toPercentString(stockReport.CurrentTradingPercent))
 		f.SetCellValue(sheet, "I"+line, stockReport.CurrentHoldingShards)
-		//f.SetCellValue(sheet, "H"+line, stockReport.CurrentDirection)
-		//f.SetCellValue(sheet, "I"+line, stockReport.CurrentDirection)
-		//f.SetCellValue(sheet, "J"+line, stockReport.CurrentDirection)
+		f.SetCellValue(sheet, "J"+line, getHoldingShards(previousHoldings[0]))
+		f.SetCellValue(sheet, "K"+line, getHoldingShards(previousHoldings[1]))
+		f.SetCellValue(sheet, "L"+line, getHoldingShards(previousHoldings[2]))
 		f.SetCellValue(sheet, "M"+line, stockReport.FundDirection)
 		f.SetCellValue(sheet, "N"+line, toPercentString(stockReport.FundTradingPercent))
 

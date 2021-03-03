@@ -108,21 +108,90 @@ func (a *ARKHoldings) GetFundStockHoldings(fund string) *StockHoldings {
 	}
 }
 
+func (a *ARKHoldings) GenerateTrading(p *ARKHoldings) *ARKTradings {
+	for _, theFund := range allARKTypes {
+		tradings := a.GetFundStockHoldings(theFund).GenerateTrading(p.GetFundStockHoldings(theFund))
+		tradings.SetFixDirection()
+	}
+	return nil
+}
+
+type ARKTradings struct {
+	Date time.Time
+	ARKK *StockTradings
+	ARKQ *StockTradings
+	ARKW *StockTradings
+	ARKG *StockTradings
+	ARKF *StockTradings
+}
+
+func NewARKTradings() *ARKTradings {
+	return &ARKTradings{}
+}
+
+func (a *ARKTradings) Validation() bool {
+	return !(a.Date.IsZero() || a.ARKK == nil || a.ARKQ == nil ||
+		a.ARKW == nil || a.ARKG == nil || a.ARKF == nil)
+}
+
+func (a *ARKTradings) AddStockTradings(s *StockTradings) error {
+	if a.Date.IsZero() {
+		a.Date = s.Date
+	} else {
+		if a.Date != s.Date {
+			return errDateNotMatch
+		}
+	}
+
+	switch s.Fund {
+	case "ARKK":
+		a.ARKK = s
+	case "ARKQ":
+		a.ARKQ = s
+	case "ARKW":
+		a.ARKW = s
+	case "ARKG":
+		a.ARKG = s
+	case "ARKF":
+		a.ARKF = s
+	default:
+		return errFundNotMatch
+	}
+	return nil
+}
+
+func (a *ARKTradings) GetFundStockTradings(fund string) *StockTradings {
+	switch fund {
+	case "ARKK":
+		return a.ARKK
+	case "ARKQ":
+		return a.ARKQ
+	case "ARKW":
+		return a.ARKW
+	case "ARKG":
+		return a.ARKG
+	case "ARKF":
+		return a.ARKF
+	default:
+		panic(fmt.Sprintf("Incorrect fund type: %s", fund))
+	}
+}
+
 type Library struct {
 	lock                 *sync.RWMutex
 	LatestStockHoldings  *ARKHoldings
-	LatestStockTradings  map[string]*StockTradings
+	LatestStockTradings  *ARKTradings
 	HistoryStockHoldings map[time.Time]*ARKHoldings
-	HistoryStockTradings map[time.Time]map[string]*StockTradings
+	HistoryStockTradings map[time.Time]*ARKTradings
 }
 
 func NewLibrary() *Library {
 	r := &Library{
 		lock:                 &sync.RWMutex{},
 		LatestStockHoldings:  NewARKHoldings(),
-		LatestStockTradings:  make(map[string]*StockTradings),
+		LatestStockTradings:  NewARKTradings(),
 		HistoryStockHoldings: make(map[time.Time]*ARKHoldings),
-		HistoryStockTradings: make(map[time.Time]map[string]*StockTradings),
+		HistoryStockTradings: make(map[time.Time]*ARKTradings),
 	}
 	r.init()
 	return r
@@ -184,6 +253,7 @@ func (r *Library) LoadFromDirectory() (err error) {
 	}
 
 	for _, dateFolder := range dates {
+		glog.V(10).Infof("DATE_FOLDER: %s", dateFolder)
 		arkHoldings, err := NewARKHoldingsFromDirectory(dateFolder)
 		if err != nil {
 			return err
@@ -223,26 +293,24 @@ func (r *Library) AddStockHoldings(a *ARKHoldings) {
 	r.MustSave()
 }
 
-func (r *Library) AddStockTradings(s *StockTradings) {
+func (r *Library) AddStockTradings(a *ARKTradings) {
 	r.lock.Lock()
-	if r.HistoryStockTradings[s.Date] == nil {
-		r.HistoryStockTradings[s.Date] = make(map[string]*StockTradings)
+	if r.HistoryStockTradings[a.Date] == nil {
+		r.HistoryStockTradings[a.Date] = a
 	}
-	r.HistoryStockTradings[s.Date][s.Fund] = s
-	if r.LatestStockTradings[s.Fund] == nil || r.LatestStockTradings[s.Fund].Date.Before(s.Date) {
-		r.LatestStockTradings[s.Fund] = s
+	if r.LatestStockTradings == nil || r.LatestStockTradings.Date.Before(a.Date) {
+		r.LatestStockTradings = a
 	}
 	r.lock.Unlock()
 	r.MustSave()
 }
 
-func (r *Library) AddStockTradingsWithoutLock(s *StockTradings) {
-	if r.HistoryStockTradings[s.Date] == nil {
-		r.HistoryStockTradings[s.Date] = make(map[string]*StockTradings)
+func (r *Library) AddStockTradingsWithoutLock(a *ARKTradings) {
+	if r.HistoryStockTradings[a.Date] == nil {
+		r.HistoryStockTradings[a.Date] = a
 	}
-	r.HistoryStockTradings[s.Date][s.Fund] = s
-	if r.LatestStockTradings[s.Fund] == nil || r.LatestStockTradings[s.Fund].Date.Before(s.Date) {
-		r.LatestStockTradings[s.Fund] = s
+	if r.LatestStockTradings == nil || r.LatestStockTradings.Date.Before(a.Date) {
+		r.LatestStockTradings = a
 	}
 	r.MustSave()
 }
@@ -283,11 +351,8 @@ func (r *Library) GenerateTradings() {
 	}
 
 	for i := 1; i < len(dateList); i++ {
-		for _, theFund := range allARKTypes {
-			tradings := TheLibrary.HistoryStockHoldings[dateList[i]].GetFundStockHoldings(theFund).GenerateTrading(TheLibrary.HistoryStockHoldings[dateList[i-1]].GetFundStockHoldings(theFund))
-			tradings.SetFixDirection()
-			r.AddStockTradingsWithoutLock(tradings)
-			TheStockLibraryMaster.AddStockTradings(tradings)
-		}
+		tradings := TheLibrary.HistoryStockHoldings[dateList[i]].GenerateTrading(TheLibrary.HistoryStockHoldings[dateList[i-1]])
+		r.AddStockTradingsWithoutLock(tradings)
+		TheStockLibraryMaster.AddStockTradings(tradings)
 	}
 }

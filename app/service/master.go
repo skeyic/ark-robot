@@ -43,19 +43,13 @@ func (m *Master) FreshInit() error {
 		err error
 	)
 
-	err = TheLibrary.LoadFromDirectory()
+	err = ThePorter.LoadFromDirectory()
 	if err != nil {
-		glog.Errorf("failed to load holding library from directory, err: %v", err)
+		glog.Errorf("failed to load holdings from directory, err: %v", err)
 		return err
 	}
 
 	TheLibrary.GenerateTradings()
-
-	err = TheStockLibraryMaster.LoadAllStocks()
-	if err != nil {
-		glog.Errorf("failed to load stock library master from directory, err: %v", err)
-		return err
-	}
 
 	return nil
 }
