@@ -12,7 +12,7 @@ import (
 
 var (
 	reportPath    = config.Config.DataFolder + "/report"
-	excelTemplate = reportPath + "/ARK.xlsx"
+	excelTemplate = config.Config.ResourceFolder + "/ARK.xlsx"
 	sheet         = "sheet"
 )
 

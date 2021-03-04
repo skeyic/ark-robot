@@ -11,7 +11,7 @@ func Test_MasterStart(t *testing.T) {
 	flag.Set("logtostderr", "true")
 	flag.Set("v", "10")
 	flag.Parse()
-	TheMaster.Start()
+	TheMaster.StartDownload()
 }
 
 func Test_MasterFreshInit(t *testing.T) {
