@@ -116,6 +116,7 @@ func (p *Porter) Catalog(csvFileName string) (*StockHoldings, error) {
 	_, err = os.Stat(newPath)
 	if !os.IsNotExist(err) {
 		glog.Warningf("file %s already exists, return", newPath)
+		_ = os.Remove(newPath)
 		return nil, errFileAlreadyExist
 	}
 

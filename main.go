@@ -12,7 +12,7 @@ func main() {
 	//)
 
 	flag.Parse()
-	service.TheMaster.Start()
+	service.TheMaster.StartDownload()
 
 	glog.V(4).Info("Ark robot starts...")
 }

@@ -149,9 +149,6 @@ type StockReport struct {
 	CurrentHoldingShards float64
 	CurrentHoldingWeight float64
 
-	// Last 3 days
-	HistoryShards [3]float64
-
 	CurrentDirection      TradeDirection
 	FixDirection          TradeDirection
 	CurrentTradingShards  float64

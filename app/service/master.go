@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	masterProcessTimeInterval = 1 * time.Hour
+	masterDownloadTimeInterval = 2 * time.Hour
 )
 
 var (
@@ -23,18 +23,6 @@ func NewMaster() *Master {
 	return &Master{
 		lock: &sync.RWMutex{},
 	}
-}
-
-func (m *Master) SetLatestDate(a time.Time) {
-	m.lock.Lock()
-	m.latestDate = a.UTC()
-	m.lock.Unlock()
-}
-
-func (m *Master) GetLatestDate() time.Time {
-	m.lock.RLock()
-	defer m.lock.RUnlock()
-	return m.latestDate
 }
 
 // Init the holding, trading and stock library from the stored holdings in directory
@@ -62,9 +50,9 @@ func (m *Master) ReportLatestTrading() *Report {
 	return report
 }
 
-func (m *Master) Start() {
+func (m *Master) StartDownload() {
 	var (
-		ticker   = time.NewTicker(masterProcessTimeInterval)
+		ticker   = time.NewTicker(masterDownloadTimeInterval)
 		initChan = make(chan time.Time, 1)
 	)
 
@@ -79,32 +67,12 @@ func (m *Master) Start() {
 			err error
 		)
 
-		latestDay := m.GetLatestDate().Day()
-		if a.Day() == latestDay {
-			glog.V(10).Infof("we have already processed today, current time: %s, current day: %d", a, latestDay)
-			return true, nil
-		}
-
-		if a.Hour() != downloaderUTCStartHour {
-			glog.V(10).Infof("not the correct time to process, skip, current time: %s, current hour: %d, expect hour: %d", a, a.Hour(), downloaderUTCStartHour)
-			return false, nil
-		}
-
-		previousDate := TheLibrary.GetLatestHoldingDate()
-
 		err = TheDownloader.DownloadAllARKCSVs()
 		if err != nil {
 			glog.Errorf("download All ARK CSVs failed, wait and retry, current time: %s, err: %v", a, err)
 			return false, err
 		}
 
-		latestDate := TheLibrary.GetLatestHoldingDate()
-		if previousDate == latestDate {
-			glog.V(4).Infof("no need to update this round, current time: %s, previous: %s", a, latestDate)
-			return true, nil
-		}
-
-		glog.V(4).Infof("update latest holding in library from %s to %s, current time: %s", previousDate, latestDate, a)
 		return true, nil
 	}
 
@@ -118,7 +86,6 @@ func (m *Master) Start() {
 			}
 			if result {
 				glog.V(4).Infof("process done, current time: %s", a)
-				m.SetLatestDate(a)
 			}
 		case a := <-initChan:
 			result, err := processFunc(a)
@@ -127,7 +94,6 @@ func (m *Master) Start() {
 			}
 			if result {
 				glog.V(4).Infof("process done, current time: %s", a)
-				m.SetLatestDate(a)
 			}
 		}
 	}

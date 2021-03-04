@@ -65,7 +65,6 @@ func Test_MasterReport(t *testing.T) {
 				Cusip:                 trading.Cusip,
 				Fund:                  trading.Fund,
 				CurrentHoldingShards:  stockCurrentHoldings.Shards,
-				HistoryShards:         [3]float64{}, //
 				CurrentDirection:      trading.Direction,
 				FixDirection:          trading.FixedDirection,
 				CurrentTradingShards:  trading.Shards,
