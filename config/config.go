@@ -5,8 +5,10 @@ import (
 )
 
 var Config = struct {
-	DebugMode  bool   `default:"false" env:"DEBUG_MODE"`
-	DataFolder string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/data" env:"DATA_FOLDER"`
+	DebugMode      bool   `default:"false" env:"DEBUG_MODE"`
+	DataFolder     string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/data" env:"DATA_FOLDER"`
+	ResourceFolder string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/resource" env:"RESOURCE_FOLDER"`
+
 	//DataFolder string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data" env:"DATA_FOLDER"`
 
 	NeuronServer struct {
