@@ -8,6 +8,7 @@ ENV ENV="/etc/profile"
 WORKDIR /application
 
 COPY bin/ /application/
+COPY resource/* /resource/
 RUN chmod +x /application/ark-robot
 
 STOPSIGNAL SIGTERM
