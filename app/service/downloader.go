@@ -91,6 +91,12 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 		fileNames = append(fileNames, theFile)
 	}
 
+	defer func(files []string) {
+		for _, file := range files {
+			os.Remove(file)
+		}
+	}(fileNames)
+
 	for _, fileName := range fileNames {
 		stockHoldings, err := ThePorter.Catalog(fileName)
 		if err != nil {
