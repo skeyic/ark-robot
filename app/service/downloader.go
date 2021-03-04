@@ -118,6 +118,7 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 		return nil
 	}
 
+	TheLibrary.GenerateCurrentTrading(arkHoldings)
 	TheLibrary.AddStockHoldings(arkHoldings)
 	TheStockLibraryMaster.AddStockHoldings(arkHoldings)
 

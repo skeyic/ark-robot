@@ -109,11 +109,15 @@ func (a *ARKHoldings) GetFundStockHoldings(fund string) *StockHoldings {
 }
 
 func (a *ARKHoldings) GenerateTrading(p *ARKHoldings) *ARKTradings {
+	var (
+		arkTradings = NewARKTradings()
+	)
 	for _, theFund := range allARKTypes {
 		tradings := a.GetFundStockHoldings(theFund).GenerateTrading(p.GetFundStockHoldings(theFund))
 		tradings.SetFixDirection()
+		_ = arkTradings.AddStockTradings(tradings)
 	}
-	return nil
+	return arkTradings
 }
 
 type ARKTradings struct {
@@ -283,9 +287,14 @@ func (r *Library) MustSave() {
 
 func (r *Library) AddStockHoldings(a *ARKHoldings) {
 	r.lock.Lock()
-	if r.HistoryStockHoldings[a.Date] == nil {
-		r.HistoryStockHoldings[a.Date] = a
+
+	// Never overwrite
+	if r.HistoryStockHoldings[a.Date] != nil {
+		r.lock.Unlock()
+		return
 	}
+
+	r.HistoryStockHoldings[a.Date] = a
 	if r.LatestStockHoldings == nil || r.LatestStockHoldings.Date.Before(a.Date) {
 		r.LatestStockHoldings = a
 	}
@@ -295,9 +304,14 @@ func (r *Library) AddStockHoldings(a *ARKHoldings) {
 
 func (r *Library) AddStockTradings(a *ARKTradings) {
 	r.lock.Lock()
-	if r.HistoryStockTradings[a.Date] == nil {
-		r.HistoryStockTradings[a.Date] = a
+
+	// Never overwrite
+	if r.HistoryStockTradings[a.Date] != nil {
+		r.lock.Unlock()
+		return
 	}
+
+	r.HistoryStockTradings[a.Date] = a
 	if r.LatestStockTradings == nil || r.LatestStockTradings.Date.Before(a.Date) {
 		r.LatestStockTradings = a
 	}
@@ -306,9 +320,12 @@ func (r *Library) AddStockTradings(a *ARKTradings) {
 }
 
 func (r *Library) AddStockTradingsWithoutLock(a *ARKTradings) {
-	if r.HistoryStockTradings[a.Date] == nil {
-		r.HistoryStockTradings[a.Date] = a
+	// Never overwrite
+	if r.HistoryStockTradings[a.Date] != nil {
+		return
 	}
+
+	r.HistoryStockTradings[a.Date] = a
 	if r.LatestStockTradings == nil || r.LatestStockTradings.Date.Before(a.Date) {
 		r.LatestStockTradings = a
 	}
@@ -355,4 +372,13 @@ func (r *Library) GenerateTradings() {
 		r.AddStockTradingsWithoutLock(tradings)
 		TheStockLibraryMaster.AddStockTradings(tradings)
 	}
+}
+
+func (r *Library) GenerateCurrentTrading(holdings *ARKHoldings) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	tradings := holdings.GenerateTrading(TheLibrary.LatestStockHoldings)
+	r.AddStockTradingsWithoutLock(tradings)
+	TheStockLibraryMaster.AddStockTradings(tradings)
 }

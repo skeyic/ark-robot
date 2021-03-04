@@ -27,6 +27,31 @@ func Test_MasterFreshInit(t *testing.T) {
 	}
 }
 
+func Test_MasterFreshInitWithDownload(t *testing.T) {
+	var (
+		err error
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.FreshInit()
+	if err != nil {
+		glog.Errorf("failed to fresh init the master, err: %v", err)
+		return
+	}
+
+	glog.V(4).Infof("Latest stock holding date: %s", TheLibrary.LatestStockHoldings.Date)
+	glog.V(4).Infof("Latest stock trading date: %s", TheLibrary.LatestStockTradings.Date)
+
+	err = TheDownloader.DownloadAllARKCSVs()
+	if err != nil {
+		glog.Errorf("failed to download csv, err: %v", err)
+		return
+	}
+
+	glog.V(4).Infof("Latest stock holding date: %s", TheLibrary.LatestStockHoldings.Date)
+	glog.V(4).Infof("Latest stock trading date: %s", TheLibrary.LatestStockTradings.Date)
+}
+
 func Test_MasterReport(t *testing.T) {
 	var (
 		err    error
