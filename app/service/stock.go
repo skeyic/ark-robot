@@ -101,7 +101,12 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 	)
 
 	for _, holding := range h.Holdings {
-		pHolding := p.Holdings[holding.Ticker]
+		var (
+			pHolding *StockHolding
+		)
+		if p != nil && p.Holdings != nil {
+			pHolding = p.Holdings[holding.Ticker]
+		}
 		trading := &StockTrading{
 			Date:    h.Date,
 			Fund:    h.Fund,
@@ -131,21 +136,23 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 		tradings.AddTrade(trading)
 	}
 
-	for _, pHolding := range p.Holdings {
-		holding := h.Holdings[pHolding.Ticker]
-		if holding == nil {
-			trading := &StockTrading{
-				Date:    h.Date,
-				Fund:    h.Fund,
-				Ticker:  pHolding.Ticker,
-				Cusip:   pHolding.Cusip,
-				Company: pHolding.Company,
+	if p != nil {
+		for _, pHolding := range p.Holdings {
+			holding := h.Holdings[pHolding.Ticker]
+			if holding == nil {
+				trading := &StockTrading{
+					Date:    h.Date,
+					Fund:    h.Fund,
+					Ticker:  pHolding.Ticker,
+					Cusip:   pHolding.Cusip,
+					Company: pHolding.Company,
 
-				Direction: TradeSell,
-				Shards:    pHolding.Shards,
-				Percent:   100.0,
+					Direction: TradeSell,
+					Shards:    pHolding.Shards,
+					Percent:   100.0,
+				}
+				tradings.AddTrade(trading)
 			}
-			tradings.AddTrade(trading)
 		}
 	}
 
