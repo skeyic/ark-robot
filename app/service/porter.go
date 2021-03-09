@@ -116,14 +116,14 @@ func (p *Porter) Catalog(csvFileName string) (*StockHoldings, error) {
 	_, err = os.Stat(newPath)
 	if !os.IsNotExist(err) {
 		glog.Warningf("file %s already exists, return", newPath)
-		_ = os.Remove(newPath)
-		return nil, errFileAlreadyExist
-	}
-
-	err = os.Rename(csvFileName, newPath)
-	if err != nil {
-		glog.Errorf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err)
-		return nil, errRenameFile
+		//_ = os.Remove(newPath)
+	} else {
+		err = os.Rename(csvFileName, newPath)
+		glog.V(4).Infof("Rename %s to %s", csvFileName, newPath)
+		if err != nil {
+			glog.Errorf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err)
+			return nil, errRenameFile
+		}
 	}
 
 	return NewStockHoldings(theDate, theFund, stockHolding), nil
