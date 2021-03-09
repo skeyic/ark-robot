@@ -114,7 +114,7 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 			Cusip:   holding.Cusip,
 			Company: holding.Company,
 		}
-		if pHolding == nil {
+		if pHolding == nil || pHolding.Shards == 0 {
 			trading.Direction = TradeBuy
 			trading.Shards = holding.Shards
 			trading.Percent = 100.0
