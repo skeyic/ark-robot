@@ -39,7 +39,13 @@ func (m *Master) FreshInit() error {
 
 	TheLibrary.GenerateTradings()
 
+	m.MustSave()
 	return nil
+}
+
+func (m *Master) MustSave() {
+	TheLibrary.MustSave()
+	TheStockLibraryMaster.MustSave()
 }
 
 func (m *Master) ReportLatestTrading() *Report {

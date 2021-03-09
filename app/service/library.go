@@ -270,6 +270,7 @@ func (r *Library) LoadFromDirectory() (err error) {
 
 func (r *Library) Save() error {
 	uByte, _ := json.Marshal(r)
+	glog.V(4).Infof("TO SAVE BYTES: %d", len(uByte))
 	err := theLibraryFileStore.Save(uByte)
 	if err != nil {
 		glog.Errorf("failed to save library, err: %v", err)

@@ -141,3 +141,8 @@ func Test_LibraryLoad(t *testing.T) {
 		glog.V(4).Infof("DATE: %s", date)
 	}
 }
+
+func Test_LibrarySave(t *testing.T) {
+	utils.EnableGlogForTesting()
+	theLibraryFileStore.Save([]byte("123"))
+}

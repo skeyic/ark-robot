@@ -25,6 +25,14 @@ func Test_MasterFreshInit(t *testing.T) {
 		glog.Errorf("failed to fresh init the master, err: %v", err)
 		return
 	}
+
+	for date := range TheLibrary.HistoryStockHoldings {
+		glog.V(4).Infof("H DATE: %s", date)
+	}
+
+	for date := range TheLibrary.HistoryStockTradings {
+		glog.V(4).Infof("T DATE: %s", date)
+	}
 }
 
 func Test_MasterFreshInitWithDownload(t *testing.T) {

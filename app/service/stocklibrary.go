@@ -52,6 +52,14 @@ func (r *StockLibraryMaster) init() {
 	glog.V(4).Infof("StockLibraryMaster init completed")
 }
 
+func (r *StockLibraryMaster) MustSave() {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	for _, library := range r.StockLibraries {
+		library.MustSave()
+	}
+}
+
 func (r *StockLibraryMaster) ListAllStocks() (files []string, err error) {
 	walkFunc := func(path string, info os.FileInfo, err error) error {
 		if info == nil {
