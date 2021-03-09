@@ -79,7 +79,7 @@ func ValidateARKCSV(records [][]string) bool {
 	}
 
 	if strings.Join(records[0], ",") != ARKCSVTitle {
-		glog.Errorf("csv does not match, title: %s, expect: %s", strings.Join(records[0], ","), ARKCSVTitle)
+		glog.Errorf("csv does not match, title: >>%s<<, expect: >>%s<<", strings.Join(records[0], ","), ARKCSVTitle)
 		return false
 	}
 

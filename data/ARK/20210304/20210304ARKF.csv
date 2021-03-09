@@ -1,4 +1,4 @@
-﻿date,fund,company,ticker,cusip,shares,"market value($)",weight(%)
+date,fund,company,ticker,cusip,shares,"market value($)",weight(%)
 3/4/2021,ARKF,SQUARE INC - A,SQ,852234103,1879121,,9.94
 3/4/2021,ARKF,PAYPAL HOLDINGS INC,PYPL,70450Y103,933156,,5.4
 3/4/2021,ARKF,ZILLOW GROUP INC - C,Z,98954M200,1337050,,4.42

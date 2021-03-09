@@ -1,4 +1,4 @@
-﻿date,fund,company,ticker,cusip,shares,"market value($)",weight(%)
+date,fund,company,ticker,cusip,shares,"market value($)",weight(%)
 3/4/2021,ARKG,TELADOC HEALTH INC,TDOC,87918A105,3585899,,7.56
 3/4/2021,ARKG,REGENERON PHARMACEUTICALS,REGN,75886F107,1050231,,5.08
 3/4/2021,ARKG,EXACT SCIENCES CORP,EXAS,30063P105,3729941,,4.86

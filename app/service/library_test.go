@@ -116,3 +116,28 @@ func Test_GenerateTradings(t *testing.T) {
 	}
 	TheLibrary.GenerateTradings()
 }
+
+func Test_LibraryLoad(t *testing.T) {
+	var (
+		err error
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheLibrary.LoadFromFileStore()
+	if err != nil {
+		glog.Errorf("failed to load library from the file store, err: %v", err)
+		return
+	}
+
+	//cDate, _ := time.Parse("2006-01-02", "2021-03-04")
+
+	//for _, fund := range allARKTypes {
+	//	for ticker, holding := range TheLibrary.HistoryStockHoldings[cDate].GetFundStockHoldings(fund).Holdings {
+	//		glog.V(4).Infof("TICKER: %s, HOLDING: %+v", ticker, holding)
+	//	}
+	//}
+
+	for date, _ := range TheLibrary.HistoryStockHoldings {
+		glog.V(4).Infof("DATE: %s", date)
+	}
+}

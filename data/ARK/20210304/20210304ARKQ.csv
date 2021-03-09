@@ -1,4 +1,4 @@
-﻿date,fund,company,ticker,cusip,shares,"market value($)",weight(%)
+date,fund,company,ticker,cusip,shares,"market value($)",weight(%)
 3/4/2021,ARKQ,TESLA INC,TSLA,88160R101,530925,,10.03
 3/4/2021,ARKQ,BAIDU INC - SPON ADR,BIDU,56752108,723387,,5.73
 3/4/2021,ARKQ,TRIMBLE INC,TRMB,896239100,2487998,,5.32
