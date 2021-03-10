@@ -387,3 +387,17 @@ func (r *Library) GenerateCurrentTrading(holdings *ARKHoldings) {
 	r.AddStockTradingsWithoutLock(tradings)
 	TheStockLibraryMaster.AddStockTradings(tradings)
 }
+
+func (r *Library) GetHoldings(date time.Time) *ARKHoldings {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	return r.HistoryStockHoldings[date]
+}
+
+func (r *Library) GetTradings(date time.Time) *ARKTradings {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	return r.HistoryStockTradings[date]
+}

@@ -15,8 +15,7 @@ var (
 )
 
 type Master struct {
-	lock       *sync.RWMutex
-	latestDate time.Time
+	lock *sync.RWMutex
 }
 
 func NewMaster() *Master {
@@ -48,12 +47,24 @@ func (m *Master) MustSave() {
 	TheStockLibraryMaster.MustSave()
 }
 
-func (m *Master) ReportLatestTrading() *Report {
+func (m *Master) ReportLatestTrading(full bool) error {
 	var (
-		report = &Report{}
+		err error
 	)
 
-	return report
+	latestDate := TheLibrary.GetLatestHoldingDate()
+	if latestDate.IsZero() {
+		return errNoLatestDate
+	}
+
+	report := NewReport(latestDate)
+	err = report.ToExcel(false)
+	if err != nil {
+		glog.Errorf("Report to excel failed, err: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func (m *Master) StartDownload() {

@@ -124,3 +124,22 @@ func Test_MasterReport(t *testing.T) {
 	}
 
 }
+
+func Test_MasterReportLatest(t *testing.T) {
+	var (
+		err error
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.FreshInit()
+	if err != nil {
+		glog.Errorf("failed to fresh init the master, err: %v", err)
+		return
+	}
+
+	err = TheMaster.ReportLatestTrading(false)
+	if err != nil {
+		glog.Errorf("failed to report latest trading, err: %v", err)
+		return
+	}
+}

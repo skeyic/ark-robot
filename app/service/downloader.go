@@ -2,7 +2,6 @@ package service
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/config"
@@ -29,15 +28,6 @@ var (
 	downloaderUTCStartHour  = 0 // UTC 00:00
 	downloaderCheckInterval = 4 * time.Hour
 	downloaderRetryWaitTime = 5 * time.Minute
-)
-
-var (
-	errDownloadCSV      = errors.New("download csv failed")
-	errFileAlreadyExist = errors.New("file already exist")
-	errRenameFile       = errors.New("rename file failed")
-	errDateNotMatch     = errors.New("date not match")
-	errFundNotMatch     = errors.New("fund not match")
-	errValidateFail     = errors.New("validate failed")
 )
 
 var (
@@ -126,6 +116,16 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 	glog.V(4).Infof("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now())
 	if config.Config.DebugMode {
 		utils.SendAlertV2("Add to library", fmt.Sprintf("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now()))
+	}
+
+	err := TheMaster.ReportLatestTrading(false)
+	if err != nil {
+		glog.Errorf("report latest trading failed", err)
+		return err
+	}
+	glog.V(4).Infof("Report latest trading of %s at %s to library", arkHoldings.Date, time.Now())
+	if config.Config.DebugMode {
+		utils.SendAlertV2("Add to library", fmt.Sprintf("Report latest trading of %s at %s to library", arkHoldings.Date, time.Now()))
 	}
 
 	return nil

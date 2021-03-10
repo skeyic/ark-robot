@@ -8,6 +8,7 @@ import (
 	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
 	"strconv"
+	"time"
 )
 
 var (
@@ -28,6 +29,43 @@ func init() {
 type Report struct {
 	Date         string
 	StockReports []*StockReport
+}
+
+func NewReport(date time.Time) *Report {
+	var (
+		r = &Report{
+			Date: date.Format(TheDateFormat),
+		}
+	)
+
+	tradings := TheLibrary.GetTradings(date)
+	if tradings == nil {
+		return r
+	}
+
+	for _, fund := range allARKTypes {
+		tradings := tradings.GetFundStockTradings(fund)
+		for _, trading := range tradings.SortedTradingList() {
+			stockCurrentHoldings := TheStockLibraryMaster.GetStockCurrentHolding(trading.Ticker, trading.Fund)
+			r.StockReports = append(r.StockReports, &StockReport{
+				Date:                  trading.Date.Format(TheDateFormat),
+				StockTicker:           trading.Ticker,
+				Company:               trading.Company,
+				Cusip:                 trading.Cusip,
+				Fund:                  trading.Fund,
+				CurrentHoldingShards:  stockCurrentHoldings.Shards,
+				CurrentDirection:      trading.Direction,
+				FixDirection:          trading.FixedDirection,
+				CurrentTradingShards:  trading.Shards,
+				CurrentTradingPercent: trading.Percent,
+				FundDirection:         tradings.Direction,
+				FundTradingPercent:    tradings.Percent,
+			},
+			)
+		}
+	}
+
+	return r
 }
 
 func toSkipTrade(direction TradeDirection) bool {
@@ -107,6 +145,8 @@ func (r *Report) ToExcel(full bool) error {
 		glog.Errorf("failed to save excel %s, err: %v", fileName, err)
 		return err
 	}
+
+	glog.V(4).Infof("Report %s is provided", fileName)
 
 	return nil
 }
