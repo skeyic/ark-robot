@@ -120,7 +120,7 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 
 	err := TheMaster.ReportLatestTrading(false)
 	if err != nil {
-		glog.Errorf("report latest trading failed", err)
+		glog.Errorf("report latest trading failed, err: %v", err)
 		return err
 	}
 	glog.V(4).Infof("Report latest trading of %s at %s to library", arkHoldings.Date, time.Now())

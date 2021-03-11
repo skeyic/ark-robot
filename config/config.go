@@ -15,6 +15,10 @@ var Config = struct {
 		URL  string `default:"http://www.xiaxuanli.com:7474" env:"NEURON_SERVER_URL"`
 		User string `default:"79c721a6-4d0b-4b2b-bc7c-0050fe5484a2" env:"NEURON_SERVER_USER"`
 	}
+
+	ESServer struct {
+		URL string `default:"http://www.xiaxuanli.com:7222" env:"ES_SERVER_URL"`
+	}
 }{}
 
 func init() {

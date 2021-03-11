@@ -1,10 +1,12 @@
 package service
 
 import (
+	"fmt"
 	"github.com/golang/glog"
 	"github.com/grd/statistics"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -57,6 +59,16 @@ func NewStockHoldingFromRecord(record []string) *StockHolding {
 		MarketValue: marketValue,
 		Weight:      weight,
 	}
+}
+
+func (s *StockHolding) ESID() string {
+	return fmt.Sprintf("f%s_s%s_d%s", strings.ToLower(s.Fund), strings.ToLower(s.Ticker), s.Date.Format(TheDateFormat))
+}
+
+func (s *StockHolding) ESBody() string {
+	return fmt.Sprintf(
+		`{ "date": "%s", "fund": "%s", "ticker": "%s", "cusip": "%s", "shards": %f, "market_value": %f, "weight": %f 
+}`, s.Date, s.Fund, s.Ticker, s.Cusip, s.Shards, s.MarketValue, s.Weight)
 }
 
 func (s *StockHolding) Merge(d *StockHolding) {
