@@ -58,10 +58,38 @@ func (m *Master) ReportLatestTrading(full bool) error {
 	}
 
 	report := NewReport(latestDate)
-	err = report.ToExcel(false)
+	err = report.ToExcel(full)
 	if err != nil {
 		glog.Errorf("Report to excel failed, err: %v", err)
 		return err
+	}
+
+	return nil
+}
+
+func (m *Master) IndexToES() error {
+	var (
+		err error
+	)
+
+	for _, arkHoldings := range TheLibrary.HistoryStockHoldings {
+		for _, fund := range allARKTypes {
+			err = TheESConnector.IndexStockHoldings(arkHoldings.GetFundStockHoldings(fund))
+			if err != nil {
+				glog.Errorf("failed to index holdings %s %s, err: %v", arkHoldings.Date, fund, err)
+				return err
+			}
+		}
+	}
+
+	for _, arkTradings := range TheLibrary.HistoryStockTradings {
+		for _, fund := range allARKTypes {
+			err = TheESConnector.IndexStockTradings(arkTradings.GetFundStockTradings(fund))
+			if err != nil {
+				glog.Errorf("failed to index holdings %s %s, err: %v", arkTradings.Date, fund, err)
+				return err
+			}
+		}
 	}
 
 	return nil

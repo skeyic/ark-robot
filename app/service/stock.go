@@ -46,7 +46,7 @@ func NewStockHoldingFromRecord(record []string) *StockHolding {
 
 	ticker := record[3]
 	if ticker == "" {
-		ticker = record[2]
+		ticker = strings.ReplaceAll(record[2], " ", "_")
 	}
 
 	return &StockHolding{
@@ -62,13 +62,13 @@ func NewStockHoldingFromRecord(record []string) *StockHolding {
 }
 
 func (s *StockHolding) ESID() string {
-	return fmt.Sprintf("f%s_s%s_d%s", strings.ToLower(s.Fund), strings.ToLower(s.Ticker), s.Date.Format(TheDateFormat))
+	return fmt.Sprintf("f%s_s%s_d%s", strings.ToLower(s.Fund), strings.ToLower(s.Ticker), s.Date.Format(TheDateIDFormat))
 }
 
 func (s *StockHolding) ESBody() string {
 	return fmt.Sprintf(
-		`{ "date": "%s", "fund": "%s", "ticker": "%s", "cusip": "%s", "shards": %f, "market_value": %f, "weight": %f 
-}`, s.Date, s.Fund, s.Ticker, s.Cusip, s.Shards, s.MarketValue, s.Weight)
+		`{ "date": "%s", "fund": "%s", "ticker": "%s", "cusip": "%s", "shards": %f, "market_value": %f, "weight": %f}`,
+		s.Date.Format(TheDateFormat), s.Fund, s.Ticker, s.Cusip, s.Shards, s.MarketValue, s.Weight)
 }
 
 func (s *StockHolding) Merge(d *StockHolding) {

@@ -143,3 +143,22 @@ func Test_MasterReportLatest(t *testing.T) {
 		return
 	}
 }
+
+func Test_MasterIndexToES(t *testing.T) {
+	var (
+		err error
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.FreshInit()
+	if err != nil {
+		glog.Errorf("failed to fresh init the master, err: %v", err)
+		return
+	}
+
+	err = TheMaster.IndexToES()
+	if err != nil {
+		glog.Errorf("failed to index to es, err: %v", err)
+		return
+	}
+}
