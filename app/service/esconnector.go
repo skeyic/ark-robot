@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/olivere/elastic/v7"
@@ -148,9 +147,11 @@ func (e *ESConnector) IndexStockHoldings(holdings *StockHoldings) error {
 	defer bulkProcessor.Close()
 
 	for _, holding := range holdings.Holdings {
-		//glog.V(4).Infof("ID: %s, BODY: %v", holding.ESID(), holding.ESBody())
+		data := ToHoldingData(holding)
+		//bs, _ := json.Marshal(data)
+		//glog.V(4).Infof("ID: %s, BODY: %s", data.ESID(), bs)
 		bulkProcessor.Add(elastic.NewBulkUpdateRequest().
-			Index(holdingsIndex).Type("_doc").Id(holding.ESID()).Doc(holding).DocAsUpsert(true))
+			Index(holdingsIndex).Type("_doc").Id(holding.ESID()).Doc(data).DocAsUpsert(true))
 	}
 
 	err = bulkProcessor.Start(ctx)
@@ -214,8 +215,8 @@ func (e *ESConnector) IndexStockTradings(tradings *StockTradings) error {
 
 	for _, trading := range tradings.Tradings {
 		data := ToTradingData(tradings, trading)
-		bs, _ := json.Marshal(data)
-		glog.V(4).Infof("ID: %s, BODY: %s", data.ESID(), bs)
+		//bs, _ := json.Marshal(data)
+		//glog.V(4).Infof("ID: %s, BODY: %s", data.ESID(), bs)
 		bulkProcessor.Add(elastic.NewBulkUpdateRequest().
 			Index(tradingsIndex).Type("_doc").Id(data.ESID()).Doc(data).DocAsUpsert(true))
 	}
@@ -253,7 +254,7 @@ type TradingData struct {
 }
 
 func ToTradingData(tradings *StockTradings, trading *StockTrading) *TradingData {
-	return &TradingData{
+	data := &TradingData{
 		Date:           trading.Date.Format(TheDateFormat),
 		Direction:      trading.Direction,
 		Fund:           trading.Fund,
@@ -266,8 +267,41 @@ func ToTradingData(tradings *StockTradings, trading *StockTrading) *TradingData 
 		FundDirection:  tradings.Direction,
 		FundPercent:    tradings.Percent,
 	}
+	if data.Direction == TradeSell {
+		data.Shards *= -1
+		data.Percent *= -1
+	}
+	return data
 }
 
 func (t *TradingData) ESID() string {
+	return fmt.Sprintf("f%s_s%s_d%s", strings.ToLower(t.Fund), strings.ToLower(t.Ticker), t.Date)
+}
+
+type HoldingData struct {
+	Date        string  `json:"date"`
+	Fund        string  `json:"fund"`
+	Ticker      string  `json:"ticker"`
+	Cusip       string  `json:"cusip"`
+	Company     string  `json:"company"`
+	Shards      float64 `json:"shards"`
+	MarketValue float64 `json:"market_value"`
+	Weight      float64 `json:"weight"`
+}
+
+func ToHoldingData(holding *StockHolding) *HoldingData {
+	return &HoldingData{
+		Date:        holding.Date.Format(TheDateFormat),
+		Fund:        holding.Fund,
+		Ticker:      holding.Ticker,
+		Cusip:       holding.Cusip,
+		Company:     holding.Company,
+		Shards:      holding.Shards,
+		MarketValue: holding.MarketValue,
+		Weight:      holding.Weight,
+	}
+}
+
+func (t *HoldingData) ESID() string {
 	return fmt.Sprintf("f%s_s%s_d%s", strings.ToLower(t.Fund), strings.ToLower(t.Ticker), t.Date)
 }
