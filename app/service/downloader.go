@@ -136,7 +136,23 @@ func (d *Downloader) DownloadARKCSV(arkType string) (string, error) {
 		url      = generateArkCSVURL(arkType)
 		fileName = generateDownloaderFilePath(arkType)
 	)
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		// handle err
+	}
+	req.Header.Set("Authority", "ark-funds.com")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Sec-Fetch-Mode", "navigate")
+	req.Header.Set("Sec-Fetch-User", "?1")
+	req.Header.Set("Sec-Fetch-Dest", "document")
+	req.Header.Set("Referer", "https://ark-funds.com/investor-resources")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Cookie", "_ga=GA1.2.1970799815.1612344474; __cfduid=dd1ea544054408d2ddd9a60fe5981e7191615726396; PHPSESSID=ihegc2qttn6rg1oifupl91kmkl; _gid=GA1.2.1642418799.1615726420; _gat=1")
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		glog.Errorf("download CSV failed, url: %s, err: %v", url, err)
 		return "", err
