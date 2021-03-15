@@ -1,6 +1,9 @@
 package service
 
-import "errors"
+import (
+	"errors"
+	"github.com/skeyic/ark-robot/config"
+)
 
 const (
 	TheDateFormat   = "2006-01-02"
@@ -16,4 +19,13 @@ var (
 	errValidateFail       = errors.New("validate failed")
 	errNoLatestDate       = errors.New("no latest date")
 	errEmptySourceToIndex = errors.New("empty to index")
+	errInitReportFile     = errors.New("failed to init report file")
+	errEmptyReport        = errors.New("nothing to report")
+)
+
+var (
+	reportPath            = config.Config.DataFolder + "/report"
+	tradingsExcelTemplate = config.Config.ResourceFolder + "/ARK.xlsx"
+	top10ExcelTemplate    = config.Config.ResourceFolder + "/top_10_stocks_in_funds.xlsx"
+	tradingsSheet         = "sheet"
 )

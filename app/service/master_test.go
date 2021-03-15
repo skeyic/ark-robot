@@ -63,7 +63,7 @@ func Test_MasterFreshInitWithDownload(t *testing.T) {
 func Test_MasterReport(t *testing.T) {
 	var (
 		err    error
-		report = &Report{}
+		report = &TradingsReport{}
 	)
 
 	utils.EnableGlogForTesting()
@@ -119,7 +119,7 @@ func Test_MasterReport(t *testing.T) {
 
 	err = report.ToExcel(false)
 	if err != nil {
-		glog.Errorf("Report to excel failed, err: %v", err)
+		glog.Errorf("TradingsReport to excel failed, err: %v", err)
 		return
 	}
 

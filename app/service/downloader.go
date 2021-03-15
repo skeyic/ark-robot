@@ -123,9 +123,9 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 		glog.Errorf("report latest trading failed, err: %v", err)
 		return err
 	}
-	glog.V(4).Infof("Report latest trading of %s at %s to library", arkHoldings.Date, time.Now())
+	glog.V(4).Infof("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now())
 	if config.Config.DebugMode {
-		utils.SendAlertV2("Add to library", fmt.Sprintf("Report latest trading of %s at %s to library", arkHoldings.Date, time.Now()))
+		utils.SendAlertV2("Add to library", fmt.Sprintf("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now()))
 	}
 
 	return nil

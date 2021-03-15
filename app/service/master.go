@@ -57,10 +57,17 @@ func (m *Master) ReportLatestTrading(full bool) error {
 		return errNoLatestDate
 	}
 
-	report := NewReport(latestDate)
-	err = report.ToExcel(full)
+	tradingsReport := NewTradingsReport(latestDate)
+	err = tradingsReport.ToExcel(full)
 	if err != nil {
-		glog.Errorf("Report to excel failed, err: %v", err)
+		glog.Errorf("tradingsReport to excel failed, err: %v", err)
+		return err
+	}
+
+	top10HoldingsReport := NewTop10HoldingsReport(latestDate)
+	err = top10HoldingsReport.ToExcel()
+	if err != nil {
+		glog.Errorf("top10HoldingsReport to excel failed, err: %v", err)
 		return err
 	}
 

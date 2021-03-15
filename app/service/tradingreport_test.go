@@ -13,7 +13,7 @@ func TestExcel(t *testing.T) {
 	var (
 		err  error
 		date = "2021-03-01"
-		r    = Report{
+		r    = TradingsReport{
 			Date: date,
 		}
 		fileName = r.ExcelPath()
@@ -26,11 +26,11 @@ func TestExcel(t *testing.T) {
 		return
 	}
 
-	f.SetCellValue(sheet, "A4", "HUYA")
-	f.SetCellValue(sheet, "B4", "ARKK")
-	f.SetCellValue(sheet, "C4", "买入")
-	f.SetCellValue(sheet, "E4", 1000)
-	f.SetCellValue(sheet, "F4", "10%")
+	f.SetCellValue(tradingsSheet, "A4", "HUYA")
+	f.SetCellValue(tradingsSheet, "B4", "ARKK")
+	f.SetCellValue(tradingsSheet, "C4", "买入")
+	f.SetCellValue(tradingsSheet, "E4", 1000)
+	f.SetCellValue(tradingsSheet, "F4", "10%")
 
 	err = f.Save()
 	if err != nil {
