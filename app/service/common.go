@@ -25,7 +25,7 @@ var (
 
 var (
 	reportPath            = config.Config.DataFolder + "/report"
-	tradingsExcelTemplate = config.Config.ResourceFolder + "/ARK.xlsx"
-	top10ExcelTemplate    = config.Config.ResourceFolder + "/top_10_stocks_in_funds.xlsx"
+	tradingsExcelTemplate = config.Config.ResourceFolder + "/TEMPLATE_ARK.xlsx"
+	top10ExcelTemplate    = config.Config.ResourceFolder + "/TEMPLATE_top_10_stocks_in_funds.xlsx"
 	tradingsSheet         = "sheet"
 )

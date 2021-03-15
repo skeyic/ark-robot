@@ -395,6 +395,35 @@ func (r *Library) GetHoldings(date time.Time) *ARKHoldings {
 	return r.HistoryStockHoldings[date]
 }
 
+func (r *Library) GetPreviousHoldings(date time.Time) *ARKHoldings {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	var (
+		dateList     timeList
+		hit          bool
+		previousDate time.Time
+	)
+
+	for theDate := range r.HistoryStockHoldings {
+		dateList = append(dateList, theDate)
+	}
+
+	sort.Sort(sort.Reverse(dateList))
+
+	for _, theDate := range dateList {
+		if hit {
+			previousDate = theDate
+			break
+		}
+		if theDate == date {
+			hit = true
+		}
+	}
+
+	return r.HistoryStockHoldings[previousDate]
+}
+
 func (r *Library) GetTradings(date time.Time) *ARKTradings {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
