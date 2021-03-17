@@ -2,7 +2,22 @@ package service
 
 import (
 	"fmt"
+	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
+	"math"
+)
+
+const (
+	prefixTop10Holdings   = "top_10_stocks_"
+	prefixSpecialTradings = "special_tradings_"
+	defaultSheet          = "sheet"
+)
+
+var (
+	reportPath                   = config.Config.DataFolder + "/report"
+	tradingsExcelTemplate        = config.Config.ResourceFolder + "/TEMPLATE_ARK.xlsx"
+	top10ExcelTemplate           = config.Config.ResourceFolder + "/TEMPLATE_top_10_stocks.xlsx"
+	specialTradingsExcelTemplate = config.Config.ResourceFolder + "/TEMPLATE_special_tradings.xlsx"
 )
 
 func init() {
@@ -21,9 +36,35 @@ func toSkipTicker(ticker string) bool {
 }
 
 func floatToPercentString(percent float64) string {
-	return fmt.Sprintf("%.3f", percent) + "%"
+	return floatToString(percent) + "%"
 }
 
-func floatToString(percent float64) string {
-	return fmt.Sprintf("%.3f", percent)
+func floatToString(percent float64) (result string) {
+	result += fmt.Sprintf("%.2f", percent)
+	return
+}
+
+func floatToPercentStringWithSign(percent float64) string {
+	return floatToStringWithSign(percent) + "%"
+}
+
+func floatToStringWithSign(percent float64) (result string) {
+	if percent > 0 {
+		result += "+"
+	}
+	result += fmt.Sprintf("%.2f", percent)
+	return
+}
+
+func floatToStringIntOnly(data float64) (result string) {
+	result += fmt.Sprintf("%.0f", math.Ceil(data))
+	return
+}
+
+func floatToStringIntOnlyWithSign(data float64) (result string) {
+	if data > 0 {
+		result += "+"
+	}
+	result += fmt.Sprintf("%.0f", math.Ceil(data))
+	return
 }

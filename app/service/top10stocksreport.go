@@ -20,7 +20,7 @@ func NewTop10HoldingsReport(date time.Time) *Top10HoldingsReport {
 		r = &Top10HoldingsReport{
 			Date:            date.Format(TheDateFormat),
 			holdings:        TheLibrary.GetHoldings(date),
-			previousHolding: TheLibrary.GetPreviousHoldings(date),
+			previousHolding: TheLibrary.GetPreviousHoldings(date, 1)[0],
 		}
 	)
 
@@ -54,7 +54,7 @@ func (r *Top10HoldingsReport) ToExcel() error {
 
 	for _, fund := range allARKTypes {
 		var (
-			idx              = 2
+			idx              = 35
 			sheet            = fund
 			toReportHoldings = make(map[float64]*StockHolding)
 			toSortWeight     sort.Float64Slice
@@ -81,7 +81,7 @@ func (r *Top10HoldingsReport) ToExcel() error {
 
 		for _, weight := range toSortWeight {
 			// Only the top 10
-			if idx == 12 {
+			if idx == 45 {
 				break
 			}
 
@@ -90,19 +90,20 @@ func (r *Top10HoldingsReport) ToExcel() error {
 			)
 
 			holding := toReportHoldings[weight]
-			previousHolding := previousHoldings.Holdings[holding.Ticker]
-			if previousHoldings != nil {
-				previousWeight = previousHolding.Weight
+			if previousHoldings != nil && previousHoldings.Holdings != nil {
+				previousHolding := previousHoldings.Holdings[holding.Ticker]
+				if previousHolding != nil {
+					previousWeight = previousHolding.Weight
+				}
 			}
 
 			line := strconv.Itoa(idx)
-			f.SetCellValue(sheet, "A"+line, holding.Fund)
-			f.SetCellValue(sheet, "B"+line, holding.Ticker)
-			f.SetCellValue(sheet, "C"+line, holding.Company)
-			f.SetCellValue(sheet, "D"+line, holding.MarketValue)
-			f.SetCellValue(sheet, "E"+line, holding.MarketValue/holding.Shards)
-			f.SetCellValue(sheet, "F"+line, floatToPercentString(holding.Weight))
-			f.SetCellValue(sheet, "G"+line, floatToPercentString(previousWeight))
+			f.SetCellValue(sheet, "A"+line, holding.Ticker)
+			f.SetCellValue(sheet, "B"+line, holding.Company)
+			f.SetCellValue(sheet, "C"+line, floatToPercentString(previousWeight))
+			f.SetCellValue(sheet, "D"+line, floatToPercentString(holding.Weight))
+			f.SetCellValue(sheet, "E"+line, floatToStringIntOnly(holding.Shards))
+			f.SetCellValue(sheet, "F"+line, holding.MarketValue)
 
 			idx++
 		}
@@ -128,7 +129,7 @@ func (r *Top10HoldingsReport) ExcelPath() string {
 }
 
 func (r *Top10HoldingsReport) ExcelName() string {
-	return "top_10_stocks_in_fund_" + r.Date + ".xlsx"
+	return prefixTop10Holdings + r.Date + ".xlsx"
 }
 
 func (r *Top10HoldingsReport) InitExcelFromTemplate() error {

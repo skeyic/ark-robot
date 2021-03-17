@@ -395,14 +395,15 @@ func (r *Library) GetHoldings(date time.Time) *ARKHoldings {
 	return r.HistoryStockHoldings[date]
 }
 
-func (r *Library) GetPreviousHoldings(date time.Time) *ARKHoldings {
+// if date is 10, days is 3, we will return [7, 8, 9]
+func (r *Library) GetPreviousHoldings(date time.Time, days int) []*ARKHoldings {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
 	var (
-		dateList     timeList
-		hit          bool
-		previousDate time.Time
+		dateList         timeList
+		hit              bool
+		previousHoldings []*ARKHoldings
 	)
 
 	for theDate := range r.HistoryStockHoldings {
@@ -413,15 +414,59 @@ func (r *Library) GetPreviousHoldings(date time.Time) *ARKHoldings {
 
 	for _, theDate := range dateList {
 		if hit {
-			previousDate = theDate
-			break
+			if days > 0 {
+				previousHoldings = append([]*ARKHoldings{r.HistoryStockHoldings[theDate]}, previousHoldings...)
+				days--
+			}
 		}
 		if theDate == date {
 			hit = true
 		}
 	}
 
-	return r.HistoryStockHoldings[previousDate]
+	for days > 0 {
+		previousHoldings = append([]*ARKHoldings{nil}, previousHoldings...)
+		days--
+	}
+
+	return previousHoldings
+}
+
+// if date is 10, days is 3, we will return [7, 8, 9]
+func (r *Library) GetPreviousTradings(date time.Time, days int) []*ARKTradings {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	var (
+		dateList         timeList
+		hit              bool
+		previousTradings []*ARKTradings
+	)
+
+	for theDate := range r.HistoryStockTradings {
+		dateList = append(dateList, theDate)
+	}
+
+	sort.Sort(sort.Reverse(dateList))
+
+	for _, theDate := range dateList {
+		if hit {
+			if days > 0 {
+				previousTradings = append([]*ARKTradings{r.HistoryStockTradings[theDate]}, previousTradings...)
+				days--
+			}
+		}
+		if theDate == date {
+			hit = true
+		}
+	}
+
+	for days > 0 {
+		previousTradings = append([]*ARKTradings{nil}, previousTradings...)
+		days--
+	}
+
+	return previousTradings
 }
 
 func (r *Library) GetTradings(date time.Time) *ARKTradings {

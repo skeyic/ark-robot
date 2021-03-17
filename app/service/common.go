@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"github.com/skeyic/ark-robot/config"
 )
 
 const (
@@ -21,11 +20,4 @@ var (
 	errEmptySourceToIndex = errors.New("empty to index")
 	errInitReportFile     = errors.New("failed to init report file")
 	errEmptyReport        = errors.New("nothing to report")
-)
-
-var (
-	reportPath            = config.Config.DataFolder + "/report"
-	tradingsExcelTemplate = config.Config.ResourceFolder + "/TEMPLATE_ARK.xlsx"
-	top10ExcelTemplate    = config.Config.ResourceFolder + "/TEMPLATE_top_10_stocks_in_funds.xlsx"
-	tradingsSheet         = "sheet"
 )

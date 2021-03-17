@@ -137,7 +137,7 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 				trading.Percent = trading.Shards / pHolding.Shards * 100
 			} else if pHolding.Shards > holding.Shards {
 				trading.Direction = TradeSell
-				trading.Shards = pHolding.Shards - holding.Shards
+				trading.Shards = holding.Shards - pHolding.Shards
 				trading.Percent = trading.Shards / pHolding.Shards * 100
 			} else {
 				trading.Direction = TradeDoNothing
@@ -160,8 +160,8 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 					Company: pHolding.Company,
 
 					Direction: TradeSell,
-					Shards:    pHolding.Shards,
-					Percent:   100.0,
+					Shards:    -pHolding.Shards,
+					Percent:   -100.0,
 				}
 				tradings.AddTrade(trading)
 			}
@@ -387,10 +387,10 @@ func (s *StockTradings) SetFixDirection() {
 	)
 
 	for _, trading := range s.TradingList {
-		if trading.Direction == TradeSell {
-			negativePercents = append(negativePercents, trading.Percent*-1)
+		if trading.Percent < 0 {
+			negativePercents = append(negativePercents, trading.Percent)
 			negativeNum++
-		} else if trading.Direction == TradeBuy {
+		} else if trading.Percent > 0 {
 			positivePercents = append(positivePercents, trading.Percent)
 			positiveNum++
 		} else if trading.Direction == TradeDoNothing {
@@ -411,15 +411,13 @@ func (s *StockTradings) SetFixDirection() {
 	glog.V(10).Infof("MEANS: %f", means)
 
 	if means < 0 {
-		s.Percent = means * -1
 		s.Direction = TradeSell
 	} else if means > 0 {
-		s.Percent = means
 		s.Direction = TradeBuy
 	} else {
-		s.Percent = 0
 		s.Direction = TradeDoNothing
 	}
+	s.Percent = means
 
 	for _, trading := range s.TradingList {
 		var (
@@ -429,9 +427,6 @@ func (s *StockTradings) SetFixDirection() {
 
 		if (positiveNum < negativeNum && trading.Direction == TradeSell) ||
 			(positiveNum > negativeNum && trading.Direction == TradeBuy) {
-			if trading.Direction == TradeSell {
-				thisPercent *= -1
-			}
 			for _, normalPercent := range theNormalPercents {
 				if thisPercent == normalPercent {
 					isKeep = true
@@ -444,7 +439,7 @@ func (s *StockTradings) SetFixDirection() {
 			trading.FixedDirection = TradeKeep
 		} else {
 			glog.V(4).Infof("thisPercent: %f, means: %f", trading.Percent, means)
-			if means < 0 && trading.Direction == TradeSell && trading.Percent < means*-1 {
+			if means < 0 && trading.Direction == TradeSell && trading.Percent > means {
 				trading.FixedDirection = TradeRelativeBuy
 			} else if means > 0 && trading.Direction == TradeBuy && trading.Percent < means {
 				trading.FixedDirection = TradeRelativeSell

@@ -9,44 +9,23 @@ import (
 )
 
 type TradingsReport struct {
-	Date         string
-	StockReports []*StockReport
+	Date             string
+	tradings         *ARKTradings
+	holdings         *ARKHoldings
+	previousHoldings []*ARKHoldings
 }
 
 func NewTradingsReport(date time.Time) *TradingsReport {
 	var (
 		r = &TradingsReport{
-			Date: date.Format(TheDateFormat),
+			Date:             date.Format(TheDateFormat),
+			tradings:         TheLibrary.GetTradings(date),
+			holdings:         TheLibrary.GetHoldings(date),
+			previousHoldings: TheLibrary.GetPreviousHoldings(date, 3),
 		}
 	)
-	tradings := TheLibrary.GetTradings(date)
-	if tradings == nil {
-		return r
-	}
 
 	utils.CheckFolder(r.ExcelFolder())
-
-	for _, fund := range allARKTypes {
-		tradings := tradings.GetFundStockTradings(fund)
-		for _, trading := range tradings.SortedTradingList() {
-			stockCurrentHoldings := TheStockLibraryMaster.GetStockCurrentHolding(trading.Ticker, trading.Fund)
-			r.StockReports = append(r.StockReports, &StockReport{
-				Date:                  trading.Date.Format(TheDateFormat),
-				StockTicker:           trading.Ticker,
-				Company:               trading.Company,
-				Cusip:                 trading.Cusip,
-				Fund:                  trading.Fund,
-				CurrentHoldingShards:  stockCurrentHoldings.Shards,
-				CurrentDirection:      trading.Direction,
-				FixDirection:          trading.FixedDirection,
-				CurrentTradingShards:  trading.Shards,
-				CurrentTradingPercent: trading.Percent,
-				FundDirection:         tradings.Direction,
-				FundTradingPercent:    tradings.Percent,
-			},
-			)
-		}
-	}
 
 	return r
 }
@@ -57,7 +36,7 @@ func (r *TradingsReport) ToExcel(full bool) error {
 		fileName = r.ExcelPath()
 	)
 
-	if len(r.StockReports) == 0 {
+	if r.tradings == nil {
 		glog.Warningf("Empty report")
 		return nil
 	}
@@ -74,39 +53,63 @@ func (r *TradingsReport) ToExcel(full bool) error {
 		return err
 	}
 
-	var idx = 4
-	for _, stockReport := range r.StockReports {
-		if !full && (toSkipTrade(stockReport.FixDirection) ||
-			toSkipTicker(stockReport.StockTicker)) {
-			continue
+	var (
+		sheet = defaultSheet
+		idx   = 3
+	)
+
+	getHoldingShards := func(holding *ARKHoldings, fund, ticker string) float64 {
+		if holding == nil {
+			return 0
+		}
+		stockHolding := holding.GetFundStockHoldings(fund).Holdings[ticker]
+		if stockHolding == nil {
+			return 0
+		}
+		return stockHolding.Shards
+	}
+
+	for _, fund := range allARKTypes {
+		var (
+			toReportTradings []*StockTrading
+		)
+
+		tradings := r.tradings.GetFundStockTradings(fund)
+		if tradings == nil {
+			return errEmptyReport
 		}
 
-		previousHoldings := TheStockLibraryMaster.GetStockPreviousHoldings(stockReport.StockTicker, stockReport.Fund, 3)
-		getHoldingShards := func(holding *StockHolding) float64 {
-			if holding == nil {
-				return 0
+		for _, trading := range tradings.Tradings {
+			if !full {
+				if toSkipTicker(trading.Ticker) {
+					continue
+				}
+				if toSkipTrade(trading.FixedDirection) {
+					continue
+				}
 			}
-			return holding.Shards
+			toReportTradings = append(toReportTradings, trading)
 		}
 
-		// Leave the example to test
-		line := strconv.Itoa(idx)
-		f.SetCellValue(tradingsSheet, "A"+line, stockReport.StockTicker)
-		f.SetCellValue(tradingsSheet, "B"+line, stockReport.Company)
-		f.SetCellValue(tradingsSheet, "C"+line, stockReport.Cusip)
-		f.SetCellValue(tradingsSheet, "D"+line, stockReport.Fund)
-		f.SetCellValue(tradingsSheet, "E"+line, stockReport.CurrentDirection)
-		f.SetCellValue(tradingsSheet, "F"+line, stockReport.FixDirection)
-		f.SetCellValue(tradingsSheet, "G"+line, stockReport.CurrentTradingShards)
-		f.SetCellValue(tradingsSheet, "H"+line, floatToPercentString(stockReport.CurrentTradingPercent))
-		f.SetCellValue(tradingsSheet, "I"+line, stockReport.CurrentHoldingShards)
-		f.SetCellValue(tradingsSheet, "J"+line, getHoldingShards(previousHoldings[0]))
-		f.SetCellValue(tradingsSheet, "K"+line, getHoldingShards(previousHoldings[1]))
-		f.SetCellValue(tradingsSheet, "L"+line, getHoldingShards(previousHoldings[2]))
-		f.SetCellValue(tradingsSheet, "M"+line, stockReport.FundDirection)
-		f.SetCellValue(tradingsSheet, "N"+line, floatToPercentString(stockReport.FundTradingPercent))
+		for _, trading := range toReportTradings {
+			line := strconv.Itoa(idx)
+			f.SetCellValue(sheet, "A"+line, trading.Ticker)
+			f.SetCellValue(sheet, "B"+line, trading.Company)
+			f.SetCellValue(sheet, "C"+line, trading.Cusip)
+			f.SetCellValue(sheet, "D"+line, trading.Fund)
+			f.SetCellValue(sheet, "E"+line, trading.Direction)
+			f.SetCellValue(sheet, "F"+line, trading.FixedDirection)
+			f.SetCellValue(sheet, "G"+line, trading.Shards)
+			f.SetCellValue(sheet, "H"+line, floatToPercentStringWithSign(trading.Percent))
+			f.SetCellValue(sheet, "I"+line, getHoldingShards(r.holdings, fund, trading.Ticker))
+			f.SetCellValue(sheet, "J"+line, getHoldingShards(r.previousHoldings[0], fund, trading.Ticker))
+			f.SetCellValue(sheet, "K"+line, getHoldingShards(r.previousHoldings[1], fund, trading.Ticker))
+			f.SetCellValue(sheet, "L"+line, getHoldingShards(r.previousHoldings[2], fund, trading.Ticker))
+			f.SetCellValue(sheet, "M"+line, tradings.Direction)
+			f.SetCellValue(sheet, "N"+line, floatToPercentStringWithSign(tradings.Percent))
 
-		idx++
+			idx++
+		}
 	}
 
 	err = f.Save()
@@ -140,22 +143,4 @@ func (r *TradingsReport) InitExcelFromTemplate() error {
 	utils.CopyFile(tradingsExcelTemplate, fileName)
 	glog.V(4).Infof("Init fileName: %s", fileName)
 	return nil
-}
-
-type StockReport struct {
-	Date                 string
-	StockTicker          string
-	Company              string
-	Cusip                string
-	Fund                 string
-	CurrentHoldingShards float64
-	CurrentHoldingWeight float64
-
-	CurrentDirection      TradeDirection
-	FixDirection          TradeDirection
-	CurrentTradingShards  float64
-	CurrentTradingPercent float64
-
-	FundDirection      TradeDirection
-	FundTradingPercent float64
 }

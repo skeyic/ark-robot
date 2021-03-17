@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -140,66 +139,6 @@ func (r *StockLibraryMaster) GetStockCurrentHolding(ticker, fund string) *StockH
 	}
 
 	return nil
-}
-
-func (r *StockLibraryMaster) GetStockPreviousHoldings(ticker, fund string, days int) []*StockHolding {
-	r.lock.RLock()
-	defer r.lock.RUnlock()
-
-	var (
-		latestDate  time.Time
-		holdingList []*StockHolding
-	)
-
-	emptyList := func(holdings []*StockHolding) []*StockHolding {
-		for i := 0; i < days; i++ {
-			holdings = append(holdings, nil)
-		}
-		return holdings
-	}
-	stockLibrary := r.StockLibraries[ticker]
-	if stockLibrary != nil {
-		if stockLibrary.LatestStockHolding != nil {
-			latestHolding := stockLibrary.LatestStockHolding[fund]
-			if latestHolding != nil {
-				latestDate = latestHolding.Date
-			}
-		}
-	} else {
-		return emptyList(holdingList)
-	}
-
-	var (
-		dateList timeList
-	)
-
-	for theDate := range stockLibrary.HistoryStockHoldings {
-		if stockLibrary.HistoryStockHoldings[theDate][fund] != nil {
-			dateList = append(dateList, theDate)
-		}
-	}
-
-	if dateList == nil {
-		return emptyList(holdingList)
-	}
-
-	sort.Sort(dateList)
-	for _, date := range dateList {
-		if latestDate.IsZero() || date.Before(latestDate) {
-			holdingList = append(holdingList, stockLibrary.HistoryStockHoldings[date][fund])
-			days--
-		}
-		if days == 0 {
-			break
-		}
-	}
-
-	for days > 0 {
-		holdingList = append([]*StockHolding{nil}, holdingList...)
-		days--
-	}
-
-	return holdingList
 }
 
 type StockLibrary struct {
