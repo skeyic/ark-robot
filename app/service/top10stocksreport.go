@@ -100,8 +100,8 @@ func (r *Top10HoldingsReport) ToExcel() error {
 			line := strconv.Itoa(idx)
 			f.SetCellValue(sheet, "A"+line, holding.Ticker)
 			f.SetCellValue(sheet, "B"+line, holding.Company)
-			f.SetCellValue(sheet, "C"+line, floatToPercentString(previousWeight))
-			f.SetCellValue(sheet, "D"+line, floatToPercentString(holding.Weight))
+			f.SetCellValue(sheet, "C"+line, previousWeight/100)
+			f.SetCellValue(sheet, "D"+line, holding.Weight/100)
 			f.SetCellValue(sheet, "E"+line, floatToStringIntOnly(holding.Shards))
 			f.SetCellValue(sheet, "F"+line, holding.MarketValue)
 
