@@ -100,6 +100,28 @@ func Test_MasterReportLatest(t *testing.T) {
 	}
 }
 
+func Test_MasterCheckTradings(t *testing.T) {
+	var (
+		err error
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.FreshInit()
+	if err != nil {
+		glog.Errorf("failed to fresh init the master, err: %v", err)
+		return
+	}
+
+	for _, fund := range allARKTypes {
+		tradings := TheLibrary.LatestStockTradings.GetFundStockTradings(fund)
+		glog.V(4).Infof("FUND: %s, TRADING NUM: %d", fund, len(tradings.Tradings))
+	}
+	//if err != nil {
+	//	glog.Errorf("failed to report latest trading, err: %v", err)
+	//	return
+	//}
+}
+
 func Test_MasterIndexToES(t *testing.T) {
 	var (
 		err error

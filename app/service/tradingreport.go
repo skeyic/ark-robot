@@ -80,13 +80,8 @@ func (r *TradingsReport) ToExcel(full bool) error {
 		}
 
 		for _, trading := range tradings.Tradings {
-			if !full {
-				if toSkipTicker(trading.Ticker) {
-					continue
-				}
-				if toSkipTrade(trading.FixedDirection) {
-					continue
-				}
+			if !full && (toSkipTicker(trading.Ticker) || toSkipTrade(trading.FixedDirection)) {
+				continue
 			}
 			toReportTradings = append(toReportTradings, trading)
 		}
