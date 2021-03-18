@@ -118,7 +118,7 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 		utils.SendAlertV2("Add to library", fmt.Sprintf("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now()))
 	}
 
-	err := TheMaster.ReportLatestTrading(false)
+	err := TheMaster.ReportLatestTrading(true)
 	if err != nil {
 		glog.Errorf("report latest trading failed, err: %v", err)
 		return err

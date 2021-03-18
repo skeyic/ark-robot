@@ -4,6 +4,7 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/utils"
+	"math"
 	"strconv"
 	"time"
 )
@@ -134,5 +135,5 @@ func (r *SpecialTradingsReport) InitExcelFromTemplate() error {
 }
 
 func IsSpecialTradings(trading *StockTrading) bool {
-	return trading.Percent >= 10 || trading.Percent <= -10
+	return math.Abs(trading.Percent) >= 5
 }
