@@ -58,7 +58,7 @@ func (r *ChinaStockTradingsReport) ToExcel() error {
 		idx   = 2
 	)
 
-	getHoldingShards := func(holding *ARKHoldings, fund, ticker string) float64 {
+	getHoldingWeight := func(holding *ARKHoldings, fund, ticker string) float64 {
 		if holding == nil {
 			return 0
 		}
@@ -92,7 +92,7 @@ func (r *ChinaStockTradingsReport) ToExcel() error {
 			f.SetCellValue(sheet, "B"+line, trading.Ticker)
 			f.SetCellValue(sheet, "C"+line, trading.Company)
 			f.SetCellValue(sheet, "D"+line, floatToPercentStringWithSign(trading.Percent))
-			f.SetCellValue(sheet, "E"+line, floatToPercentStringWithSign(getHoldingShards(r.holdings, fund, trading.Ticker)))
+			f.SetCellValue(sheet, "E"+line, floatToPercentString(getHoldingWeight(r.holdings, fund, trading.Ticker)))
 			//f.SetCellValue(sheet, "J"+line, getHoldingShards(r.previousHoldings[0], fund, trading.Ticker))
 			//f.SetCellValue(sheet, "K"+line, getHoldingShards(r.previousHoldings[1], fund, trading.Ticker))
 			//f.SetCellValue(sheet, "L"+line, getHoldingShards(r.previousHoldings[2], fund, trading.Ticker))
