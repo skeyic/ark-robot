@@ -18,6 +18,7 @@ func main() {
 		panic(fmt.Sprintf("master failed to fresh init, err: %v", err))
 	}
 	service.TheMaster.StartDownload()
+	service.TheMaster.ReportLatestTrading(true)
 
 	glog.V(4).Info("Ark robot starts...")
 }

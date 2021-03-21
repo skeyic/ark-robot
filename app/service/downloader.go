@@ -84,7 +84,7 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 	defer func(files []string) {
 		for _, file := range files {
 			glog.V(4).Infof("DELETE FILE %s", file)
-			os.Remove(file)
+			//os.Remove(file)
 		}
 	}(fileNames)
 

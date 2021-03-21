@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/golang/glog"
+	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
 	"math"
 	"strconv"
@@ -135,5 +136,5 @@ func (r *SpecialTradingsReport) InitExcelFromTemplate() error {
 }
 
 func IsSpecialTradings(trading *StockTrading) bool {
-	return math.Abs(trading.Percent) >= 5
+	return math.Abs(trading.Percent) >= config.Config.Report.SpecialTradingPercent
 }
