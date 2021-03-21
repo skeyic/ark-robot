@@ -127,7 +127,7 @@ func (r *TradingsReport) ExcelPath() string {
 }
 
 func (r *TradingsReport) ExcelName() string {
-	return "tradings_" + r.Date + ".xlsx"
+	return prefixTradings + r.Date + ".xlsx"
 }
 
 func (r *TradingsReport) InitExcelFromTemplate() error {

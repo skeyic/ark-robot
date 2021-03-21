@@ -59,13 +59,13 @@ type Porter struct {
 
 func NewPorter() *Porter {
 	p := &Porter{}
-	p.init()
 	return p
 }
 
-func (p *Porter) init() {
+func (p *Porter) Init() error {
 	utils.CheckFolder(porterFolder)
 	glog.V(4).Infof("porter init completed")
+	return nil
 }
 
 var (

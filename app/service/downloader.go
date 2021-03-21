@@ -52,13 +52,13 @@ type Downloader struct {
 
 func NewDownloader() *Downloader {
 	d := &Downloader{}
-	d.init()
 	return d
 }
 
-func (d *Downloader) init() {
+func (d *Downloader) Init() error {
 	utils.CheckFolder(downloaderFolder)
 	glog.V(4).Infof("downloader init completed")
+	return nil
 }
 
 func (d *Downloader) process() {

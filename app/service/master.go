@@ -19,8 +19,34 @@ type Master struct {
 }
 
 func NewMaster() *Master {
-	return &Master{
+	m := &Master{
 		lock: &sync.RWMutex{},
+	}
+	m.MustInit()
+	return m
+}
+
+func (m *Master) MustInit() {
+	var (
+		err error
+	)
+
+	err = TheDownloader.Init()
+	if err != nil {
+		glog.Errorf("init the downloader failed")
+		panic(err)
+	}
+
+	err = ThePorter.Init()
+	if err != nil {
+		glog.Errorf("init the porter failed")
+		panic(err)
+	}
+
+	err = TheChinaStockManager.Init()
+	if err != nil {
+		glog.Errorf("init the china stock manager failed")
+		panic(err)
 	}
 }
 
@@ -75,6 +101,13 @@ func (m *Master) ReportLatestTrading(full bool) error {
 	err = specialTradingsReport.ToExcel()
 	if err != nil {
 		glog.Errorf("specialTradingsReport to excel failed, err: %v", err)
+		return err
+	}
+
+	chinaStockTradingsReport := NewChinaStockTradingsReport(latestDate)
+	err = chinaStockTradingsReport.ToExcel()
+	if err != nil {
+		glog.Errorf("chinaStockTradingsReport to excel failed, err: %v", err)
 		return err
 	}
 

@@ -8,16 +8,19 @@ import (
 )
 
 const (
-	prefixTop10Holdings   = "top_10_stocks_"
-	prefixSpecialTradings = "special_tradings_"
-	defaultSheet          = "sheet"
+	prefixTradings           = "tradings_"
+	prefixTop10Holdings      = "top_10_stocks_"
+	prefixSpecialTradings    = "special_tradings_"
+	prefixChinaStockTradings = "china_stock_tradings_"
+	defaultSheet             = "sheet"
 )
 
 var (
-	reportPath                   = config.Config.DataFolder + "/report"
-	tradingsExcelTemplate        = config.Config.ResourceFolder + "/TEMPLATE_ARK.xlsx"
-	top10ExcelTemplate           = config.Config.ResourceFolder + "/TEMPLATE_top_10_stocks.xlsx"
-	specialTradingsExcelTemplate = config.Config.ResourceFolder + "/TEMPLATE_special_tradings.xlsx"
+	reportPath                      = config.Config.DataFolder + "/report"
+	tradingsExcelTemplate           = config.Config.ResourceFolder + "/TEMPLATE_ARK.xlsx"
+	top10ExcelTemplate              = config.Config.ResourceFolder + "/TEMPLATE_top_10_stocks.xlsx"
+	specialTradingsExcelTemplate    = config.Config.ResourceFolder + "/TEMPLATE_special_tradings.xlsx"
+	chinaStockExcelTradingsTemplate = config.Config.ResourceFolder + "/TEMPLATE_china_stock_tradings.xlsx"
 )
 
 func init() {

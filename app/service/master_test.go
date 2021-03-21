@@ -87,6 +87,8 @@ func Test_MasterReportLatest(t *testing.T) {
 	)
 
 	utils.EnableGlogForTesting()
+	TheChinaStockManager.Init()
+
 	err = TheMaster.FreshInit()
 	if err != nil {
 		glog.Errorf("failed to fresh init the master, err: %v", err)
@@ -139,4 +141,14 @@ func Test_MasterIndexToES(t *testing.T) {
 		glog.Errorf("failed to index to es, err: %v", err)
 		return
 	}
+}
+
+func Test_MasterCheckChinaStock(t *testing.T) {
+	//var (
+	//	err error
+	//)
+
+	utils.EnableGlogForTesting()
+
+	glog.V(4).Infof("NUM: %d", len(TheChinaStockManager.stocks))
 }

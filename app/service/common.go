@@ -20,4 +20,5 @@ var (
 	errEmptySourceToIndex = errors.New("empty to index")
 	errInitReportFile     = errors.New("failed to init report file")
 	errEmptyReport        = errors.New("nothing to report")
+	errGetChinaStock      = errors.New("get china stock failed")
 )
