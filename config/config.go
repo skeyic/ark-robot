@@ -6,6 +6,7 @@ import (
 
 var Config = struct {
 	DebugMode      bool   `default:"false" env:"DEBUG_MODE"`
+	Port           int    `default:"7766" env:"PORT"`
 	DataFolder     string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/data" env:"DATA_FOLDER"`
 	ResourceFolder string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/resource" env:"RESOURCE_FOLDER"`
 
@@ -22,7 +23,7 @@ var Config = struct {
 	}
 
 	Report struct {
-		SpecialTradingPercent float64 `default:"5" env:"SPECIAL_TRADING_PERCENT"`
+		SpecialTradingPercent float64 `default:"1" env:"SPECIAL_TRADING_PERCENT"`
 	}
 }{}
 
