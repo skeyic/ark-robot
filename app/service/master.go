@@ -115,13 +115,16 @@ func (m *Master) Report(date time.Time, full bool) error {
 		return err
 	}
 
-	err = m.IndexDateToES(date)
-	if err != nil {
-		glog.Errorf("IndexDateToES to excel failed, err: %v", err)
-		return err
+	return nil
+}
+
+func (m *Master) IndexLatestToES() (err error) {
+	latestDate := TheLibrary.GetLatestHoldingDate()
+	if latestDate.IsZero() {
+		return errNoLatestDate
 	}
 
-	return nil
+	return m.IndexDateToES(latestDate)
 }
 
 func (m *Master) IndexDateToES(date time.Time) (err error) {

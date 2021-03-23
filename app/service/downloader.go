@@ -123,6 +123,13 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 		glog.Errorf("report latest trading failed, err: %v", err)
 		return err
 	}
+
+	err = TheMaster.IndexLatestToES()
+	if err != nil {
+		glog.Errorf("index latest data to ES failed, err: %v", err)
+		return err
+	}
+
 	glog.V(4).Infof("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now())
 	if config.Config.DebugMode {
 		utils.SendAlertV2("Add to library", fmt.Sprintf("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now()))
