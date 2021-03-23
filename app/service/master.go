@@ -74,44 +74,48 @@ func (m *Master) MustSave() {
 }
 
 func (m *Master) ReportLatestTrading(full bool) error {
-	var (
-		err error
-	)
-
 	latestDate := TheLibrary.GetLatestHoldingDate()
 	if latestDate.IsZero() {
 		return errNoLatestDate
 	}
 
-	tradingsReport := NewTradingsReport(latestDate)
+	return m.Report(latestDate, full)
+}
+
+func (m *Master) Report(date time.Time, full bool) error {
+	var (
+		err error
+	)
+
+	tradingsReport := NewTradingsReport(date)
 	err = tradingsReport.ToExcel(full)
 	if err != nil {
 		glog.Errorf("tradingsReport to excel failed, err: %v", err)
 		return err
 	}
 
-	top10HoldingsReport := NewTop10HoldingsReport(latestDate)
+	top10HoldingsReport := NewTop10HoldingsReport(date)
 	err = top10HoldingsReport.ToExcel()
 	if err != nil {
 		glog.Errorf("top10HoldingsReport to excel failed, err: %v", err)
 		return err
 	}
 
-	specialTradingsReport := NewSpecialTradingsReport(latestDate)
+	specialTradingsReport := NewSpecialTradingsReport(date)
 	err = specialTradingsReport.ToExcel()
 	if err != nil {
 		glog.Errorf("specialTradingsReport to excel failed, err: %v", err)
 		return err
 	}
 
-	chinaStockTradingsReport := NewChinaStockTradingsReport(latestDate)
+	chinaStockTradingsReport := NewChinaStockTradingsReport(date)
 	err = chinaStockTradingsReport.ToExcel()
 	if err != nil {
 		glog.Errorf("chinaStockTradingsReport to excel failed, err: %v", err)
 		return err
 	}
 
-	err = m.IndexDateToES(latestDate)
+	err = m.IndexDateToES(date)
 	if err != nil {
 		glog.Errorf("IndexDateToES to excel failed, err: %v", err)
 		return err
