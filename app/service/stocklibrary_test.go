@@ -19,16 +19,16 @@ func TestStockLibrary(t *testing.T) {
 	//	glog.V(4).Infof("TICKER: %s, STOCK: %+v", ticker, stock)
 	//}
 
-	jd := TheStockLibraryMaster.StockLibraries["RPTX"]
-	if jd == nil {
-		panic("JD not found")
+	stock := TheStockLibraryMaster.StockLibraries["U"]
+	if stock == nil {
+		panic("ticker not found")
 	}
 
 	var (
 		dateList timeList
 	)
 
-	for theDate := range jd.HistoryStockTradings {
+	for theDate := range stock.HistoryStockTradings {
 		dateList = append(dateList, theDate)
 	}
 
@@ -43,7 +43,7 @@ func TestStockLibrary(t *testing.T) {
 
 	for _, fund := range allARKTypes {
 		for i := 0; i < len(dateList); i++ {
-			tradings := jd.HistoryStockTradings[dateList[i]]
+			tradings := stock.HistoryStockTradings[dateList[i]]
 			fundTradings := tradings[fund]
 			if fundTradings != nil {
 				glog.V(4).Infof("DATE: %s, FUND: %s, FD: %s, SHARDS: %f, PERCENT: %f", dateList[i], fund, fundTradings.FixedDirection, fundTradings.Shards, fundTradings.Percent)

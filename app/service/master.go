@@ -111,6 +111,33 @@ func (m *Master) ReportLatestTrading(full bool) error {
 		return err
 	}
 
+	err = m.IndexDateToES(latestDate)
+	if err != nil {
+		glog.Errorf("IndexDateToES to excel failed, err: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (m *Master) IndexDateToES(date time.Time) (err error) {
+	latestHoldings := TheLibrary.GetHoldings(date)
+	for _, fund := range allARKTypes {
+		err = TheESConnector.IndexStockHoldings(latestHoldings.GetFundStockHoldings(fund))
+		if err != nil {
+			glog.Errorf("Index date %s holdings to ES failed, err: %v", date, err)
+			return
+		}
+	}
+
+	latestTradings := TheLibrary.GetTradings(date)
+	for _, fund := range allARKTypes {
+		err = TheESConnector.IndexStockTradings(latestTradings.GetFundStockTradings(fund))
+		if err != nil {
+			glog.Errorf("Index date %s tradings to ES failed, err: %v", date, err)
+			return
+		}
+	}
 	return nil
 }
 
