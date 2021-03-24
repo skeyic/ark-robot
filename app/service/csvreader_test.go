@@ -14,7 +14,7 @@ func TestCSVRead(t *testing.T) {
 	flag.Set("v", "10")
 	flag.Parse()
 
-	r := NewCSVReader("C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data\\ARK\\20210304\\a20210304ARKF.csv")
+	r := NewCSVOperator("C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data\\ARK\\20210304\\a20210304ARKF.csv")
 	records, err := r.Load()
 	if err != nil {
 		glog.Errorf("failed to load, error: %v", err)
@@ -42,7 +42,7 @@ func TestCSVReadWrite(t *testing.T) {
 	flag.Set("v", "10")
 	flag.Parse()
 
-	r := NewCSVReader("C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data\\ARK\\20210304\\arkqw.csv")
+	r := NewCSVOperator("C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data\\ARK\\20210304\\arkqw.csv")
 	records, err := r.Load()
 	if err != nil {
 		glog.Errorf("failed to load, error: %v", err)
@@ -108,4 +108,15 @@ func TestCSVReadWrite(t *testing.T) {
 		return
 	}
 
+}
+
+func TestWriteCSV2(t *testing.T) {
+	var (
+		content = [][]string{
+			{"Ticker", "Company", "Fund", "Shards", "Holding", "Percent"},
+			{"TSLA", "TTSSLLAA", "ARKK", "-100", "1000", "0.1"},
+		}
+		path = "C:\\TRY\\tt1.csv"
+	)
+	glog.V(4).Infof("Error: %v", NewCSVOperator(path).Write(content))
 }

@@ -91,7 +91,7 @@ func (p *Porter) Catalog(csvFileName string) (*StockHoldings, error) {
 	var (
 		stockHolding []*StockHolding
 	)
-	records, err := NewCSVReader(csvFileName).Load()
+	records, err := NewCSVOperator(csvFileName).Load()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read csv file: %s, err: %v", csvFileName, err))
 	}
@@ -192,7 +192,7 @@ func (p *Porter) ReadCSV(csvFileName string) (*StockHoldings, error) {
 	var (
 		stockHolding []*StockHolding
 	)
-	records, err := NewCSVReader(csvFileName).Load()
+	records, err := NewCSVOperator(csvFileName).Load()
 	if err != nil {
 		glog.Errorf("failed to read csv file: %s, err: %v", csvFileName, err)
 		return nil, err

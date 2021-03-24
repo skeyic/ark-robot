@@ -8,20 +8,21 @@ import (
 )
 
 var (
-	errLoadCSVFile = errors.New("load csv file failed")
+	errLoadCSVFile  = errors.New("load csv file failed")
+	errWriteCSVFile = errors.New("write csv file failed")
 )
 
-type CSVReader struct {
+type CSVOperator struct {
 	filepath string
 }
 
-func NewCSVReader(filename string) *CSVReader {
-	return &CSVReader{
+func NewCSVOperator(filename string) *CSVOperator {
+	return &CSVOperator{
 		filepath: filename,
 	}
 }
 
-func (c *CSVReader) Load() ([][]string, error) {
+func (c *CSVOperator) Load() ([][]string, error) {
 	f, err := os.Open(c.filepath)
 	if err != nil {
 		glog.Errorf("failed to open csv file: %s, error: %v", c.filepath, err)
@@ -37,4 +38,23 @@ func (c *CSVReader) Load() ([][]string, error) {
 	}
 
 	return records, nil
+}
+
+func (c *CSVOperator) Write(content [][]string) error {
+	f, err := os.Create(c.filepath)
+	if err != nil {
+		glog.Errorf("failed to open csv file: %s, error: %v", c.filepath, err)
+		return errWriteCSVFile
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	err = w.WriteAll(content)
+	if err != nil {
+		glog.Errorf("failed to open csv file: %s, error: %v", c.filepath, err)
+		return errWriteCSVFile
+	}
+	w.Flush()
+
+	return nil
 }
