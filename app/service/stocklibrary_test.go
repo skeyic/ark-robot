@@ -19,7 +19,7 @@ func TestStockLibrary(t *testing.T) {
 	//	glog.V(4).Infof("TICKER: %s, STOCK: %+v", ticker, stock)
 	//}
 
-	stock := TheStockLibraryMaster.StockLibraries["U"]
+	stock := TheStockLibraryMaster.StockLibraries["FATE"]
 	if stock == nil {
 		panic("ticker not found")
 	}

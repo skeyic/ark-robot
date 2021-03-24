@@ -267,10 +267,6 @@ func ToTradingData(tradings *StockTradings, trading *StockTrading) *TradingData 
 		FundDirection:  tradings.Direction,
 		FundPercent:    tradings.Percent,
 	}
-	if data.Direction == TradeSell {
-		data.Shards *= -1
-		data.Percent *= -1
-	}
 	return data
 }
 
