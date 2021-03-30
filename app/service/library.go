@@ -22,7 +22,8 @@ var (
 )
 
 var (
-	allARKTypes = []string{"ARKF", "ARKG", "ARKK", "ARKQ", "ARKW"}
+	allARKTypes = []string{"ARKF", "ARKG", "ARKK", "ARKQ", "ARKW", "ARKX"}
+	arkxDate, _ = time.Parse(TheDateFormat, "2021-03-30")
 )
 
 type ARKHoldings struct {
@@ -32,6 +33,7 @@ type ARKHoldings struct {
 	ARKW *StockHoldings
 	ARKG *StockHoldings
 	ARKF *StockHoldings
+	ARKX *StockHoldings
 }
 
 func NewARKHoldings() *ARKHoldings {
@@ -61,8 +63,15 @@ func NewARKHoldingsFromDirectory(dir string) (*ARKHoldings, error) {
 }
 
 func (a *ARKHoldings) Validation() bool {
-	return !(a.Date.IsZero() || a.ARKK == nil || a.ARKQ == nil ||
-		a.ARKW == nil || a.ARKG == nil || a.ARKF == nil)
+	if a.Date.IsZero() || a.ARKK == nil || a.ARKQ == nil ||
+		a.ARKW == nil || a.ARKG == nil || a.ARKF == nil {
+		return false
+	}
+	// Before 2021/03/30 we do not have ARKX
+	if a.Date.After(arkxDate) && a.ARKX == nil {
+		return false
+	}
+	return true
 }
 
 func (a *ARKHoldings) AddStockHoldings(s *StockHoldings) error {
@@ -85,6 +94,8 @@ func (a *ARKHoldings) AddStockHoldings(s *StockHoldings) error {
 		a.ARKG = s
 	case "ARKF":
 		a.ARKF = s
+	case "ARKX":
+		a.ARKX = s
 	default:
 		return errFundNotMatch
 	}
@@ -103,6 +114,8 @@ func (a *ARKHoldings) GetFundStockHoldings(fund string) *StockHoldings {
 		return a.ARKG
 	case "ARKF":
 		return a.ARKF
+	case "ARKX":
+		return a.ARKX
 	default:
 		panic(fmt.Sprintf("Incorrect fund type: %s", fund))
 	}
@@ -113,9 +126,13 @@ func (a *ARKHoldings) GenerateTrading(p *ARKHoldings) *ARKTradings {
 		arkTradings = NewARKTradings()
 	)
 	for _, theFund := range allARKTypes {
-		tradings := a.GetFundStockHoldings(theFund).GenerateTrading(p.GetFundStockHoldings(theFund))
-		tradings.SetFixDirection()
-		_ = arkTradings.AddStockTradings(tradings)
+		cHoldings := a.GetFundStockHoldings(theFund)
+		pHoldings := p.GetFundStockHoldings(theFund)
+		if cHoldings != nil {
+			tradings := cHoldings.GenerateTrading(pHoldings)
+			tradings.SetFixDirection()
+			_ = arkTradings.AddStockTradings(tradings)
+		}
 	}
 	return arkTradings
 }
@@ -127,6 +144,7 @@ type ARKTradings struct {
 	ARKW *StockTradings
 	ARKG *StockTradings
 	ARKF *StockTradings
+	ARKX *StockTradings
 }
 
 func NewARKTradings() *ARKTradings {
@@ -158,6 +176,8 @@ func (a *ARKTradings) AddStockTradings(s *StockTradings) error {
 		a.ARKG = s
 	case "ARKF":
 		a.ARKF = s
+	case "ARKX":
+		a.ARKX = s
 	default:
 		return errFundNotMatch
 	}
@@ -176,6 +196,8 @@ func (a *ARKTradings) GetFundStockTradings(fund string) *StockTradings {
 		return a.ARKG
 	case "ARKF":
 		return a.ARKF
+	case "ARKX":
+		return a.ARKX
 	default:
 		panic(fmt.Sprintf("Incorrect fund type: %s", fund))
 	}

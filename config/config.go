@@ -10,7 +10,7 @@ var Config = struct {
 	DataFolder     string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/data" env:"DATA_FOLDER"`
 	ResourceFolder string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/resource" env:"RESOURCE_FOLDER"`
 
-	//DataFolder string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data" env:"DATA_FOLDER"`
+	//DataFolder     string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data" env:"DATA_FOLDER"`
 	//ResourceFolder string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\resource" env:"RESOURCE_FOLDER"`
 
 	NeuronServer struct {
@@ -19,11 +19,12 @@ var Config = struct {
 	}
 
 	ESServer struct {
-		URL string `default:"http://www.xiaxuanli.com:7222" env:"ES_SERVER_URL"`
+		Force bool   `default:"false" env:"ES_SERVER_FORCE"`
+		URL   string `default:"http://www.xiaxuanli.com:7222" env:"ES_SERVER_URL"`
 	}
 
 	Report struct {
-		SpecialTradingPercent float64 `default:"1" env:"SPECIAL_TRADING_PERCENT"`
+		SpecialTradingPercent float64 `default:"3" env:"SPECIAL_TRADING_PERCENT"`
 	}
 }{}
 

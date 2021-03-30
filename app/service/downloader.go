@@ -23,6 +23,7 @@ var (
 		"ARKW": "ARK_NEXT_GENERATION_INTERNET_ETF_ARKW_HOLDINGS",
 		"ARKG": "ARK_GENOMIC_REVOLUTION_MULTISECTOR_ETF_ARKG_HOLDINGS",
 		"ARKF": "ARK_FINTECH_INNOVATION_ETF_ARKF_HOLDINGS",
+		"ARKX": "ARK_SPACE_EXPLORATION_&_INNOVATION_ETF_ARKX_HOLDINGS", // added 2021/3/30
 	}
 	downloaderFolder        = config.Config.DataFolder + "/downloader/"
 	downloaderUTCStartHour  = 0 // UTC 00:00
@@ -124,10 +125,12 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 		return err
 	}
 
-	err = TheMaster.IndexLatestToES()
-	if err != nil {
-		glog.Errorf("index latest data to ES failed, err: %v", err)
-		return err
+	if config.Config.ESServer.Force {
+		err = TheMaster.IndexLatestToES()
+		if err != nil {
+			glog.Errorf("index latest data to ES failed, err: %v", err)
+			return err
+		}
 	}
 
 	glog.V(4).Infof("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now())

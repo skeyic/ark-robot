@@ -62,7 +62,11 @@ func (r *SpecialTradingsReport) ToExcel() error {
 		if trading == nil {
 			return 0
 		}
-		stockTrading := trading.GetFundStockTradings(fund).Tradings[ticker]
+		theTradings := trading.GetFundStockTradings(fund)
+		if theTradings == nil {
+			return 0
+		}
+		stockTrading := theTradings.Tradings[ticker]
 		if stockTrading == nil {
 			return 0
 		}

@@ -62,6 +62,9 @@ func (r *TradingsReport) ToExcel(full bool) error {
 		if holding == nil {
 			return 0
 		}
+		if holding.GetFundStockHoldings(fund) == nil {
+			return 0
+		}
 		stockHolding := holding.GetFundStockHoldings(fund).Holdings[ticker]
 		if stockHolding == nil {
 			return 0

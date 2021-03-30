@@ -101,13 +101,16 @@ func (r *StockLibraryMaster) AddStockHoldings(arkHoldings *ARKHoldings) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	for _, fund := range allARKTypes {
-		for ticker, holding := range arkHoldings.GetFundStockHoldings(fund).Holdings {
-			stockLibrary := r.StockLibraries[ticker]
-			if stockLibrary == nil {
-				stockLibrary = NewStockLibrary(ticker)
-				r.StockLibraries[ticker] = stockLibrary
+		theHoldings := arkHoldings.GetFundStockHoldings(fund)
+		if theHoldings != nil {
+			for ticker, holding := range theHoldings.Holdings {
+				stockLibrary := r.StockLibraries[ticker]
+				if stockLibrary == nil {
+					stockLibrary = NewStockLibrary(ticker)
+					r.StockLibraries[ticker] = stockLibrary
+				}
+				stockLibrary.AddStockHolding(holding)
 			}
-			stockLibrary.AddStockHolding(holding)
 		}
 	}
 }
@@ -116,13 +119,16 @@ func (r *StockLibraryMaster) AddStockTradings(arkTradings *ARKTradings) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	for _, fund := range allARKTypes {
-		for ticker, trading := range arkTradings.GetFundStockTradings(fund).Tradings {
-			stockLibrary := r.StockLibraries[ticker]
-			if stockLibrary == nil {
-				stockLibrary = NewStockLibrary(ticker)
-				r.StockLibraries[ticker] = stockLibrary
+		theTradings := arkTradings.GetFundStockTradings(fund)
+		if theTradings != nil {
+			for ticker, trading := range theTradings.Tradings {
+				stockLibrary := r.StockLibraries[ticker]
+				if stockLibrary == nil {
+					stockLibrary = NewStockLibrary(ticker)
+					r.StockLibraries[ticker] = stockLibrary
+				}
+				stockLibrary.AddStockTrading(trading)
 			}
-			stockLibrary.AddStockTrading(trading)
 		}
 	}
 }
