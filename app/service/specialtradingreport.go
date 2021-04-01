@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/golang/glog"
-	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
 	"math"
 	"strconv"
@@ -12,14 +11,16 @@ import (
 
 type SpecialTradingsReport struct {
 	Date             string
+	Percent          float64
 	tradings         *ARKTradings
 	previousTradings []*ARKTradings
 }
 
-func NewSpecialTradingsReport(date time.Time) *SpecialTradingsReport {
+func NewSpecialTradingsReport(date time.Time, percent float64) *SpecialTradingsReport {
 	var (
 		r = &SpecialTradingsReport{
 			Date:             date.Format(TheDateFormat),
+			Percent:          percent,
 			tradings:         TheLibrary.GetTradings(date),
 			previousTradings: TheLibrary.GetPreviousTradings(date, 2),
 		}
@@ -86,7 +87,7 @@ func (r *SpecialTradingsReport) ToExcel() error {
 			if toSkipTicker(trading.Ticker) {
 				continue
 			}
-			if !IsSpecialTradings(trading) {
+			if !r.IsSpecialTradings(trading) {
 				continue
 			}
 			toReportTradings = append(toReportTradings, trading)
@@ -139,6 +140,6 @@ func (r *SpecialTradingsReport) InitExcelFromTemplate() error {
 	return nil
 }
 
-func IsSpecialTradings(trading *StockTrading) bool {
-	return math.Abs(trading.Percent) >= config.Config.Report.SpecialTradingPercent
+func (r *SpecialTradingsReport) IsSpecialTradings(trading *StockTrading) bool {
+	return math.Abs(trading.Percent) >= r.Percent
 }

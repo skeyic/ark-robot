@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/golang/glog"
+	"github.com/skeyic/ark-robot/config"
 	"sync"
 	"time"
 )
@@ -79,10 +80,10 @@ func (m *Master) ReportLatestTrading(full bool) error {
 		return errNoLatestDate
 	}
 
-	return m.Report(latestDate, full)
+	return m.Report(latestDate, full, config.Config.Report.SpecialTradingPercent)
 }
 
-func (m *Master) Report(date time.Time, full bool) error {
+func (m *Master) Report(date time.Time, full bool, SpecialTradingsPercent float64) error {
 	var (
 		err error
 	)
@@ -101,7 +102,7 @@ func (m *Master) Report(date time.Time, full bool) error {
 		return err
 	}
 
-	specialTradingsReport := NewSpecialTradingsReport(date)
+	specialTradingsReport := NewSpecialTradingsReport(date, SpecialTradingsPercent)
 	err = specialTradingsReport.ToExcel()
 	if err != nil {
 		glog.Errorf("specialTradingsReport to excel failed, err: %v", err)
