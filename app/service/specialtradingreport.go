@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/utils"
@@ -26,7 +27,7 @@ func NewSpecialTradingsReport(date time.Time, percent float64) *SpecialTradingsR
 		}
 	)
 
-	utils.CheckFolder(r.ExcelFolder())
+	utils.CheckFolder(r.ReportFolder())
 
 	return r
 }
@@ -55,8 +56,10 @@ func (r *SpecialTradingsReport) ToExcel() error {
 	}
 
 	var (
-		sheet = defaultSheet
-		idx   = 2
+		sheet                         = defaultSheet
+		idx                           = 2
+		higherThan10TxtContent        []byte
+		continuousDirectionTxtContent []byte
 	)
 
 	getTradingPercent := func(trading *ARKTradings, fund, ticker string) float64 {
@@ -72,6 +75,21 @@ func (r *SpecialTradingsReport) ToExcel() error {
 			return 0
 		}
 		return stockTrading.Percent
+	}
+
+	getTradingFixedDirection := func(trading *ARKTradings, fund, ticker string) TradeDirection {
+		if trading == nil {
+			return TradeDoNothing
+		}
+		theTradings := trading.GetFundStockTradings(fund)
+		if theTradings == nil {
+			return TradeDoNothing
+		}
+		stockTrading := theTradings.Tradings[ticker]
+		if stockTrading == nil {
+			return TradeDoNothing
+		}
+		return stockTrading.FixedDirection
 	}
 
 	for _, fund := range allARKTypes {
@@ -94,6 +112,18 @@ func (r *SpecialTradingsReport) ToExcel() error {
 		}
 
 		for _, trading := range toReportTradings {
+			previousFixedDirection1 := getTradingFixedDirection(r.previousTradings[0], fund, trading.Ticker)
+			previousFixedDirection2 := getTradingFixedDirection(r.previousTradings[1], fund, trading.Ticker)
+			if previousFixedDirection1 == trading.FixedDirection && previousFixedDirection2 == trading.FixedDirection {
+				continuousDirectionTxtContent = append(continuousDirectionTxtContent,
+					NewContinuousDirectionSpecialTradingTxtFromTradings(trading,
+						getTradingPercent(r.previousTradings[0], fund, trading.Ticker),
+						getTradingPercent(r.previousTradings[1], fund, trading.Ticker))...)
+			} else {
+				if math.Abs(trading.Percent) > 10 {
+					higherThan10TxtContent = append(higherThan10TxtContent, NewHigherThan10SpecialTradingTxtFromTradings(trading)...)
+				}
+			}
 
 			line := strconv.Itoa(idx)
 			f.SetCellValue(sheet, "A"+line, trading.Fund)
@@ -104,6 +134,7 @@ func (r *SpecialTradingsReport) ToExcel() error {
 			f.SetCellValue(sheet, "F"+line, floatToPercentStringWithSign(getTradingPercent(r.previousTradings[0], fund, trading.Ticker)))
 
 			idx++
+
 		}
 	}
 
@@ -113,21 +144,57 @@ func (r *SpecialTradingsReport) ToExcel() error {
 		return err
 	}
 
+	if len(higherThan10TxtContent) > 0 {
+		err = utils.NewFileStoreSvc(r.HigherThan10TxtPath()).Save(higherThan10TxtContent)
+		if err != nil {
+			glog.Errorf("failed to save txt %s, err: %v", r.HigherThan10TxtPath(), err)
+			return err
+		}
+	} else {
+		glog.V(4).Infof("No higher than 10 tradings")
+	}
+
+	if len(continuousDirectionTxtContent) > 0 {
+		err = utils.NewFileStoreSvc(r.ContinuousDirectionTxtPath()).Save(continuousDirectionTxtContent)
+		if err != nil {
+			glog.Errorf("failed to save txt %s, err: %v", r.HigherThan10TxtPath(), err)
+			return err
+		}
+	} else {
+		glog.V(4).Infof("No higher than 10 tradings")
+	}
+
 	glog.V(4).Infof("SpecialTradingsReport %s is provided", fileName)
 
 	return nil
 }
 
-func (r *SpecialTradingsReport) ExcelFolder() string {
+func (r *SpecialTradingsReport) ReportFolder() string {
 	return reportPath + "/" + r.Date
 }
 
 func (r *SpecialTradingsReport) ExcelPath() string {
-	return r.ExcelFolder() + "/" + r.ExcelName()
+	return r.ReportFolder() + "/" + r.ExcelName()
 }
 
 func (r *SpecialTradingsReport) ExcelName() string {
 	return prefixSpecialTradings + r.Date + ".xlsx"
+}
+
+func (r *SpecialTradingsReport) HigherThan10TxtPath() string {
+	return r.ReportFolder() + "/" + r.HigherThan10TxtName()
+}
+
+func (r *SpecialTradingsReport) HigherThan10TxtName() string {
+	return prefixSpecialTradingsHigherThan10 + r.Date + ".txt"
+}
+
+func (r *SpecialTradingsReport) ContinuousDirectionTxtPath() string {
+	return r.ReportFolder() + "/" + r.ContinuousDirectionTxtName()
+}
+
+func (r *SpecialTradingsReport) ContinuousDirectionTxtName() string {
+	return prefixSpecialTradingsContinuousDirection + r.Date + ".txt"
 }
 
 func (r *SpecialTradingsReport) InitExcelFromTemplate() error {
@@ -140,6 +207,43 @@ func (r *SpecialTradingsReport) InitExcelFromTemplate() error {
 	return nil
 }
 
+func (r *SpecialTradingsReport) InitTxt() error {
+	var fileName = r.HigherThan10TxtPath()
+	if utils.CheckFileExist(fileName) {
+		utils.DeleteFile(fileName)
+	}
+	glog.V(4).Infof("Init fileName: %s", fileName)
+	return nil
+}
+
 func (r *SpecialTradingsReport) IsSpecialTradings(trading *StockTrading) bool {
-	return math.Abs(trading.Percent) >= r.Percent
+	return math.Abs(trading.Percent) >= r.Percent && trading.FixedDirection != TradeKeep
+}
+
+func NewHigherThan10SpecialTradingTxtFromTradings(trading *StockTrading) []byte {
+	var (
+		result string
+	)
+	switch trading.Direction {
+	case TradeBuy:
+		result = fmt.Sprintf("%s在%s中获得%.2f%%的增持\n", trading.Ticker, trading.Fund, math.Abs(trading.Percent))
+	case TradeSell:
+		result = fmt.Sprintf("%s在%s中被减持了%.2f%%\n", trading.Ticker, trading.Fund, math.Abs(trading.Percent))
+	}
+	return []byte(result)
+}
+
+func NewContinuousDirectionSpecialTradingTxtFromTradings(trading *StockTrading, previousPercent1, previousPercent2 float64) []byte {
+	var (
+		result string
+	)
+	switch trading.Direction {
+	case TradeBuy:
+		result = fmt.Sprintf("%s最近三日在%s中均被减持，分别是%.2f%%、%.2f%%以及%.2f%%。\n", trading.Ticker, trading.Fund,
+			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2))
+	case TradeSell:
+		result = fmt.Sprintf("%s最近三日在%s中都获得增持，分别是%.2f%%、%.2f%%以及%.2f%%。\n", trading.Ticker, trading.Fund,
+			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2))
+	}
+	return []byte(result)
 }

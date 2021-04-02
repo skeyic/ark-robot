@@ -8,11 +8,13 @@ import (
 )
 
 const (
-	prefixTradings           = "tradings_"
-	prefixTop10Holdings      = "top_10_stocks_"
-	prefixSpecialTradings    = "special_tradings_"
-	prefixChinaStockTradings = "china_stock_tradings_"
-	defaultSheet             = "sheet"
+	prefixTradings                           = "tradings_"
+	prefixTop10Holdings                      = "top_10_stocks_"
+	prefixSpecialTradings                    = "special_tradings_"
+	prefixSpecialTradingsHigherThan10        = "special_tradings_higher_than_10_"
+	prefixSpecialTradingsContinuousDirection = "special_tradings_continues_direction_"
+	prefixChinaStockTradings                 = "china_stock_tradings_"
+	defaultSheet                             = "sheet"
 )
 
 var (
