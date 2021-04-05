@@ -112,13 +112,13 @@ func (r *SpecialTradingsReport) ToExcel() error {
 		}
 
 		for _, trading := range toReportTradings {
-			previousFixedDirection1 := getTradingFixedDirection(r.previousTradings[0], fund, trading.Ticker)
-			previousFixedDirection2 := getTradingFixedDirection(r.previousTradings[1], fund, trading.Ticker)
+			previousFixedDirection1 := getTradingFixedDirection(r.previousTradings[1], fund, trading.Ticker)
+			previousFixedDirection2 := getTradingFixedDirection(r.previousTradings[0], fund, trading.Ticker)
 			if previousFixedDirection1 == trading.FixedDirection && previousFixedDirection2 == trading.FixedDirection {
 				continuousDirectionTxtContent = append(continuousDirectionTxtContent,
 					NewContinuousDirectionSpecialTradingTxtFromTradings(trading,
-						getTradingPercent(r.previousTradings[0], fund, trading.Ticker),
-						getTradingPercent(r.previousTradings[1], fund, trading.Ticker))...)
+						getTradingPercent(r.previousTradings[1], fund, trading.Ticker),
+						getTradingPercent(r.previousTradings[0], fund, trading.Ticker))...)
 			} else {
 				if math.Abs(trading.Percent) > 10 {
 					higherThan10TxtContent = append(higherThan10TxtContent, NewHigherThan10SpecialTradingTxtFromTradings(trading)...)
@@ -238,10 +238,10 @@ func NewContinuousDirectionSpecialTradingTxtFromTradings(trading *StockTrading, 
 		result string
 	)
 	switch trading.Direction {
-	case TradeBuy:
+	case TradeSell:
 		result = fmt.Sprintf("%s最近三日在%s中均被减持，分别是%.2f%%、%.2f%%以及%.2f%%。\n", trading.Ticker, trading.Fund,
 			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2))
-	case TradeSell:
+	case TradeBuy:
 		result = fmt.Sprintf("%s最近三日在%s中都获得增持，分别是%.2f%%、%.2f%%以及%.2f%%。\n", trading.Ticker, trading.Fund,
 			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2))
 	}
