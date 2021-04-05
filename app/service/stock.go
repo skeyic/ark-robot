@@ -125,12 +125,15 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 			Ticker:  holding.Ticker,
 			Cusip:   holding.Cusip,
 			Company: holding.Company,
+			Holding: holding.Shards,
 		}
 		if pHolding == nil || pHolding.Shards == 0 {
 			trading.Direction = TradeBuy
 			trading.Shards = holding.Shards
 			trading.Percent = 100.0
+			trading.PreviousHolding = 0
 		} else {
+			trading.PreviousHolding = pHolding.Shards
 			if pHolding.Shards < holding.Shards {
 				trading.Direction = TradeBuy
 				trading.Shards = holding.Shards - pHolding.Shards
@@ -162,6 +165,9 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 					Direction: TradeSell,
 					Shards:    -pHolding.Shards,
 					Percent:   -100.0,
+
+					Holding:         0,
+					PreviousHolding: pHolding.Shards,
 				}
 				tradings.AddTrade(trading)
 			}
@@ -182,8 +188,10 @@ type StockTrading struct {
 	Cusip   string
 	Company string
 	Shards  float64
-
 	Percent float64
+
+	Holding         float64
+	PreviousHolding float64
 
 	FixedDirection                TradeDirection // Buy, Sell or Keep
 	FixedDirectionContinuouslyDay int

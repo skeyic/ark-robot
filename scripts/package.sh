@@ -3,6 +3,8 @@ set -ex
 module="ark-robot"
 bin="ark-robot"
 
+swag init
+
 # GO Build
 echo "build app: $module"
 CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags "-s" -o bin/${bin} .

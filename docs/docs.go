@@ -107,6 +107,12 @@ var doc = `{
                         "description": "Full report or not",
                         "name": "full",
                         "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Special trading percent",
+                        "name": "percent",
+                        "in": "query"
                     }
                 ],
                 "responses": {

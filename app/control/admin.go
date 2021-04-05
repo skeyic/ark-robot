@@ -76,7 +76,7 @@ func DoReport(c *gin.Context) {
 		}
 	}
 
-	specialTradingPercentInput := c.Query("full")
+	specialTradingPercentInput := c.Query("percent")
 	if specialTradingPercentInput != "" {
 		specialTradingPercent, err = strconv.ParseFloat(specialTradingPercentInput, 64)
 		if err != nil {

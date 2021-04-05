@@ -7,6 +7,7 @@ RUN echo "http://mirrors.ustc.edu.cn/alpine/v3.6/main" > /etc/apk/repositories \
 ENV ENV="/etc/profile"
 WORKDIR /application
 
+COPY docs/* /docs/
 COPY bin/ /application/
 COPY resource/* /resource/
 RUN chmod +x /application/ark-robot

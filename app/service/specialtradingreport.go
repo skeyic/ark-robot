@@ -92,6 +92,21 @@ func (r *SpecialTradingsReport) ToExcel() error {
 		return stockTrading.FixedDirection
 	}
 
+	getTradingHolding := func(trading *ARKTradings, fund, ticker string) float64 {
+		if trading == nil {
+			return 0
+		}
+		theTradings := trading.GetFundStockTradings(fund)
+		if theTradings == nil {
+			return 0
+		}
+		stockTrading := theTradings.Tradings[ticker]
+		if stockTrading == nil {
+			return 0
+		}
+		return stockTrading.Holding
+	}
+
 	for _, fund := range allARKTypes {
 		var (
 			toReportTradings []*StockTrading
@@ -118,7 +133,10 @@ func (r *SpecialTradingsReport) ToExcel() error {
 				continuousDirectionTxtContent = append(continuousDirectionTxtContent,
 					NewContinuousDirectionSpecialTradingTxtFromTradings(trading,
 						getTradingPercent(r.previousTradings[1], fund, trading.Ticker),
-						getTradingPercent(r.previousTradings[0], fund, trading.Ticker))...)
+						getTradingPercent(r.previousTradings[0], fund, trading.Ticker),
+						getTradingHolding(r.previousTradings[1], fund, trading.Ticker),
+						getTradingHolding(r.previousTradings[0], fund, trading.Ticker),
+					)...)
 			} else {
 				if math.Abs(trading.Percent) > 10 {
 					higherThan10TxtContent = append(higherThan10TxtContent, NewHigherThan10SpecialTradingTxtFromTradings(trading)...)
@@ -226,24 +244,38 @@ func NewHigherThan10SpecialTradingTxtFromTradings(trading *StockTrading) []byte 
 	)
 	switch trading.Direction {
 	case TradeBuy:
-		result = fmt.Sprintf("%s在%s中获得%.2f%%的增持\n", trading.Ticker, trading.Fund, math.Abs(trading.Percent))
+		if trading.Percent == 100 {
+			result = fmt.Sprintf("%s在%s中建仓，买入%.0f股。\n", trading.Ticker, trading.Fund, trading.Holding)
+		} else {
+			result = fmt.Sprintf("%s在%s中获得%.2f%%的增持，持股数从%.0f股增到%.0f股。\n", trading.Ticker, trading.Fund,
+				math.Abs(trading.Percent), trading.PreviousHolding, trading.Holding)
+		}
 	case TradeSell:
-		result = fmt.Sprintf("%s在%s中被减持了%.2f%%\n", trading.Ticker, trading.Fund, math.Abs(trading.Percent))
+		if trading.Percent == 100 {
+			result = fmt.Sprintf("%s在%s中清仓，卖出%.0f股。\n", trading.Ticker, trading.Fund, trading.PreviousHolding)
+		} else {
+			result = fmt.Sprintf("%s在%s中被减持了%.2f%%，持股数从%.0f股减少到%.0f股。\n", trading.Ticker, trading.Fund,
+				math.Abs(trading.Percent), trading.PreviousHolding, trading.Holding)
+		}
 	}
 	return []byte(result)
 }
 
-func NewContinuousDirectionSpecialTradingTxtFromTradings(trading *StockTrading, previousPercent1, previousPercent2 float64) []byte {
+// 今日， 昨日， 前日
+func NewContinuousDirectionSpecialTradingTxtFromTradings(trading *StockTrading, previousPercent1, previousPercent2,
+	previousHolding1, previousHolding2 float64) []byte {
 	var (
 		result string
 	)
 	switch trading.Direction {
 	case TradeSell:
-		result = fmt.Sprintf("%s最近三日在%s中均被减持，分别是%.2f%%、%.2f%%以及%.2f%%。\n", trading.Ticker, trading.Fund,
-			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2))
+		result = fmt.Sprintf("%s最近三日在%s中均被减持，分别是%.2f%%、%.2f%%以及%.2f%%，持股数分别为%.0f股、%.0f股和%.0f股。\n", trading.Ticker, trading.Fund,
+			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2),
+			trading.Holding, previousHolding1, previousHolding2)
 	case TradeBuy:
-		result = fmt.Sprintf("%s最近三日在%s中都获得增持，分别是%.2f%%、%.2f%%以及%.2f%%。\n", trading.Ticker, trading.Fund,
-			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2))
+		result = fmt.Sprintf("%s最近三日在%s中都获得增持，分别是%.2f%%、%.2f%%以及%.2f%%，持股数分别为%.0f股、%.0f股和%.0f股。\n", trading.Ticker, trading.Fund,
+			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2),
+			trading.Holding, previousHolding1, previousHolding2)
 	}
 	return []byte(result)
 }
