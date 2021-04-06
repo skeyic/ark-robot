@@ -87,7 +87,6 @@ func Test_MasterReportLatest(t *testing.T) {
 	)
 
 	utils.EnableGlogForTesting()
-	TheChinaStockManager.Init()
 
 	err = TheMaster.FreshInit()
 	if err != nil {

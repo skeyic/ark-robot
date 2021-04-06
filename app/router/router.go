@@ -25,6 +25,7 @@ func InitRouter() *gin.Engine {
 	{
 		admin.POST("/download", control.DoDownload)
 		admin.POST("/report", control.DoReport)
+		admin.POST("/report_stock", control.DoReportStock)
 	}
 
 	return r

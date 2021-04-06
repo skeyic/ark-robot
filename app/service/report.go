@@ -14,21 +14,27 @@ const (
 	prefixSpecialTradingsHigherThan10        = "special_tradings_higher_than_10_"
 	prefixSpecialTradingsContinuousDirection = "special_tradings_continues_direction_"
 	prefixChinaStockTradings                 = "china_stock_tradings_"
+	prefixStockReport                        = "stock_report_"
 	defaultSheet                             = "sheet"
 )
 
 var (
 	reportPath                      = config.Config.DataFolder + "/report"
+	stockReportPath                 = config.Config.DataFolder + "/stock_report"
 	tradingsExcelTemplate           = config.Config.ResourceFolder + "/TEMPLATE_ARK.xlsx"
 	top10ExcelTemplate              = config.Config.ResourceFolder + "/TEMPLATE_top_10_stocks.xlsx"
 	specialTradingsExcelTemplate    = config.Config.ResourceFolder + "/TEMPLATE_special_tradings.xlsx"
 	chinaStockExcelTradingsTemplate = config.Config.ResourceFolder + "/TEMPLATE_china_stock_tradings.xlsx"
+	stockReportExcelTemplate        = config.Config.ResourceFolder + "/TEMPLATE_stock_report.xlsx"
 )
 
 func init() {
 	utils.CheckFolder(reportPath)
+	utils.CheckFolder(stockReportPath)
+
 	utils.CheckFile(tradingsExcelTemplate)
 	utils.CheckFile(top10ExcelTemplate)
+	utils.CheckFile(stockReportExcelTemplate)
 }
 
 func toSkipTrade(direction TradeDirection) bool {

@@ -18,8 +18,11 @@ func TestStockLibrary(t *testing.T) {
 	//for ticker, stock := range TheStockLibraryMaster.StockLibraries {
 	//	glog.V(4).Infof("TICKER: %s, STOCK: %+v", ticker, stock)
 	//}
+	var (
+		ticker = "SYRS"
+	)
 
-	stock := TheStockLibraryMaster.StockLibraries["FATE"]
+	stock := TheStockLibraryMaster.StockLibraries[ticker]
 	if stock == nil {
 		panic("ticker not found")
 	}
@@ -41,12 +44,15 @@ func TestStockLibrary(t *testing.T) {
 		return
 	}
 
-	for _, fund := range allARKTypes {
-		for i := 0; i < len(dateList); i++ {
-			tradings := stock.HistoryStockTradings[dateList[i]]
-			fundTradings := tradings[fund]
-			if fundTradings != nil {
-				glog.V(4).Infof("DATE: %s, FUND: %s, FD: %s, SHARDS: %f, PERCENT: %f", dateList[i], fund, fundTradings.FixedDirection, fundTradings.Shards, fundTradings.Percent)
+	for i := 0; i < len(dateList); i++ {
+		fundTradings := stock.HistoryStockTradings[dateList[i]]
+		for _, fund := range allARKTypes {
+			if fund != "ARKG" {
+				continue
+			}
+			trading := fundTradings[fund]
+			if trading != nil {
+				glog.V(4).Infof("DATE: %s, FUND: %s, FD: %s, SHARDS: %f, PERCENT: %f", dateList[i], fund, trading.FixedDirection, trading.Shards, trading.Percent)
 			}
 		}
 	}

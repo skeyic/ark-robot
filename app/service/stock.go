@@ -276,7 +276,8 @@ func PickAbnormalData(pl statistics.Float64) (statistics.Float64, statistics.Flo
 	variance := statistics.Sd(&pl)
 	glog.V(4).Infof("MEAN: %f, VARIANCE: %f", mean, variance)
 	for _, data := range pl {
-		if variance < theMaxVariance || (data > mean-3*variance && data < mean+3*variance) {
+		if variance < theMaxVariance || (data > mean-3*variance && data < mean+3*variance) ||
+			(data/mean > 0.99 && data/mean < 1.01) {
 			npl = append(npl, data)
 		} else {
 			glog.V(10).Infof("Remove abnormal data: %f", data)

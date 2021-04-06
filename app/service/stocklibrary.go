@@ -41,14 +41,13 @@ func NewStockLibraryMaster(filePath string) *StockLibraryMaster {
 		fileStorePath:  filePath,
 		StockLibraries: make(map[string]*StockLibrary),
 	}
-	r.init()
 	return r
 }
 
-func (r *StockLibraryMaster) init() {
+func (r *StockLibraryMaster) Init() error {
 	utils.CheckFolder(stockLibraryFolder)
-
 	glog.V(4).Infof("StockLibraryMaster init completed")
+	return nil
 }
 
 func (r *StockLibraryMaster) MustSave() {

@@ -12,7 +12,7 @@ import (
 )
 
 // @Summary Download
-// @Tags User
+// @Tags Admin
 // @Description let the master download latest data
 // @Accept json
 // @Produce json
@@ -37,7 +37,7 @@ func DoDownload(c *gin.Context) {
 }
 
 // @Summary Report
-// @Tags User
+// @Tags Report
 // @Description let the master report special date
 // @Accept json
 // @Produce json
@@ -96,4 +96,60 @@ func DoReport(c *gin.Context) {
 	}
 
 	utils.NewOkResponse(c, fmt.Sprintf("report finished, date: %s", dateInput))
+}
+
+// @Summary ReportStock
+// @Tags Report
+// @Description let the master report special stock in a date range
+// @Accept json
+// @Produce json
+// @Param stock query string true "The stock ticker"
+// @Param from_date query string true "The report from date"
+// @Param end_date query string true "The report end date"
+// @Success 200 {object} utils.WebResponse "Ok"
+// @Failure 400 {object} utils.WebResponse "Bad request"
+// @Failure 500 {object} utils.WebResponse "Internal error"
+// @Router /admin/report_stock [post]
+func DoReportStock(c *gin.Context) {
+	var (
+		err               error
+		fromDate, endDate time.Time
+		ticker            string
+	)
+
+	fromDateInput := c.Query("from_date")
+	fromDate, err = time.Parse(service.TheDateFormat, fromDateInput)
+	if err != nil {
+		msg := fmt.Sprintf("Incorrect fromDate: %s, should be like %s, err: %v", fromDateInput, service.TheDateFormat, err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	endDateInput := c.Query("end_date")
+	endDate, err = time.Parse(service.TheDateFormat, endDateInput)
+	if err != nil {
+		msg := fmt.Sprintf("Incorrect endDate: %s, should be like %s, err: %v", endDateInput, service.TheDateFormat, err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	ticker = c.Query("stock")
+	if ticker == "" {
+		msg := fmt.Sprintf("Empty stock")
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	err = service.TheMaster.ReportStock(ticker, fromDate, endDate)
+	if err != nil {
+		msg := fmt.Sprintf("failed to report stock %s, fromDate: %s, endDate: %s, err: %v", ticker, fromDateInput, endDateInput, err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	utils.NewOkResponse(c, fmt.Sprintf("report finished, stock %s, fromDate: %s, endDate: %s", ticker, fromDateInput, endDateInput))
 }

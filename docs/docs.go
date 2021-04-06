@@ -56,7 +56,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Admin"
                 ],
                 "summary": "Download",
                 "responses": {
@@ -91,7 +91,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Report"
                 ],
                 "summary": "Report",
                 "parameters": [
@@ -113,6 +113,64 @@ var doc = `{
                         "description": "Special trading percent",
                         "name": "percent",
                         "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/report_stock": {
+            "post": {
+                "description": "let the master report special stock in a date range",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Report"
+                ],
+                "summary": "ReportStock",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The stock ticker",
+                        "name": "stock",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The report from date",
+                        "name": "from_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The report end date",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

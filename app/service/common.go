@@ -21,4 +21,6 @@ var (
 	errInitReportFile     = errors.New("failed to init report file")
 	errEmptyReport        = errors.New("nothing to report")
 	errGetChinaStock      = errors.New("get china stock failed")
+	errStockNotFound      = errors.New("stock not found")
+	errNoDataInDateRange  = errors.New("no data in date range")
 )

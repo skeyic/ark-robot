@@ -49,6 +49,8 @@ func (m *Master) MustInit() {
 		glog.Errorf("init the china stock manager failed")
 		panic(err)
 	}
+
+	err = TheStockLibraryMaster.Init()
 }
 
 // Init the holding, trading and stock library from the stored holdings in directory
@@ -113,6 +115,21 @@ func (m *Master) Report(date time.Time, full bool, SpecialTradingsPercent float6
 	err = chinaStockTradingsReport.ToExcel()
 	if err != nil {
 		glog.Errorf("chinaStockTradingsReport to excel failed, err: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (m *Master) ReportStock(ticker string, fromDate, endDate time.Time) error {
+	var (
+		err error
+	)
+
+	err = NewStockReport(ticker, fromDate, endDate).ToExcel()
+	if err != nil {
+		glog.Errorf("report stock %s from %s to %s failed, err: %v", ticker, fromDate.Format(TheDateFormat),
+			endDate.Format(TheDateFormat), err)
 		return err
 	}
 
