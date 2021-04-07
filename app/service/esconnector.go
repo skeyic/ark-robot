@@ -111,8 +111,10 @@ func (e *ESConnector) IndexStockHoldings(holdings *StockHoldings) error {
 	)
 
 	if holdings == nil || holdings.Holdings == nil {
-		glog.Errorf("Empty holdings: %v", holdings)
-		return errEmptySourceToIndex
+		//glog.Errorf("Empty holdings: %v", holdings)
+		//return errEmptySourceToIndex
+		glog.Warningf("Empty holdings: %v", holdings)
+		return nil
 	}
 
 	client, err := elastic.NewClient(
