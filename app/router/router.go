@@ -20,12 +20,17 @@ func InitRouter() *gin.Engine {
 	// Basic
 	r.GET("/", control.Index)
 
-	// User
+	// Admin
 	admin := r.Group("/admin")
 	{
 		admin.POST("/download", control.DoDownload)
-		admin.POST("/report", control.DoReport)
-		admin.POST("/report_stock", control.DoReportStock)
+	}
+
+	// User
+	report := r.Group("/report")
+	{
+		report.POST("/report", control.DoReport)
+		report.POST("/report_stock", control.DoReportStock)
 	}
 
 	return r

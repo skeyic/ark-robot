@@ -81,7 +81,7 @@ var doc = `{
                 }
             }
         },
-        "/admin/report": {
+        "/report/report": {
             "post": {
                 "description": "let the master report special date",
                 "consumes": [
@@ -137,7 +137,7 @@ var doc = `{
                 }
             }
         },
-        "/admin/report_stock": {
+        "/report/report_stock": {
             "post": {
                 "description": "let the master report special stock in a date range",
                 "consumes": [

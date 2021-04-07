@@ -47,7 +47,7 @@ func DoDownload(c *gin.Context) {
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /admin/report [post]
+// @Router /report/report [post]
 func DoReport(c *gin.Context) {
 	var (
 		err                   error
@@ -109,7 +109,7 @@ func DoReport(c *gin.Context) {
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /admin/report_stock [post]
+// @Router /report/report_stock [post]
 func DoReportStock(c *gin.Context) {
 	var (
 		err               error
