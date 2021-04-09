@@ -251,7 +251,7 @@ func NewHigherThan10SpecialTradingTxtFromTradings(trading *StockTrading) []byte 
 				math.Abs(trading.Percent), trading.PreviousHolding, trading.Holding)
 		}
 	case TradeSell:
-		if trading.Percent == 100 {
+		if trading.Percent == -100 {
 			result = fmt.Sprintf("%s在%s中清仓，卖出%.0f股。\n", trading.Ticker, trading.Fund, trading.PreviousHolding)
 		} else {
 			result = fmt.Sprintf("%s在%s中被减持了%.2f%%，持股数从%.0f股减少到%.0f股。\n", trading.Ticker, trading.Fund,
