@@ -2,11 +2,19 @@ package service
 
 import (
 	"errors"
+	"time"
 )
 
 const (
 	TheDateFormat   = "2006-01-02"
 	TheDateIDFormat = "2006_01_02"
+)
+
+var (
+	allARKTypes     = []string{"ARKF", "ARKG", "ARKK", "ARKQ", "ARKW", "ARKX"}
+	theFirstARKType = "ARKF"
+	theLastARKType  = "ARKX"
+	arkxDate, _     = time.Parse(TheDateFormat, "2021-03-30")
 )
 
 var (

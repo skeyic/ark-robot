@@ -21,11 +21,6 @@ var (
 	TheLibrary = NewLibrary()
 )
 
-var (
-	allARKTypes = []string{"ARKF", "ARKG", "ARKK", "ARKQ", "ARKW", "ARKX"}
-	arkxDate, _ = time.Parse(TheDateFormat, "2021-03-30")
-)
-
 type ARKHoldings struct {
 	Date time.Time
 	ARKK *StockHoldings

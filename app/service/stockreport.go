@@ -62,31 +62,88 @@ func (r *StockReport) ToExcel() error {
 		return err
 	}
 
+	/*
+			A           B           C           D           E           F
+		25		        2021-03-29	2021-03-30	2021-03-31	2021-04-01	2021-04-02
+		26	ARKW持仓变动	10013448 	102200000 	10013408 	10002000 	10013448
+		27	ARKF持仓变动	100230000 	10001245 	10013448 	100014000 	100014000
+		28	ARK总持仓变动	110243448 	112201245 	20026856 	110016000 	110027448
+
+	*/
+
 	var (
 		sheet = defaultSheet
-		idx   = 21
+
+		dateIdxList = []string{"B", "C", "D", "E", "F", "G",
+			"H", "I", "J", "K", "L", "M", "N", "O", "P",
+			"Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+		maxDate  = len(dateIdxList)
+		fundList []string
 	)
 
-	for i := 0; i < len(dateList); i++ {
-		var (
-			shards float64
-		)
-		holdings := stock.HistoryStockHoldings[dateList[i]]
-		for _, fund := range allARKTypes {
+	for _, fund := range allARKTypes {
+		for i := 0; i < len(dateList); i++ {
+			if i > maxDate {
+				glog.Warningf("MAX DATE RANGE REACHED, we have: %d, max: %d", len(dateList), maxDate)
+				break
+			}
+
+			holdings := stock.HistoryStockHoldings[dateList[i]]
+
 			holding := holdings[fund]
 			if holding != nil {
-				//glog.V(4).Infof("DATE: %s, FUND: %s, FD: %s, SHARDS: %f, PERCENT: %f", dateList[i], fund, fundTradings.FixedDirection, fundTradings.Shards, fundTradings.Percent)
-				shards += holding.Shards
+				fundList = append(fundList, fund)
+				break
 			}
 		}
+	}
 
-		line := strconv.Itoa(idx)
-		f.SetCellValue(sheet, "A"+line, r.Ticker)
-		f.SetCellValue(sheet, "B"+line, dateList[i].Format(TheDateFormat))
-		f.SetCellValue(sheet, "C"+line, fmt.Sprintf("%.0f", shards))
+	glog.V(4).Infof("%s was holding in %v from %s to %s", r.Ticker, fundList, r.FromDate.Format(TheDateFormat), r.EndDate.Format(TheDateFormat))
 
-		idx++
-		glog.V(4).Infof("IDX: %d, TICKER: %s, DATE: %s, SHARDS: %.0f", idx, r.Ticker, dateList[i].Format(TheDateFormat), shards)
+	for i := 0; i < len(dateList); i++ {
+		if i > maxDate {
+			glog.Warningf("MAX DATE RANGE REACHED, we have: %d, max: %d", len(dateList), maxDate)
+			break
+		}
+		var (
+			totalShards float64
+			fundIdx     = 25
+		)
+		holdings := stock.HistoryStockHoldings[dateList[i]]
+
+		for idx, fund := range fundList {
+			holding := holdings[fund]
+			var currentShards float64
+
+			line := strconv.Itoa(fundIdx)
+			// Set the date column
+			if idx == 0 {
+				f.SetCellValue(sheet, dateIdxList[i]+line, dateList[i].Format(TheDateFormat))
+				fundIdx++
+			}
+
+			line = strconv.Itoa(fundIdx)
+			if i == 0 {
+				f.SetCellValue(sheet, "A"+line, fund)
+			}
+			if holding != nil {
+				totalShards += holding.Shards
+				currentShards = holding.Shards
+			}
+			glog.V(4).Infof("%s %s: %0.f", fund, dateIdxList[i]+line, currentShards)
+			f.SetCellValue(sheet, dateIdxList[i]+line, fmt.Sprintf("%.0f", currentShards))
+			fundIdx++
+
+			// Set the total
+			if idx == len(fundList)-1 {
+				line = strconv.Itoa(fundIdx)
+				if i == 0 {
+					f.SetCellValue(sheet, "A"+line, "TOTAL")
+				}
+				glog.V(4).Infof("TOTAL %s: %0.f", dateIdxList[i]+line, totalShards)
+				f.SetCellValue(sheet, dateIdxList[i]+line, fmt.Sprintf("%.0f", totalShards))
+			}
+		}
 	}
 
 	err = f.Save()
