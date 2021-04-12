@@ -5,6 +5,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/utils"
 	"testing"
+	"time"
 )
 
 func Test_MasterStart(t *testing.T) {
@@ -150,4 +151,30 @@ func Test_MasterCheckChinaStock(t *testing.T) {
 	utils.EnableGlogForTesting()
 
 	glog.V(4).Infof("NUM: %d", len(TheChinaStockManager.stocks))
+}
+
+func Test_MasterReportStocks(t *testing.T) {
+	var (
+		err         error
+		stocks      = []string{"JD", "HUYA", "BIDU", "PDD", "BABA"}
+		fromDate, _ = time.Parse(TheDateFormat, "2021-04-05")
+		endDate, _  = time.Parse(TheDateFormat, "2021-04-13")
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.FreshInit()
+	if err != nil {
+		glog.Errorf("failed to fresh init the master, err: %v", err)
+		return
+	}
+
+	for _, stock := range stocks {
+		err = TheMaster.ReportStock(stock, fromDate, endDate)
+		if err != nil {
+			glog.Errorf("failed to report stock %s from %s to %s, err: %v", stock, fromDate, endDate, err)
+			return
+		}
+	}
+
+	glog.V(4).Info("REPORTED")
 }
