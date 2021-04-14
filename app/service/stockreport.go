@@ -5,6 +5,7 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/utils"
+	"math"
 	"sort"
 	"strconv"
 	"time"
@@ -122,7 +123,7 @@ func (t *tradingReport) AddTrading(date time.Time, shards float64) {
 		}
 	} else if shards < 0 {
 		t.sellDays++
-		if t.maxSellShards < shards {
+		if math.Abs(t.maxSellShards) < math.Abs(shards) {
 			t.maxSellShards = shards
 			t.maxSellDate = date
 		}
@@ -151,10 +152,10 @@ func (t *tradingReport) TxtReport() string {
 	}
 
 	if t.sellDays > 0 {
-		msg += fmt.Sprintf("最大减持发生在%d月%d日，减持了%.0f股。", t.maxSellDate.Month(), t.maxSellDate.Day(), t.maxSellShards)
+		msg += fmt.Sprintf("最大减持发生在%d月%d日，减持了%.0f股。", t.maxSellDate.Month(), t.maxSellDate.Day(), -1*t.maxSellShards)
 	}
 
-	msg += "\n具体如下：\n"
+	msg += "\n\n具体如下：\n"
 
 	return msg
 }
@@ -163,7 +164,7 @@ func (r *StockReport) ToExcel() error {
 	var (
 		err       error
 		fileName  = r.ExcelPath()
-		txtReport = `关于` + r.Ticker + fmt.Sprintf("，从%d月%d日至%d月%d日: \n",
+		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
 			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
 		theTradingReport = &tradingReport{}
 		txtTradingReport string
@@ -305,10 +306,10 @@ func (r *StockReport) ToExcel() error {
 		} else if dateIdx == len(r.Details.dateList)-1 {
 			txtDailyHoldingReport = "期末" + txtDailyHoldingReport
 			txtDailyHoldingReport += txtDailyHoldingTemp
-			txtReport += txtDailyHoldingReport
+			txtReport += txtDailyHoldingReport + "\n"
 		}
 
-		txtTradingReport += today + txtDailyTradingTemp
+		txtTradingReport += "  " + today + txtDailyTradingTemp
 	}
 
 	txtTradingReport = theTradingReport.TxtReport() + txtTradingReport
