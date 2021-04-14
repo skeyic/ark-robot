@@ -14,6 +14,7 @@ type StockReport struct {
 	Ticker   string
 	FromDate time.Time
 	EndDate  time.Time
+	Details  *stockDetails
 }
 
 func NewStockReport(ticker string, fromDate, endDate time.Time) *StockReport {
@@ -24,10 +25,23 @@ func NewStockReport(ticker string, fromDate, endDate time.Time) *StockReport {
 	}
 }
 
-func (r *StockReport) ToExcel() error {
+type stockDetails struct {
+	dateList    []time.Time
+	fundList    []string
+	dailyDetail map[time.Time]*stockDailyDetail
+}
+
+type stockDailyDetail struct {
+	date     time.Time
+	holdings map[string]*StockHolding
+	tradings map[string]*StockTrading
+}
+
+func (r *StockReport) Load() error {
 	var (
-		err      error
-		fileName = r.ExcelPath()
+		stockDetails = &stockDetails{
+			dailyDetail: make(map[time.Time]*stockDailyDetail),
+		}
 	)
 
 	stock := TheStockLibraryMaster.StockLibraries[r.Ticker]
@@ -39,7 +53,7 @@ func (r *StockReport) ToExcel() error {
 		dateList timeList
 	)
 
-	for theDate := range stock.HistoryStockTradings {
+	for theDate := range stock.HistoryStockHoldings {
 		if theDate.After(r.FromDate) && theDate.Before(r.EndDate) {
 			dateList = append(dateList, theDate)
 		}
@@ -49,6 +63,53 @@ func (r *StockReport) ToExcel() error {
 	}
 
 	sort.Sort(dateList)
+
+	var (
+		fundList []string
+	)
+
+	for _, fund := range allARKTypes {
+		for i := 0; i < len(dateList); i++ {
+			holdings := stock.HistoryStockHoldings[dateList[i]]
+
+			holding := holdings[fund]
+			if holding != nil {
+				fundList = append(fundList, fund)
+				break
+			}
+		}
+	}
+
+	glog.V(4).Infof("%s was holding in %v from %s to %s", r.Ticker, fundList, r.FromDate.Format(TheDateFormat), r.EndDate.Format(TheDateFormat))
+	stockDetails.fundList = fundList
+	stockDetails.dateList = dateList
+
+	for i := 0; i < len(dateList); i++ {
+		var (
+			theDate = dateList[i]
+		)
+		stockDetails.dailyDetail[theDate] = &stockDailyDetail{
+			date:     theDate,
+			holdings: stock.HistoryStockHoldings[theDate],
+			tradings: stock.HistoryStockTradings[theDate],
+		}
+	}
+
+	r.Details = stockDetails
+	return nil
+}
+
+func (r *StockReport) ToExcel() error {
+	var (
+		err       error
+		fileName  = r.ExcelPath()
+		txtReport = `关于` + r.Ticker + ": "
+	)
+
+	err = r.Load()
+	if err != nil {
+		return err
+	}
 
 	err = r.InitExcelFromTemplate()
 	if err != nil {
@@ -68,7 +129,6 @@ func (r *StockReport) ToExcel() error {
 		26	ARKW持仓变动	10013448 	102200000 	10013408 	10002000 	10013448
 		27	ARKF持仓变动	100230000 	10001245 	10013448 	100014000 	100014000
 		28	ARK总持仓变动	110243448 	112201245 	20026856 	110016000 	110027448
-
 	*/
 
 	var (
@@ -77,73 +137,60 @@ func (r *StockReport) ToExcel() error {
 		dateIdxList = []string{"B", "C", "D", "E", "F", "G",
 			"H", "I", "J", "K", "L", "M", "N", "O", "P",
 			"Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
-		maxDate  = len(dateIdxList)
-		fundList []string
+		maxDate = len(dateIdxList)
 	)
 
-	for _, fund := range allARKTypes {
-		for i := 0; i < len(dateList); i++ {
-			if i > maxDate {
-				glog.Warningf("MAX DATE RANGE REACHED, we have: %d, max: %d", len(dateList), maxDate)
-				break
-			}
-
-			holdings := stock.HistoryStockHoldings[dateList[i]]
-
-			holding := holdings[fund]
-			if holding != nil {
-				fundList = append(fundList, fund)
-				break
-			}
-		}
-	}
-
-	glog.V(4).Infof("%s was holding in %v from %s to %s", r.Ticker, fundList, r.FromDate.Format(TheDateFormat), r.EndDate.Format(TheDateFormat))
-
-	for i := 0; i < len(dateList); i++ {
-		if i > maxDate {
-			glog.Warningf("MAX DATE RANGE REACHED, we have: %d, max: %d", len(dateList), maxDate)
+	for dateIdx, theDate := range r.Details.dateList {
+		if dateIdx > maxDate {
+			glog.Warningf("MAX DATE RANGE REACHED, we have: %d, max: %d", len(r.Details.dateList), maxDate)
 			break
 		}
+
 		var (
 			totalShards float64
 			fundIdx     = 25
+			holdings    = r.Details.dailyDetail[theDate].holdings
+			//tradings    = r.Details.dailyDetail[theDate].tradings
+			txtDailyReport = fmt.Sprintf("%d月%d日，", theDate.Month(), theDate.Day())
+			txtDailyTemp   string
 		)
-		holdings := stock.HistoryStockHoldings[dateList[i]]
 
-		for idx, fund := range fundList {
+		for idx, fund := range r.Details.fundList {
 			holding := holdings[fund]
 			var currentShards float64
 
 			line := strconv.Itoa(fundIdx)
 			// Set the date column
 			if idx == 0 {
-				f.SetCellValue(sheet, dateIdxList[i]+line, dateList[i].Format(TheDateFormat))
+				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, theDate.Format(TheDateFormat))
 				fundIdx++
 			}
 
 			line = strconv.Itoa(fundIdx)
-			if i == 0 {
+			if dateIdx == 0 {
 				f.SetCellValue(sheet, "A"+line, fund)
 			}
 			if holding != nil {
 				totalShards += holding.Shards
 				currentShards = holding.Shards
 			}
-			glog.V(4).Infof("%s %s: %0.f", fund, dateIdxList[i]+line, currentShards)
-			f.SetCellValue(sheet, dateIdxList[i]+line, fmt.Sprintf("%.0f", currentShards))
+			f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", currentShards))
+			txtDailyTemp = txtDailyTemp + fmt.Sprintf("%s持有%.0f股(比重%.2f%%)，", holding.Fund, holding.Shards, holding.Weight)
 			fundIdx++
 
 			// Set the total
-			if idx == len(fundList)-1 {
+			if idx == len(r.Details.fundList)-1 {
 				line = strconv.Itoa(fundIdx)
-				if i == 0 {
+				if dateIdx == 0 {
 					f.SetCellValue(sheet, "A"+line, "TOTAL")
 				}
-				glog.V(4).Infof("TOTAL %s: %0.f", dateIdxList[i]+line, totalShards)
-				f.SetCellValue(sheet, dateIdxList[i]+line, fmt.Sprintf("%.0f", totalShards))
+				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", totalShards))
+				txtDailyTemp = fmt.Sprintf("ARK共持有%.0f股，", totalShards) + txtDailyTemp
 			}
 		}
+
+		txtDailyReport += txtDailyTemp
+		txtReport += txtDailyReport
 	}
 
 	err = f.Save()
@@ -151,6 +198,8 @@ func (r *StockReport) ToExcel() error {
 		glog.Errorf("failed to save excel %s, err: %v", fileName, err)
 		return err
 	}
+
+	glog.V(4).Infof("%s", txtReport)
 
 	return nil
 }
