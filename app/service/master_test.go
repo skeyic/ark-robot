@@ -155,8 +155,9 @@ func Test_MasterCheckChinaStock(t *testing.T) {
 
 func Test_MasterReportStocks(t *testing.T) {
 	var (
-		err         error
-		stocks      = []string{"JD", "HUYA", "BIDU", "PDD", "BABA"}
+		err    error
+		stocks = []string{"JD", "HUYA", "BIDU", "PDD", "BABA"}
+		//stocks      = []string{"JD"}
 		fromDate, _ = time.Parse(TheDateFormat, "2021-04-05")
 		endDate, _  = time.Parse(TheDateFormat, "2021-04-13")
 	)

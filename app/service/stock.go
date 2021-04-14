@@ -197,6 +197,14 @@ type StockTrading struct {
 	FixedDirectionContinuouslyDay int
 }
 
+func (t *StockTrading) IsBuy() bool {
+	return t.Direction == TradeBuy
+}
+
+func (t *StockTrading) IsSell() bool {
+	return t.Direction == TradeSell
+}
+
 //func NewStockTradingFromRecord(record []string) *StockTrading {
 //	date, _ := time.Parse("1/2/2006", record[1])
 //	shards, _ := strconv.ParseFloat(record[6], 64)
