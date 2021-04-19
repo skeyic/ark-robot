@@ -163,7 +163,7 @@ func (m *Master) ReportStock(ticker string, fromDate, endDate time.Time) error {
 		err error
 	)
 
-	err = NewStockReport(ticker, fromDate, endDate).ToExcel()
+	err = NewStockDateRangeReport(ticker, fromDate, endDate).ToExcel()
 	if err != nil {
 		glog.Errorf("report stock %s from %s to %s failed, err: %v", ticker, fromDate.Format(TheDateFormat),
 			endDate.Format(TheDateFormat), err)

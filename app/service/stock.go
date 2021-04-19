@@ -24,7 +24,7 @@ const (
 	TradeDoNothing    TradeDirection = "DoNothing"
 )
 
-// Get from downloaded CSV file
+// StockHolding Get from downloaded CSV file
 type StockHolding struct {
 	Date time.Time
 
@@ -130,17 +130,18 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 		if pHolding == nil || pHolding.Shards == 0 {
 			trading.Direction = TradeBuy
 			trading.Shards = holding.Shards
+			trading.MarketValue = holding.MarketValue
 			trading.Percent = 100.0
 			trading.PreviousHolding = 0
 		} else {
 			trading.PreviousHolding = pHolding.Shards
+			trading.Shards = holding.Shards - pHolding.Shards
+			trading.MarketValue = holding.MarketValue - pHolding.MarketValue
 			if pHolding.Shards < holding.Shards {
 				trading.Direction = TradeBuy
-				trading.Shards = holding.Shards - pHolding.Shards
 				trading.Percent = trading.Shards / pHolding.Shards * 100
 			} else if pHolding.Shards > holding.Shards {
 				trading.Direction = TradeSell
-				trading.Shards = holding.Shards - pHolding.Shards
 				trading.Percent = trading.Shards / pHolding.Shards * 100
 			} else {
 				trading.Direction = TradeDoNothing
@@ -177,18 +178,19 @@ func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 	return tradings
 }
 
-// Analyse the holding and generate the trading list
+// StockTrading Analyse the holding and generate the trading list
 type StockTrading struct {
 	Date time.Time
 
 	Direction TradeDirection
 
-	Fund    string
-	Ticker  string
-	Cusip   string
-	Company string
-	Shards  float64
-	Percent float64
+	Fund        string
+	Ticker      string
+	Cusip       string
+	Company     string
+	Shards      float64
+	Percent     float64
+	MarketValue float64
 
 	Holding         float64
 	PreviousHolding float64

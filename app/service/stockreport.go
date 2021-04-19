@@ -11,22 +11,22 @@ import (
 	"time"
 )
 
-type StockReport struct {
+type StockDateRangeReport struct {
 	Ticker   string
 	FromDate time.Time
 	EndDate  time.Time
-	Details  *stockDetails
+	Details  *stockDateRangeDetails
 }
 
-func NewStockReport(ticker string, fromDate, endDate time.Time) *StockReport {
-	return &StockReport{
+func NewStockDateRangeReport(ticker string, fromDate, endDate time.Time) *StockDateRangeReport {
+	return &StockDateRangeReport{
 		Ticker:   ticker,
 		FromDate: fromDate,
 		EndDate:  endDate,
 	}
 }
 
-type stockDetails struct {
+type stockDateRangeDetails struct {
 	dateList    []time.Time
 	fundList    []string
 	dailyDetail map[time.Time]*stockDailyDetail
@@ -38,9 +38,9 @@ type stockDailyDetail struct {
 	tradings map[string]*StockTrading
 }
 
-func (r *StockReport) Load() error {
+func (r *StockDateRangeReport) Load() error {
 	var (
-		stockDetails = &stockDetails{
+		stockDetails = &stockDateRangeDetails{
 			dailyDetail: make(map[time.Time]*stockDailyDetail),
 		}
 	)
@@ -140,19 +140,21 @@ func (t *tradingReport) TxtReport() string {
 	)
 
 	if t.totalShards >= 0 {
-		msg += fmt.Sprintf("增持%.0f股，", t.totalShards)
+		msg += fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(t.totalShards))
 	} else if t.totalShards < 0 {
-		msg += fmt.Sprintf("减持%.0f股，", -1*t.totalShards)
+		msg += fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*t.totalShards))
 	}
 
 	msg += fmt.Sprintf("共计增持%d日，减持%d日，没有变动%d日。", t.buyDays, t.sellDays, t.keepDays)
 
 	if t.buyDays > 0 {
-		msg += fmt.Sprintf("最大增持发生在%d月%d日，增持了%.0f股。", t.maxBuyDate.Month(), t.maxBuyDate.Day(), t.maxBuyShards)
+		msg += fmt.Sprintf("最大增持发生在%d月%d日，增持%s股。", t.maxBuyDate.Month(), t.maxBuyDate.Day(),
+			utils.ThousandFormatFloat64(t.maxBuyShards))
 	}
 
 	if t.sellDays > 0 {
-		msg += fmt.Sprintf("最大减持发生在%d月%d日，减持了%.0f股。", t.maxSellDate.Month(), t.maxSellDate.Day(), -1*t.maxSellShards)
+		msg += fmt.Sprintf("最大减持发生在%d月%d日，减持%s股。", t.maxSellDate.Month(), t.maxSellDate.Day(),
+			utils.ThousandFormatFloat64(-1*t.maxSellShards))
 	}
 
 	msg += "\n\n具体如下：\n"
@@ -160,7 +162,7 @@ func (t *tradingReport) TxtReport() string {
 	return msg
 }
 
-func (r *StockReport) ToExcel() error {
+func (r *StockDateRangeReport) ToExcel() error {
 	var (
 		err       error
 		fileName  = r.ExcelPath()
@@ -198,17 +200,17 @@ func (r *StockReport) ToExcel() error {
 			关于HUYA，从4月5日至4月9日:
 
 			txtDailyHoldingReport
-		    期初4月5日，ARK共持有10023448股，其中ARKK持有500000股（比重1%），ARKW持有500000股（比重1%），期末4月9日，ARK共持有10002485股，其中ARKK400000股（比重1%），ARKW400000股（比重1%）。
+		    期初4月5日，ARK共持有10023448股，市值为1234567美元，其中ARKK持有500000股（比重1%），ARKW持有500000股（比重1%），期末4月9日，ARK共持有10002485股，市值为1234567美元，其中ARKK400000股（比重1%），ARKW400000股（比重1%）。
 
 			txtDailyTradingReport
-			本期总计减持/增持了20963股，共计减持2日，增持2日，没有变动1日。最大减持发生在4月8日，减持了30000股，最大增持发生在4月6日，增持了30000股。
+			本期总计减持/增持20963股，共计减持2日，增持2日，没有变动1日。最大减持发生在4月8日，减持30000股，最大增持发生在4月6日，增持30000股。
 			具体情况如下：
 
 			txtDailyTradingDetail
-			  4月5日，ARKK增持10000股，ARKW减持20000股，ARK总持有股数减少了10000股；
-			  4月6日，ARKK增持10000股，ARKW增持20000股，ARK总持有股数增加了30000股；
-			  4月7日，ARKK增持20000股，ARKW没有变动，ARK总持有股数增加了20000股；
-			  4月8日，ARKK减持10000股，ARKW减持20000股，ARK总持股数有减少了30000股；
+			  4月5日，ARKK增持10000股，ARKW减持20000股，ARK总持有股数减少10000股；
+			  4月6日，ARKK增持10000股，ARKW增持20000股，ARK总持有股数增加30000股；
+			  4月7日，ARKK增持20000股，ARKW没有变动，ARK总持有股数增加20000股；
+			  4月8日，ARKK减持10000股，ARKW减持20000股，ARK总持股数有减少30000股；
 			  4月9日，ARK总持股数没有变动。
 	*/
 
@@ -229,6 +231,7 @@ func (r *StockReport) ToExcel() error {
 
 		var (
 			totalShards           float64
+			totalMarketValue      float64
 			totalTradingShards    float64
 			fundIdx               = 25
 			holdings              = r.Details.dailyDetail[theDate].holdings
@@ -256,8 +259,10 @@ func (r *StockReport) ToExcel() error {
 			}
 			if holding != nil {
 				totalShards += holding.Shards
+				totalMarketValue += holding.MarketValue
 				currentShards = holding.Shards
-				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%.0f股(比重%.2f%%)，", holding.Fund, holding.Shards, holding.Weight)
+				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
+					utils.ThousandFormatFloat64(holding.Shards), holding.Weight)
 			} else {
 				//txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%.0f股(比重%.2f%%)，", holding.Fund, holding.Shards, holding.Weight)
 			}
@@ -269,9 +274,9 @@ func (r *StockReport) ToExcel() error {
 			totalTradingShards += trading.Shards
 
 			if trading.IsBuy() {
-				txtDailyTradingTemp += fund + fmt.Sprintf("增持了%.0f股，", trading.Shards)
+				txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
 			} else if trading.IsSell() {
-				txtDailyTradingTemp += fund + fmt.Sprintf("减持了%.0f股，", -1*trading.Shards)
+				txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
 			}
 
 			// Set the total
@@ -282,7 +287,8 @@ func (r *StockReport) ToExcel() error {
 				}
 				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", totalShards))
 				if totalShards != 0 {
-					txtDailyHoldingTemp = fmt.Sprintf("ARK共持有%.0f股，其中", totalShards) + txtDailyHoldingTemp
+					txtDailyHoldingTemp = fmt.Sprintf("ARK共持有%s股，市值为%s美元，其中",
+						utils.ThousandFormatFloat64(totalShards), utils.ThousandFormatFloat64(totalMarketValue)) + txtDailyHoldingTemp
 				} else {
 					txtDailyHoldingTemp = "ARK未持有"
 				}
@@ -290,9 +296,9 @@ func (r *StockReport) ToExcel() error {
 				theTradingReport.AddTrading(theDate, totalTradingShards)
 				txtDailyTradingTemp += "ARK总持有股数"
 				if totalTradingShards > 0 {
-					txtDailyTradingTemp += fmt.Sprintf("增加了%.0f股。\n", totalTradingShards)
+					txtDailyTradingTemp += fmt.Sprintf("增加%s股。\n", utils.ThousandFormatFloat64(totalTradingShards))
 				} else if totalTradingShards < 0 {
-					txtDailyTradingTemp += fmt.Sprintf("减少了%.0f股。\n", -1*totalTradingShards)
+					txtDailyTradingTemp += fmt.Sprintf("减少%s股。\n", utils.ThousandFormatFloat64(-1*totalTradingShards))
 				} else {
 					txtDailyTradingTemp += "没有变化。\n"
 				}
@@ -332,32 +338,32 @@ func (r *StockReport) ToExcel() error {
 	return nil
 }
 
-func (r *StockReport) ReportFolder() string {
+func (r *StockDateRangeReport) ReportFolder() string {
 	return stockReportPath
 }
 
-func (r *StockReport) ExcelPath() string {
+func (r *StockDateRangeReport) ExcelPath() string {
 	return r.ReportFolder() + "/" + r.ExcelName()
 }
 
-func (r *StockReport) ExcelName() string {
+func (r *StockDateRangeReport) ExcelName() string {
 	return r.FileName() + ".xlsx"
 }
 
-func (r *StockReport) TxtPath() string {
+func (r *StockDateRangeReport) TxtPath() string {
 	return r.ReportFolder() + "/" + r.TxtName()
 }
 
-func (r *StockReport) TxtName() string {
+func (r *StockDateRangeReport) TxtName() string {
 	return r.FileName() + ".txt"
 }
 
-func (r *StockReport) FileName() string {
+func (r *StockDateRangeReport) FileName() string {
 	return fmt.Sprintf("%s_%s%s_from_%s_to_%s", time.Now().Format("20062102150405"), prefixStockReport, r.Ticker,
 		r.FromDate.Format(TheDateFormat), r.EndDate.Format(TheDateFormat))
 }
 
-func (r *StockReport) InitExcelFromTemplate() error {
+func (r *StockDateRangeReport) InitExcelFromTemplate() error {
 	var fileName = r.ExcelPath()
 	if utils.CheckFileExist(fileName) {
 		utils.DeleteFile(fileName)
