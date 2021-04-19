@@ -58,12 +58,15 @@ func (r *Top10HoldingsReport) ToExcel() error {
 			sheet            = fund
 			toReportHoldings = make(map[float64]*StockHolding)
 			toSortWeight     sort.Float64Slice
+			previousHoldings *StockHoldings
 		)
 		holdings := r.holdings.GetFundStockHoldings(fund)
 		if holdings == nil {
 			return errEmptyReport
 		}
-		previousHoldings := r.previousHolding.GetFundStockHoldings(fund)
+		if r.previousHolding != nil {
+			previousHoldings = r.previousHolding.GetFundStockHoldings(fund)
+		}
 
 		for _, holding := range holdings.Holdings {
 			if toSkipTicker(holding.Ticker) {

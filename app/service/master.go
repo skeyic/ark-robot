@@ -50,14 +50,51 @@ func (m *Master) MustInit() {
 		panic(err)
 	}
 
+	err = TheLibrary.Init()
+	if err != nil {
+		glog.Errorf("init the library failed")
+		panic(err)
+	}
+
 	err = TheStockLibraryMaster.Init()
+	if err != nil {
+		glog.Errorf("init the stock library master failed")
+		panic(err)
+	}
 }
 
-// Init the holding, trading and stock library from the stored holdings in directory
+// StaleInit Init TheLibrary, TheStockLibraryMaster from the stored holdings in directory
+func (m *Master) StaleInit() error {
+	var (
+		err error
+	)
+
+	err = TheLibrary.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the library, err: %v", err)
+		return err
+	}
+
+	err = TheStockLibraryMaster.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the stock library master, err: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+// FreshInit Init the holding, trading and stock library from the stored holdings in directory
 func (m *Master) FreshInit() error {
 	var (
 		err error
 	)
+
+	err = TheChinaStockManager.FreshInit()
+	if err != nil {
+		glog.Errorf("failed to init china stock, err: %v", err)
+		return err
+	}
 
 	err = ThePorter.LoadFromDirectory()
 	if err != nil {

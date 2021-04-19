@@ -13,12 +13,13 @@ import (
 )
 
 var (
-	libraryFolder       = config.Config.DataFolder + "/library/"
-	theLibraryFileStore = utils.NewFileStoreSvc(libraryFolder + "TheLibrary")
+	libraryFolder = config.Config.DataFolder + "/library/"
+	libraryName   = "TheLibrary"
+	//theLibraryFileStore = utils.NewFileStoreSvc(libraryFolder + "TheLibrary")
 )
 
 var (
-	TheLibrary = NewLibrary()
+	TheLibrary = NewLibrary(libraryFolder)
 )
 
 type ARKHoldings struct {
@@ -200,21 +201,24 @@ func (a *ARKTradings) GetFundStockTradings(fund string) *StockTradings {
 
 type Library struct {
 	lock                 *sync.RWMutex
+	fileStore            *utils.FileStoreSvc
+	filePath             string
 	LatestStockHoldings  *ARKHoldings
 	LatestStockTradings  *ARKTradings
 	HistoryStockHoldings map[time.Time]*ARKHoldings
 	HistoryStockTradings map[time.Time]*ARKTradings
 }
 
-func NewLibrary() *Library {
+func NewLibrary(filePath string) *Library {
 	r := &Library{
 		lock:                 &sync.RWMutex{},
+		filePath:             filePath,
+		fileStore:            utils.NewFileStoreSvc(filePath + libraryName),
 		LatestStockHoldings:  NewARKHoldings(),
 		LatestStockTradings:  NewARKTradings(),
 		HistoryStockHoldings: make(map[time.Time]*ARKHoldings),
 		HistoryStockTradings: make(map[time.Time]*ARKTradings),
 	}
-	r.init()
 	return r
 }
 
@@ -232,21 +236,23 @@ func (r *Library) GetLatestHoldingDate() time.Time {
 	return latestTime
 }
 
-func (r *Library) init() {
-	utils.CheckFolder(libraryFolder)
-	//err := r.LoadFromFileStore()
-	//if err != nil {
-	//	panic(fmt.Sprintf("failed to load library from the saved file, err: %v", err))
-	//}
-	//err := r.LoadFromDirectory()
-	//if err != nil {
-	//	panic(fmt.Sprintf("failed to load library from the saved csv file, err: %v", err))
-	//}
+func (r *Library) Init() error {
+	utils.CheckFolder(r.filePath)
 	glog.V(4).Infof("library init completed")
+	return nil
+}
+
+func (r *Library) StaleInit() error {
+	err := r.LoadFromFileStore()
+	if err != nil {
+		panic(fmt.Sprintf("failed to load library from the saved file, err: %v", err))
+	}
+	glog.V(4).Infof("library stale init completed")
+	return nil
 }
 
 func (r *Library) LoadFromFileStore() error {
-	theBytes, err := theLibraryFileStore.Read()
+	theBytes, err := r.fileStore.Read()
 	if err != nil {
 		if os.IsNotExist(err) {
 			glog.V(4).Info("No saved file for library")
@@ -291,7 +297,7 @@ func (r *Library) Save() error {
 		glog.Errorf("failed to marshal the library, err: %v", err)
 		return err
 	}
-	err = theLibraryFileStore.Save(uByte)
+	err = r.fileStore.Save(uByte)
 	if err != nil {
 		glog.Errorf("failed to save library, err: %v", err)
 		return err
@@ -411,7 +417,7 @@ func (r *Library) GetHoldings(date time.Time) *ARKHoldings {
 	return r.HistoryStockHoldings[date]
 }
 
-// if date is 10, days is 3, we will return [7, 8, 9]
+// GetPreviousHoldings if date is 10, days is 3, we will return [7, 8, 9]
 func (r *Library) GetPreviousHoldings(date time.Time, days int) []*ARKHoldings {
 	r.lock.RLock()
 	defer r.lock.RUnlock()

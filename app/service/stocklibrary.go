@@ -50,6 +50,10 @@ func (r *StockLibraryMaster) Init() error {
 	return nil
 }
 
+func (r *StockLibraryMaster) StaleInit() error {
+	return r.LoadAllStocks()
+}
+
 func (r *StockLibraryMaster) MustSave() {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
@@ -179,6 +183,19 @@ func NewStockLibraryFromBytes(theBytes []byte) *StockLibrary {
 	}
 
 	r.lock = &sync.RWMutex{}
+	r.fileStore = utils.NewFileStoreSvc(stockLibraryFolder + strings.TrimSpace(r.Ticker))
+	if r.LatestStockHolding == nil {
+		r.LatestStockHolding = make(map[string]*StockHolding)
+	}
+	if r.LatestStockTrading == nil {
+		r.LatestStockTrading = make(map[string]*StockTrading)
+	}
+	if r.HistoryStockHoldings == nil {
+		r.HistoryStockHoldings = make(map[time.Time]map[string]*StockHolding)
+	}
+	if r.HistoryStockTradings == nil {
+		r.HistoryStockTradings = make(map[time.Time]map[string]*StockTrading)
+	}
 	return r
 }
 
@@ -218,6 +235,7 @@ func (r *StockLibrary) LoadFromFileStore() error {
 
 func (r *StockLibrary) Save() error {
 	uByte, _ := json.Marshal(r)
+	glog.V(4).Infof("R: %+v", r)
 	err := r.fileStore.Save(uByte)
 	if err != nil {
 		glog.Errorf("failed to save stock library, err: %v", err)

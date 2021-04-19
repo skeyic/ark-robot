@@ -13,20 +13,82 @@ import (
 )
 
 var (
-	theChinaStockManagerFileStore = libraryFolder + "TheChinaStockManager"
-	TheChinaStockManager          = &ChinaStockManager{
-		fileStore: utils.NewFileStoreSvc(theChinaStockManagerFileStore),
-		stocks:    make(map[string]*ChinaStock),
-	}
+	theChinaStockManagerPath = libraryFolder + "TheChinaStockManager"
+	TheChinaStockManager     = NewChinaStockManager(theChinaStockManagerPath)
 )
 
 type ChinaStockManager struct {
+	filePath  string
 	fileStore *utils.FileStoreSvc
 	stocks    map[string]*ChinaStock
 }
 
+func NewChinaStockManager(filePath string) *ChinaStockManager {
+	return &ChinaStockManager{
+		filePath:  filePath,
+		fileStore: utils.NewFileStoreSvc(filePath),
+		stocks:    make(map[string]*ChinaStock),
+	}
+}
+
+func (m *ChinaStockManager) ManuallyAddChinaStock() {
+	var (
+		stocks = []*ChinaStock{
+			&ChinaStock{
+				Ticker: "TCEHY",
+				Name:   "TENCENT HOLDINGS LTD-UNS ADR",
+			},
+			&ChinaStock{
+				Ticker: "BABA",
+				Name:   "ALIBABA GROUP HOLDING-SP ADR",
+			},
+			&ChinaStock{
+				Ticker: "3690",
+				Name:   "MEITUAN-CLASS B",
+			},
+			&ChinaStock{
+				Ticker: "JD",
+				Name:   "JD.COM INC-ADR",
+			},
+			&ChinaStock{
+				Ticker: "PDD",
+				Name:   "PINDUODUO INC-ADR",
+			},
+			&ChinaStock{
+				Ticker: "1833",
+				Name:   "PING AN HEALTHCARE AND TECHN",
+			},
+			&ChinaStock{
+				Ticker: "BIDU",
+				Name:   "BAIDU INC - SPON ADR",
+			},
+			&ChinaStock{
+				Ticker: "BEKE",
+				Name:   "KE HOLDINGS INC",
+			},
+			&ChinaStock{
+				Ticker: "HUYA",
+				Name:   "HUYA INC-ADR",
+			},
+			&ChinaStock{
+				Ticker: "NIU",
+				Name:   "NIU TECHNOLOGIES-SPONS ADR",
+			},
+			&ChinaStock{
+				Ticker: "BYDDY",
+				Name:   "BYD CO LTD-UNSPONSORED ADR",
+			},
+		}
+	)
+	for _, stock := range stocks {
+		if m.stocks[stock.Ticker] == nil {
+			m.stocks[stock.Ticker] = stock
+		}
+	}
+}
+
 func (m *ChinaStockManager) IsChinaStock(ticker string) bool {
-	glog.V(4).Infof("TICKER: %s, STOCK: %+v", ticker, m.stocks[ticker])
+	//glog.V(4).Infof("TICKER: %s, STOCK: %+v", ticker, m.stocks[ticker])
 	return m.stocks[ticker] != nil
 }
 
@@ -43,6 +105,7 @@ func (m *ChinaStockManager) Init() error {
 	if err != nil {
 		return err
 	}
+
 	glog.V(4).Infof("ChinaStockManager LoadFromFileStore num: %d", len(m.stocks))
 	if len(m.stocks) == 0 {
 		err = m.LoadAllChinaStock()
@@ -50,6 +113,20 @@ func (m *ChinaStockManager) Init() error {
 			return err
 		}
 	}
+	m.ManuallyAddChinaStock()
+	return nil
+}
+
+func (m *ChinaStockManager) FreshInit() error {
+	var (
+		err error
+	)
+	err = m.LoadAllChinaStock()
+	if err != nil {
+		return err
+	}
+
+	m.ManuallyAddChinaStock()
 	return nil
 }
 
@@ -169,8 +246,8 @@ func (m *ChinaStockManager) LoadAllChinaStock() error {
 	}
 
 	glog.V(4).Infof("Total china stock: %d", len(totalList))
-	for idx, stock := range totalList {
-		glog.V(4).Infof("IDX: %d, STOCK: %+v", idx, stock)
+	for _, stock := range totalList {
+		//glog.V(4).Infof("IDX: %d, STOCK: %+v", idx, stock)
 		m.stocks[stock.Ticker] = stock
 	}
 

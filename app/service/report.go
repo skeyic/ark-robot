@@ -43,7 +43,11 @@ func toSkipTrade(direction TradeDirection) bool {
 }
 
 func toSkipTicker(ticker string) bool {
-	return ticker == "MORGAN_STANLEY_GOVT_INSTL_8035"
+	return ticker == "MORGAN_STANLEY_GOVT_INSTL_8035" ||
+		ticker == "JAPANESE_YEN" ||
+		ticker == "HONG_KONG_DOLLAR" ||
+		ticker == "DREYFUS_GOVT_CASH_MAN_INS" ||
+		ticker == "CANADIAN_DOLLAR"
 }
 
 func floatToPercentString(percent float64) string {
