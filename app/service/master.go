@@ -128,28 +128,28 @@ func (m *Master) Report(date time.Time, full bool, SpecialTradingsPercent float6
 	)
 
 	tradingsReport := NewTradingsReport(date)
-	err = tradingsReport.ToExcel(full)
+	err = tradingsReport.Report(full)
 	if err != nil {
 		glog.Errorf("tradingsReport to excel failed, err: %v", err)
 		return err
 	}
 
 	top10HoldingsReport := NewTop10HoldingsReport(date)
-	err = top10HoldingsReport.ToExcel()
+	err = top10HoldingsReport.Report()
 	if err != nil {
 		glog.Errorf("top10HoldingsReport to excel failed, err: %v", err)
 		return err
 	}
 
 	specialTradingsReport := NewSpecialTradingsReport(date, SpecialTradingsPercent)
-	err = specialTradingsReport.ToExcel()
+	err = specialTradingsReport.Report()
 	if err != nil {
 		glog.Errorf("specialTradingsReport to excel failed, err: %v", err)
 		return err
 	}
 
 	chinaStockTradingsReport := NewChinaStockTradingsReport(date)
-	err = chinaStockTradingsReport.ToExcel()
+	err = chinaStockTradingsReport.Report()
 	if err != nil {
 		glog.Errorf("chinaStockTradingsReport to excel failed, err: %v", err)
 		return err
@@ -163,7 +163,7 @@ func (m *Master) ReportStock(ticker string, fromDate, endDate time.Time) error {
 		err error
 	)
 
-	err = NewStockDateRangeReport(ticker, fromDate, endDate).ToExcel()
+	err = NewStockDateRangeReport(ticker, fromDate, endDate).Report()
 	if err != nil {
 		glog.Errorf("report stock %s from %s to %s failed, err: %v", ticker, fromDate.Format(TheDateFormat),
 			endDate.Format(TheDateFormat), err)

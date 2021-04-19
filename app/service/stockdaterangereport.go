@@ -162,7 +162,7 @@ func (t *tradingReport) TxtReport() string {
 	return msg
 }
 
-func (r *StockDateRangeReport) ToExcel() error {
+func (r *StockDateRangeReport) Report() error {
 	var (
 		err       error
 		fileName  = r.ExcelPath()

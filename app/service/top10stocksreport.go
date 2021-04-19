@@ -29,7 +29,7 @@ func NewTop10HoldingsReport(date time.Time) *Top10HoldingsReport {
 	return r
 }
 
-func (r *Top10HoldingsReport) ToExcel() error {
+func (r *Top10HoldingsReport) Report() error {
 	var (
 		err      error
 		fileName = r.ExcelPath()

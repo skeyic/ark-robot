@@ -30,7 +30,7 @@ func NewChinaStockTradingsReport(date time.Time) *ChinaStockTradingsReport {
 	return r
 }
 
-func (r *ChinaStockTradingsReport) ToExcel() error {
+func (r *ChinaStockTradingsReport) Report() error {
 	var (
 		err      error
 		fileName = r.ExcelPath()

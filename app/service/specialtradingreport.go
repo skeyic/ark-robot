@@ -32,7 +32,7 @@ func NewSpecialTradingsReport(date time.Time, percent float64) *SpecialTradingsR
 	return r
 }
 
-func (r *SpecialTradingsReport) ToExcel() error {
+func (r *SpecialTradingsReport) Report() error {
 	var (
 		err      error
 		fileName = r.ExcelPath()
