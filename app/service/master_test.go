@@ -202,17 +202,17 @@ func Test_MasterCheckChinaStock(t *testing.T) {
 
 func Test_MasterReportStocks(t *testing.T) {
 	var (
-		err    error
-		stocks = []string{"JD", "HUYA", "BIDU", "PDD", "BABA"}
-		//stocks      = []string{"JD"}
-		fromDate, _ = time.Parse(TheDateFormat, "2021-04-05")
-		endDate, _  = time.Parse(TheDateFormat, "2021-04-13")
+		err error
+		//stocks = []string{"JD", "HUYA", "BIDU", "PDD", "BABA"}
+		stocks      = []string{"JD"}
+		fromDate, _ = time.Parse(TheDateFormat, "2021-04-13")
+		endDate, _  = time.Parse(TheDateFormat, "2021-04-19")
 	)
 
 	utils.EnableGlogForTesting()
-	err = TheMaster.FreshInit()
+	err = TheMaster.StaleInit()
 	if err != nil {
-		glog.Errorf("failed to fresh init the master, err: %v", err)
+		glog.Errorf("failed to stale init the master, err: %v", err)
 		return
 	}
 

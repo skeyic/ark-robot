@@ -265,7 +265,7 @@ func (r *StockReport) ToExcel() error {
 			fundIdx++
 
 			trading := tradings[fund]
-			glog.V(4).Infof("TRADING: %v", trading)
+			//glog.V(4).Infof("TRADING: %v", trading)
 			totalTradingShards += trading.Shards
 
 			if trading.IsBuy() {
