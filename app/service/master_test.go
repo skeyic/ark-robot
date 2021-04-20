@@ -202,11 +202,11 @@ func Test_MasterCheckChinaStock(t *testing.T) {
 
 func Test_MasterReportStocks(t *testing.T) {
 	var (
-		err error
-		//stocks = []string{"JD", "HUYA", "BIDU", "PDD", "BABA"}
-		stocks      = []string{"JD"}
+		err    error
+		stocks = []string{"TSLA", "COIN", "TCEHY", "3690", "BEKE", "JD", "HUYA", "BIDU", "PDD", "BABA", "BYDDY", "NIU"}
+		//stocks      = []string{"JD"}
 		fromDate, _ = time.Parse(TheDateFormat, "2021-04-13")
-		endDate, _  = time.Parse(TheDateFormat, "2021-04-19")
+		endDate, _  = time.Parse(TheDateFormat, "2021-04-20")
 	)
 
 	utils.EnableGlogForTesting()

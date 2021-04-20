@@ -12,18 +12,22 @@ import (
 )
 
 type StockDateRangeReport struct {
-	Ticker   string
-	FromDate time.Time
-	EndDate  time.Time
-	Details  *stockDateRangeDetails
+	Ticker     string
+	FromDate   time.Time
+	EndDate    time.Time
+	ReportTime time.Time
+	Details    *stockDateRangeDetails
 }
 
 func NewStockDateRangeReport(ticker string, fromDate, endDate time.Time) *StockDateRangeReport {
-	return &StockDateRangeReport{
-		Ticker:   ticker,
-		FromDate: fromDate,
-		EndDate:  endDate,
+	r := &StockDateRangeReport{
+		Ticker:     ticker,
+		FromDate:   fromDate,
+		EndDate:    endDate,
+		ReportTime: time.Now(),
 	}
+	utils.CheckFolder(r.ReportFolder())
+	return r
 }
 
 type stockDateRangeDetails struct {
@@ -339,7 +343,7 @@ func (r *StockDateRangeReport) Report() error {
 }
 
 func (r *StockDateRangeReport) ReportFolder() string {
-	return stockReportPath
+	return stockReportPath + "/" + time.Now().Format("2006-01-02-15-04-05")
 }
 
 func (r *StockDateRangeReport) ExcelPath() string {
@@ -359,7 +363,7 @@ func (r *StockDateRangeReport) TxtName() string {
 }
 
 func (r *StockDateRangeReport) FileName() string {
-	return fmt.Sprintf("%s_%s%s_from_%s_to_%s", time.Now().Format("20062102150405"), prefixStockReport, r.Ticker,
+	return fmt.Sprintf("%s%s_from_%s_to_%s", prefixDateRangeStockReport, r.Ticker,
 		r.FromDate.Format(TheDateFormat), r.EndDate.Format(TheDateFormat))
 }
 

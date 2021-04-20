@@ -8,6 +8,7 @@ import (
 	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -143,12 +144,15 @@ func DoReportStock(c *gin.Context) {
 		return
 	}
 
-	err = service.TheMaster.ReportStock(ticker, fromDate, endDate)
-	if err != nil {
-		msg := fmt.Sprintf("failed to report stock %s, fromDate: %s, endDate: %s, err: %v", ticker, fromDateInput, endDateInput, err)
-		glog.Error(msg)
-		utils.NewBadRequestError(c, msg)
-		return
+	tickers := strings.Split(ticker, ",")
+	for _, theTicker := range tickers {
+		err = service.TheMaster.ReportStock(theTicker, fromDate, endDate)
+		if err != nil {
+			msg := fmt.Sprintf("failed to report stock %s, fromDate: %s, endDate: %s, err: %v", ticker, fromDateInput, endDateInput, err)
+			glog.Error(msg)
+			utils.NewBadRequestError(c, msg)
+			return
+		}
 	}
 
 	utils.NewOkResponse(c, fmt.Sprintf("report finished, stock %s, fromDate: %s, endDate: %s", ticker, fromDateInput, endDateInput))
