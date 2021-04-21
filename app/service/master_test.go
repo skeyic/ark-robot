@@ -126,6 +126,13 @@ func Test_MasterReportLatest(t *testing.T) {
 		glog.Errorf("failed to report latest trading, err: %v", err)
 		return
 	}
+
+	//TheDate, _ := time.Parse(TheDateFormat, "2021-04-20")
+	//err = TheMaster.Report(TheDate, true, config.Config.Report.SpecialTradingPercent)
+	//if err != nil {
+	//	glog.Errorf("failed to report latest trading, err: %v", err)
+	//	return
+	//}
 }
 
 func Test_MasterCheckHoldings(t *testing.T) {

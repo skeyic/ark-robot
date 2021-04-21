@@ -17,6 +17,31 @@ type SpecialTradingsReport struct {
 	previousTradings []*ARKTradings
 }
 
+type StockTxtReport struct {
+	Records map[string][]byte
+}
+
+func NewStockTxtReport() *StockTxtReport {
+	return &StockTxtReport{
+		Records: make(map[string][]byte),
+	}
+}
+
+func (h *StockTxtReport) Add(stock string, record []byte) {
+	h.Records[stock] = append(h.Records[stock], record...)
+}
+
+func (h *StockTxtReport) Report() []byte {
+	var (
+		report []byte
+	)
+	for _, record := range h.Records {
+		report = append(report, record...)
+	}
+
+	return report
+}
+
 func NewSpecialTradingsReport(date time.Time, percent float64) *SpecialTradingsReport {
 	var (
 		r = &SpecialTradingsReport{
@@ -56,10 +81,10 @@ func (r *SpecialTradingsReport) Report() error {
 	}
 
 	var (
-		sheet                         = defaultSheet
-		idx                           = 2
-		higherThan10TxtContent        []byte
-		continuousDirectionTxtContent []byte
+		sheet                     = defaultSheet
+		idx                       = 2
+		higherThan10Report        = NewStockTxtReport()
+		continuousDirectionReport = NewStockTxtReport()
 	)
 
 	getTradingPercent := func(trading *ARKTradings, fund, ticker string) float64 {
@@ -130,16 +155,15 @@ func (r *SpecialTradingsReport) Report() error {
 			previousFixedDirection1 := getTradingFixedDirection(r.previousTradings[1], fund, trading.Ticker)
 			previousFixedDirection2 := getTradingFixedDirection(r.previousTradings[0], fund, trading.Ticker)
 			if previousFixedDirection1 == trading.FixedDirection && previousFixedDirection2 == trading.FixedDirection {
-				continuousDirectionTxtContent = append(continuousDirectionTxtContent,
-					NewContinuousDirectionSpecialTradingTxtFromTradings(trading,
-						getTradingPercent(r.previousTradings[1], fund, trading.Ticker),
-						getTradingPercent(r.previousTradings[0], fund, trading.Ticker),
-						getTradingHolding(r.previousTradings[1], fund, trading.Ticker),
-						getTradingHolding(r.previousTradings[0], fund, trading.Ticker),
-					)...)
+				continuousDirectionReport.Add(trading.Ticker, NewContinuousDirectionSpecialTradingTxtFromTradings(trading,
+					getTradingPercent(r.previousTradings[1], fund, trading.Ticker),
+					getTradingPercent(r.previousTradings[0], fund, trading.Ticker),
+					getTradingHolding(r.previousTradings[1], fund, trading.Ticker),
+					getTradingHolding(r.previousTradings[0], fund, trading.Ticker),
+				))
 			} else {
 				if math.Abs(trading.Percent) > 10 {
-					higherThan10TxtContent = append(higherThan10TxtContent, NewHigherThan10SpecialTradingTxtFromTradings(trading)...)
+					higherThan10Report.Add(trading.Ticker, NewHigherThan10SpecialTradingTxtFromTradings(trading))
 				}
 			}
 
@@ -162,6 +186,7 @@ func (r *SpecialTradingsReport) Report() error {
 		return err
 	}
 
+	higherThan10TxtContent := higherThan10Report.Report()
 	if len(higherThan10TxtContent) > 0 {
 		err = utils.NewFileStoreSvc(r.HigherThan10TxtPath()).Save(higherThan10TxtContent)
 		if err != nil {
@@ -172,14 +197,15 @@ func (r *SpecialTradingsReport) Report() error {
 		glog.V(4).Infof("No higher than 10 tradings")
 	}
 
+	continuousDirectionTxtContent := continuousDirectionReport.Report()
 	if len(continuousDirectionTxtContent) > 0 {
 		err = utils.NewFileStoreSvc(r.ContinuousDirectionTxtPath()).Save(continuousDirectionTxtContent)
 		if err != nil {
-			glog.Errorf("failed to save txt %s, err: %v", r.HigherThan10TxtPath(), err)
+			glog.Errorf("failed to save txt %s, err: %v", r.ContinuousDirectionTxtPath(), err)
 			return err
 		}
 	} else {
-		glog.V(4).Infof("No higher than 10 tradings")
+		glog.V(4).Infof("No Continuous Direction tradings")
 	}
 
 	glog.V(4).Infof("SpecialTradingsReport %s is provided", fileName)
