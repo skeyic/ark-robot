@@ -2,8 +2,11 @@ package service
 
 import (
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/utils"
+	"os"
 	"sort"
 	"strconv"
 	"time"
@@ -43,7 +46,7 @@ func NewTop10HoldingsReport(date time.Time) *Top10HoldingsReport {
 		}
 	)
 
-	utils.CheckFolder(r.ExcelFolder())
+	utils.CheckFolder(r.ReportFolder())
 
 	return r
 }
@@ -60,6 +63,11 @@ func (r *Top10HoldingsReport) Report() error {
 	}
 
 	err = r.ToExcel()
+	if err != nil {
+		return err
+	}
+
+	err = r.ToImage()
 	if err != nil {
 		return err
 	}
@@ -188,16 +196,90 @@ func (r *Top10HoldingsReport) ToExcel() error {
 	return nil
 }
 
-func (r *Top10HoldingsReport) ExcelFolder() string {
+func (r *Top10HoldingsReport) ToImage() error {
+	var (
+		htmlPath = r.htmlPath()
+	)
+
+	for _, data := range r.Data {
+		var (
+			stocks           []string
+			currentHoldings  = make([]opts.BarData, 0)
+			previousHoldings = make([]opts.BarData, 0)
+		)
+
+		for _, stockData := range data.Data {
+			stocks = append(stocks, stockData.Ticker)
+			currentHoldings = append(currentHoldings, opts.BarData{
+				Name:  "Current",
+				Value: stockData.CurrentWeight,
+				//Label:     &opts.Label{Show: true},
+				//ItemStyle: nil,
+				Tooltip: &opts.Tooltip{
+					Show: true,
+				},
+			})
+			previousHoldings = append(previousHoldings, opts.BarData{
+				Name:  "Previous",
+				Value: stockData.PreviousWeight,
+				//Label:     &opts.Label{Show: true},
+				//ItemStyle: nil,
+				//Tooltip:   nil,
+				Tooltip: &opts.Tooltip{
+					Show: true,
+				},
+			})
+		}
+
+		// create a new bar instance
+		bar := charts.NewBar()
+
+		// set some global options like Title/Legend/ToolTip or anything else
+		bar.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+			Title: data.Fund + " TOP 10",
+		}))
+
+		bar.SetXAxis(stocks).
+			AddSeries("当前持仓", currentHoldings).
+			AddSeries("昨日持仓", previousHoldings)
+
+		f, err := os.Create(htmlPath)
+		if err != nil {
+			glog.Errorf("failed to create file %s", htmlPath)
+			return err
+		}
+		err = bar.Render(f)
+		if err != nil {
+			glog.Errorf("failed to render file %s", htmlPath)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *Top10HoldingsReport) ReportFolder() string {
 	return reportPath + "/" + r.Date
 }
 
 func (r *Top10HoldingsReport) ExcelPath() string {
-	return r.ExcelFolder() + "/" + r.ExcelName()
+	return r.ReportFolder() + "/" + r.ExcelName()
 }
 
 func (r *Top10HoldingsReport) ExcelName() string {
 	return prefixTop10Holdings + r.Date + ".xlsx"
+}
+
+func (r *Top10HoldingsReport) htmlPath() string {
+	return r.ReportFolder() + "/" + "temp.html"
+}
+
+func (r *Top10HoldingsReport) ImagePath(fund string) string {
+	return r.ReportFolder() + "/" + r.ImageName(fund)
+}
+
+func (r *Top10HoldingsReport) ImageName(fund string) string {
+	return prefixTop10Holdings + r.Date + ".png"
 }
 
 func (r *Top10HoldingsReport) InitExcelFromTemplate() error {
