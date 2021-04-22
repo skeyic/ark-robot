@@ -2,15 +2,12 @@ package utils
 
 import (
 	"context"
-	"github.com/chromedp/cdproto/emulation"
-	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/golang/glog"
 	"io/ioutil"
 	"log"
-	"math"
 	"math/rand"
 	"net/http"
 	"testing"
@@ -44,13 +41,11 @@ func httpserver(w http.ResponseWriter, _ *http.Request) {
 
 func Test_ChartPainter(t *testing.T) {
 	EnableGlogForTesting()
-	//go func() {
-	http.HandleFunc("/", httpserver)
-	http.ListenAndServe(":8081", nil)
-	//}()
-	//glog.V(4).Info("START CAPTURE")
-	//time.Sleep(3 * time.Second)
-	//TheScreenCapture.GenerateImage("newImage.png")
+	go func() {
+		http.HandleFunc("/", httpserver)
+		http.ListenAndServe(":8081", nil)
+	}()
+	TheScreenCapture.GenerateImage("newImage.png")
 }
 
 func Test_ChartPainter2(t *testing.T) {
@@ -68,68 +63,25 @@ func Test_ChartPainter2(t *testing.T) {
 	// create context
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
-		// chromedp.WithDebugf(log.Printf),
+		//chromedp.WithDebugf(log.Printf),
 	)
 	defer cancel()
 
 	// capture screenshot of an element
 	var buf []byte
-	if err := chromedp.Run(ctx, elementScreenshot(`https://pkg.go.dev/`, `img.Homepage-logo`, &buf)); err != nil {
-		log.Fatal(err)
-	}
-	if err := ioutil.WriteFile("elementScreenshot.png", buf, 0o644); err != nil {
-		log.Fatal(err)
-	}
-
-	//// capture entire browser viewport, returning png with quality=90
-	//if err := chromedp.Run(ctx, fullScreenshot(`https://brank.as/`, 90, &buf)); err != nil {
+	//if err := chromedp.Run(ctx, elementScreenshot(`https://pkg.go.dev/`, `img.Homepage-logo`, &buf)); err != nil {
 	//	log.Fatal(err)
 	//}
-	//if err := ioutil.WriteFile("fullScreenshot.png", buf, 0o644); err != nil {
+	//if err := ioutil.WriteFile("elementScreenshot.png", buf, 0o644); err != nil {
 	//	log.Fatal(err)
 	//}
 
+	// capture entire browser viewport, returning png with quality=90
+	if err := chromedp.Run(ctx, fullScreenshot(`https://pkg.go.dev/`, 90, &buf)); err != nil {
+		log.Fatal(err)
+	}
+	if err := ioutil.WriteFile("fullScreenshot.png", buf, 0o644); err != nil {
+		log.Fatal(err)
+	}
 	log.Printf("wrote elementScreenshot.png and fullScreenshot.png")
-
-}
-
-func fullScreenshot(urlstr string, quality int64, res *[]byte) chromedp.Tasks {
-	return chromedp.Tasks{
-		chromedp.Navigate(urlstr),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			// get layout metrics
-			_, _, cssContentSize, err := page.GetLayoutMetrics().Do(ctx)
-			if err != nil {
-				return err
-			}
-
-			width, height := int64(math.Ceil(cssContentSize.Width)), int64(math.Ceil(cssContentSize.Height))
-
-			// force viewport emulation
-			err = emulation.SetDeviceMetricsOverride(width, height, 1, false).
-				WithScreenOrientation(&emulation.ScreenOrientation{
-					Type:  emulation.OrientationTypePortraitPrimary,
-					Angle: 0,
-				}).
-				Do(ctx)
-			if err != nil {
-				return err
-			}
-
-			// capture screenshot
-			*res, err = page.CaptureScreenshot().
-				WithQuality(quality).
-				WithClip(&page.Viewport{
-					X:      cssContentSize.X,
-					Y:      cssContentSize.Y,
-					Width:  cssContentSize.Width,
-					Height: cssContentSize.Height,
-					Scale:  1,
-				}).Do(ctx)
-			if err != nil {
-				return err
-			}
-			return nil
-		}),
-	}
 }

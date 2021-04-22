@@ -2,10 +2,12 @@ package utils
 
 import (
 	"context"
+	"github.com/chromedp/cdproto/emulation"
+	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"github.com/golang/glog"
 	"io/ioutil"
-	"log"
+	"math"
 )
 
 var (
@@ -13,45 +15,73 @@ var (
 )
 
 const (
-	//imageURL = "http://localhost:8081/"
-	imageURL = "https://www.google.com"
-	selector = `#main`
+	imageURL = "http://localhost:8081/"
+	//imageURL = "https://www.google.com"
+	//selector = `#main`
 )
 
 type ScreenCapture struct {
 }
 
-func (s *ScreenCapture) GenerateImage(imgPath string) {
-	ctx, cancel := chromedp.NewContext(context.Background())
+func (s *ScreenCapture) GenerateImage(imagePath string) {
+	// create context
+	ctx, cancel := chromedp.NewContext(
+		context.Background(),
+		//chromedp.WithDebugf(log.Printf),
+	)
 	defer cancel()
 
 	var buf []byte
-	glog.V(4).Info("NAVIGATE URL BEFORE")
-	chromedp.Navigate("http://www.baidu.com")
-
-	glog.V(4).Info("NAVIGATE URL")
-	if err := chromedp.Run(ctx, elementScreenshot(imageURL, selector, &buf)); err != nil {
-		log.Fatal(err)
+	glog.V(4).Info("START CAPTURE")
+	// capture entire browser viewport, returning png with quality=90
+	if err := chromedp.Run(ctx, fullScreenshot(imageURL, 90, &buf)); err != nil {
+		glog.Errorf("failed to run full screenshot, url: %s, err: %v", imageURL, err)
+		panic(err)
 	}
-	glog.V(4).Info("AFTER RUN")
-	// 写入文件
-	if err := ioutil.WriteFile(imgPath, buf, 0644); err != nil {
-		log.Fatal(err)
+	glog.V(4).Info("START SAVE")
+	if err := ioutil.WriteFile(imagePath, buf, 0o644); err != nil {
+		glog.Errorf("failed to save full screenshot %s, err: %v", imagePath, err)
+		panic(err)
 	}
 }
 
-func elementScreenshot(url, sel string, res *[]byte) chromedp.Tasks {
+func fullScreenshot(urlstr string, quality int64, res *[]byte) chromedp.Tasks {
 	return chromedp.Tasks{
-		// 打开url指向的页面
-		chromedp.Navigate(url),
+		chromedp.Navigate(urlstr),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			// get layout metrics
+			_, _, cssContentSize, err := page.GetLayoutMetrics().Do(ctx)
+			if err != nil {
+				return err
+			}
 
-		//// 等待待截图的元素渲染完成
-		//chromedp.WaitVisible(sel, chromedp.ByID),
+			width, height := int64(math.Ceil(cssContentSize.Width)), int64(math.Ceil(cssContentSize.Height))
 
-		// 也可以等待一定的时间
-		//chromedp.Sleep(time.Duration(3) * time.Second),
+			// force viewport emulation
+			err = emulation.SetDeviceMetricsOverride(width, height, 1, false).
+				WithScreenOrientation(&emulation.ScreenOrientation{
+					Type:  emulation.OrientationTypePortraitPrimary,
+					Angle: 0,
+				}).
+				Do(ctx)
+			if err != nil {
+				return err
+			}
 
-		// 执行截图
-		chromedp.Screenshot(sel, res, chromedp.NodeVisible, chromedp.ByID),
+			// capture screenshot
+			*res, err = page.CaptureScreenshot().
+				WithQuality(quality).
+				WithClip(&page.Viewport{
+					X:      cssContentSize.X,
+					Y:      cssContentSize.Y,
+					Width:  cssContentSize.Width,
+					Height: cssContentSize.Height,
+					Scale:  1,
+				}).Do(ctx)
+			if err != nil {
+				return err
+			}
+			return nil
+		}),
 	}
 }

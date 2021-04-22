@@ -9,10 +9,29 @@ import (
 	"time"
 )
 
+const (
+	maxIdx = 10 //Top10
+)
+
 type Top10HoldingsReport struct {
 	Date            string
 	holdings        *ARKHoldings
 	previousHolding *ARKHoldings
+	Data            []*Top10HoldingsData
+}
+
+type Top10HoldingsData struct {
+	Fund string
+	Data []*RankData
+}
+
+type RankData struct {
+	Ticker         string
+	Company        string
+	PreviousWeight float64
+	CurrentWeight  float64
+	Shards         float64
+	MarketValue    float64
 }
 
 func NewTop10HoldingsReport(date time.Time) *Top10HoldingsReport {
@@ -35,30 +54,33 @@ func (r *Top10HoldingsReport) Report() error {
 		fileName = r.ExcelPath()
 	)
 
+	err = r.Load()
+	if err != nil {
+		return err
+	}
+
+	err = r.ToExcel()
+	if err != nil {
+		return err
+	}
+
+	glog.V(4).Infof("Top10StockReport %s is provided", fileName)
+	return nil
+}
+
+func (r *Top10HoldingsReport) Load() error {
 	if r.holdings == nil {
 		glog.Warningf("Empty report")
-		return nil
-	}
-
-	err = r.InitExcelFromTemplate()
-	if err != nil {
-		glog.Errorf("failed to init excel from template, err: %v", err)
-		return err
-	}
-
-	f, err := excelize.OpenFile(fileName)
-	if err != nil {
-		glog.Errorf("failed to open excel %s, err: %v", fileName, err)
-		return err
+		return errEmptyReport
 	}
 
 	for _, fund := range allARKTypes {
 		var (
-			idx              = 35
-			sheet            = fund
+			idx              = 1
 			toReportHoldings = make(map[float64]*StockHolding)
 			toSortWeight     sort.Float64Slice
 			previousHoldings *StockHoldings
+			top10HoldingData = &Top10HoldingsData{Fund: fund}
 		)
 		holdings := r.holdings.GetFundStockHoldings(fund)
 		if holdings == nil {
@@ -84,7 +106,7 @@ func (r *Top10HoldingsReport) Report() error {
 
 		for _, weight := range toSortWeight {
 			// Only the top 10
-			if idx == 45 {
+			if idx > maxIdx {
 				break
 			}
 
@@ -100,13 +122,56 @@ func (r *Top10HoldingsReport) Report() error {
 				}
 			}
 
+			top10HoldingData.Data = append(top10HoldingData.Data, &RankData{
+				Ticker:         holding.Ticker,
+				Company:        holding.Company,
+				PreviousWeight: previousWeight / 100,
+				CurrentWeight:  holding.Weight / 100,
+				Shards:         holding.Shards,
+				MarketValue:    holding.MarketValue,
+			})
+
+			idx++
+		}
+
+		r.Data = append(r.Data, top10HoldingData)
+	}
+
+	return nil
+}
+
+func (r *Top10HoldingsReport) ToExcel() error {
+	var (
+		err      error
+		fileName = r.ExcelPath()
+	)
+
+	err = r.InitExcelFromTemplate()
+	if err != nil {
+		glog.Errorf("failed to init excel from template, err: %v", err)
+		return err
+	}
+
+	f, err := excelize.OpenFile(fileName)
+	if err != nil {
+		glog.Errorf("failed to open excel %s, err: %v", fileName, err)
+		return err
+	}
+
+	for _, data := range r.Data {
+		var (
+			idx   = 35
+			sheet = data.Fund
+		)
+
+		for _, stockData := range data.Data {
 			line := strconv.Itoa(idx)
-			f.SetCellValue(sheet, "A"+line, holding.Ticker)
-			f.SetCellValue(sheet, "B"+line, holding.Company)
-			f.SetCellValue(sheet, "C"+line, previousWeight/100)
-			f.SetCellValue(sheet, "D"+line, holding.Weight/100)
-			f.SetCellValue(sheet, "E"+line, floatToStringIntOnly(holding.Shards))
-			f.SetCellValue(sheet, "F"+line, holding.MarketValue)
+			f.SetCellValue(sheet, "A"+line, stockData.Ticker)
+			f.SetCellValue(sheet, "B"+line, stockData.Company)
+			f.SetCellValue(sheet, "C"+line, stockData.PreviousWeight)
+			f.SetCellValue(sheet, "D"+line, stockData.CurrentWeight)
+			f.SetCellValue(sheet, "E"+line, floatToStringIntOnly(stockData.Shards))
+			f.SetCellValue(sheet, "F"+line, stockData.MarketValue)
 
 			idx++
 		}
