@@ -133,8 +133,8 @@ func (r *Top10HoldingsReport) Load() error {
 			top10HoldingData.Data = append(top10HoldingData.Data, &RankData{
 				Ticker:         holding.Ticker,
 				Company:        holding.Company,
-				PreviousWeight: previousWeight / 100,
-				CurrentWeight:  holding.Weight / 100,
+				PreviousWeight: previousWeight,
+				CurrentWeight:  holding.Weight,
 				Shards:         holding.Shards,
 				MarketValue:    holding.MarketValue,
 			})
@@ -176,8 +176,8 @@ func (r *Top10HoldingsReport) ToExcel() error {
 			line := strconv.Itoa(idx)
 			f.SetCellValue(sheet, "A"+line, stockData.Ticker)
 			f.SetCellValue(sheet, "B"+line, stockData.Company)
-			f.SetCellValue(sheet, "C"+line, stockData.PreviousWeight)
-			f.SetCellValue(sheet, "D"+line, stockData.CurrentWeight)
+			f.SetCellValue(sheet, "C"+line, stockData.PreviousWeight/100)
+			f.SetCellValue(sheet, "D"+line, stockData.CurrentWeight/100)
 			f.SetCellValue(sheet, "E"+line, floatToStringIntOnly(stockData.Shards))
 			f.SetCellValue(sheet, "F"+line, stockData.MarketValue)
 
@@ -197,10 +197,6 @@ func (r *Top10HoldingsReport) ToExcel() error {
 }
 
 func (r *Top10HoldingsReport) ToImage() error {
-	var (
-		htmlPath = r.htmlPath()
-	)
-
 	for _, data := range r.Data {
 		var (
 			stocks           []string
@@ -213,8 +209,6 @@ func (r *Top10HoldingsReport) ToImage() error {
 			currentHoldings = append(currentHoldings, opts.BarData{
 				Name:  "Current",
 				Value: stockData.CurrentWeight,
-				//Label:     &opts.Label{Show: true},
-				//ItemStyle: nil,
 				Tooltip: &opts.Tooltip{
 					Show: true,
 				},
@@ -222,9 +216,6 @@ func (r *Top10HoldingsReport) ToImage() error {
 			previousHoldings = append(previousHoldings, opts.BarData{
 				Name:  "Previous",
 				Value: stockData.PreviousWeight,
-				//Label:     &opts.Label{Show: true},
-				//ItemStyle: nil,
-				//Tooltip:   nil,
 				Tooltip: &opts.Tooltip{
 					Show: true,
 				},
@@ -235,22 +226,41 @@ func (r *Top10HoldingsReport) ToImage() error {
 		bar := charts.NewBar()
 
 		// set some global options like Title/Legend/ToolTip or anything else
-		bar.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
-			Title: data.Fund + " TOP 10",
-		}))
+		bar.SetGlobalOptions(
+			charts.WithTitleOpts(opts.Title{
+				Title: data.Fund + " TOP 10（百分占比）",
+				//Top: "5%",
+				//Bottom: "20%",
+				Left: "center",
+				//Right: "20%",
+
+			}), charts.WithLegendOpts(opts.Legend{
+				Show: true,
+				Top:  "7%",
+			}))
 
 		bar.SetXAxis(stocks).
 			AddSeries("当前持仓", currentHoldings).
 			AddSeries("昨日持仓", previousHoldings)
 
+		var (
+			htmlPath  = r.htmlPath(data.Fund)
+			imagePath = r.ImagePath(data.Fund)
+		)
 		f, err := os.Create(htmlPath)
 		if err != nil {
-			glog.Errorf("failed to create file %s", htmlPath)
+			glog.Errorf("failed to create html file %s", htmlPath)
 			return err
 		}
 		err = bar.Render(f)
 		if err != nil {
-			glog.Errorf("failed to render file %s", htmlPath)
+			glog.Errorf("failed to render html file %s", htmlPath)
+			return err
+		}
+
+		err = utils.TheChartPainter.GenerateImage(htmlPath, imagePath)
+		if err != nil {
+			glog.Errorf("failed to save image file %s", imagePath)
 			return err
 		}
 	}
@@ -270,8 +280,12 @@ func (r *Top10HoldingsReport) ExcelName() string {
 	return prefixTop10Holdings + r.Date + ".xlsx"
 }
 
-func (r *Top10HoldingsReport) htmlPath() string {
-	return r.ReportFolder() + "/" + "temp.html"
+func (r *Top10HoldingsReport) htmlPath(fund string) string {
+	return r.ReportFolder() + "/" + r.htmlName(fund)
+}
+
+func (r *Top10HoldingsReport) htmlName(fund string) string {
+	return prefixTop10Holdings + r.Date + fund + ".html"
 }
 
 func (r *Top10HoldingsReport) ImagePath(fund string) string {
@@ -279,7 +293,7 @@ func (r *Top10HoldingsReport) ImagePath(fund string) string {
 }
 
 func (r *Top10HoldingsReport) ImageName(fund string) string {
-	return prefixTop10Holdings + r.Date + ".png"
+	return prefixTop10Holdings + r.Date + fund + ".png"
 }
 
 func (r *Top10HoldingsReport) InitExcelFromTemplate() error {
