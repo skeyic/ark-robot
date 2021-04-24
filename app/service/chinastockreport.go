@@ -25,7 +25,7 @@ func NewChinaStockTradingsReport(date time.Time) *ChinaStockTradingsReport {
 		}
 	)
 
-	utils.CheckFolder(r.ExcelFolder())
+	utils.CheckFolder(r.ReportFolder())
 
 	return r
 }
@@ -54,8 +54,9 @@ func (r *ChinaStockTradingsReport) Report() error {
 	}
 
 	var (
-		sheet = defaultSheet
-		idx   = 2
+		sheet         = defaultSheet
+		idx           = 2
+		notKeepReport = NewStockTxtReport()
 	)
 
 	getHoldingWeight := func(holding *ARKHoldings, fund, ticker string) float64 {
@@ -87,6 +88,9 @@ func (r *ChinaStockTradingsReport) Report() error {
 		}
 
 		for _, trading := range toReportChinaStockTradings {
+			if trading.FixedDirection != TradeKeep && trading.FixedDirection != TradeDoNothing {
+				notKeepReport.Add(trading.Ticker, NewSpecialTradingTxtFromTrading(trading))
+			}
 			line := strconv.Itoa(idx)
 			f.SetCellValue(sheet, "A"+line, trading.Fund)
 			f.SetCellValue(sheet, "B"+line, trading.Ticker)
@@ -107,21 +111,40 @@ func (r *ChinaStockTradingsReport) Report() error {
 		return err
 	}
 
+	notKeepTxtContent := notKeepReport.Report()
+	if len(notKeepTxtContent) > 0 {
+		err = utils.NewFileStoreSvc(r.TxtPath()).Save(notKeepTxtContent)
+		if err != nil {
+			glog.Errorf("failed to save txt %s, err: %v", r.TxtPath(), err)
+			return err
+		}
+	} else {
+		glog.V(4).Infof("No not keep tradings")
+	}
+
 	glog.V(4).Infof("ChinaStockTradingsReport %s is provided", fileName)
 
 	return nil
 }
 
-func (r *ChinaStockTradingsReport) ExcelFolder() string {
+func (r *ChinaStockTradingsReport) ReportFolder() string {
 	return reportPath + "/" + r.Date
 }
 
 func (r *ChinaStockTradingsReport) ExcelPath() string {
-	return r.ExcelFolder() + "/" + r.ExcelName()
+	return r.ReportFolder() + "/" + r.ExcelName()
 }
 
 func (r *ChinaStockTradingsReport) ExcelName() string {
 	return prefixChinaStockTradings + r.Date + ".xlsx"
+}
+
+func (r *ChinaStockTradingsReport) TxtPath() string {
+	return r.ReportFolder() + "/" + r.TxtName()
+}
+
+func (r *ChinaStockTradingsReport) TxtName() string {
+	return prefixChinaStockNotKeepTradings + r.Date + ".txt"
 }
 
 func (r *ChinaStockTradingsReport) InitExcelFromTemplate() error {

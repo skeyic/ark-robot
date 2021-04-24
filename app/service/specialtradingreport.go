@@ -155,7 +155,7 @@ func (r *SpecialTradingsReport) Report() error {
 			previousFixedDirection1 := getTradingFixedDirection(r.previousTradings[1], fund, trading.Ticker)
 			previousFixedDirection2 := getTradingFixedDirection(r.previousTradings[0], fund, trading.Ticker)
 			if previousFixedDirection1 == trading.FixedDirection && previousFixedDirection2 == trading.FixedDirection {
-				continuousDirectionReport.Add(trading.Ticker, NewContinuousDirectionSpecialTradingTxtFromTradings(trading,
+				continuousDirectionReport.Add(trading.Ticker, NewContinuousDirectionSpecialTradingTxtFromTrading(trading,
 					getTradingPercent(r.previousTradings[1], fund, trading.Ticker),
 					getTradingPercent(r.previousTradings[0], fund, trading.Ticker),
 					getTradingHolding(r.previousTradings[1], fund, trading.Ticker),
@@ -163,7 +163,7 @@ func (r *SpecialTradingsReport) Report() error {
 				))
 			} else {
 				if math.Abs(trading.Percent) > 10 {
-					higherThan10Report.Add(trading.Ticker, NewHigherThan10SpecialTradingTxtFromTradings(trading))
+					higherThan10Report.Add(trading.Ticker, NewSpecialTradingTxtFromTrading(trading))
 				}
 			}
 
@@ -264,7 +264,7 @@ func (r *SpecialTradingsReport) IsSpecialTradings(trading *StockTrading) bool {
 	return math.Abs(trading.Percent) >= r.Percent && trading.FixedDirection != TradeKeep
 }
 
-func NewHigherThan10SpecialTradingTxtFromTradings(trading *StockTrading) []byte {
+func NewSpecialTradingTxtFromTrading(trading *StockTrading) []byte {
 	var (
 		result string
 	)
@@ -288,7 +288,7 @@ func NewHigherThan10SpecialTradingTxtFromTradings(trading *StockTrading) []byte 
 }
 
 // 今日， 昨日， 前日
-func NewContinuousDirectionSpecialTradingTxtFromTradings(trading *StockTrading, previousPercent1, previousPercent2,
+func NewContinuousDirectionSpecialTradingTxtFromTrading(trading *StockTrading, previousPercent1, previousPercent2,
 	previousHolding1, previousHolding2 float64) []byte {
 	var (
 		result string

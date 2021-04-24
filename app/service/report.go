@@ -14,6 +14,7 @@ const (
 	prefixSpecialTradingsHigherThan10        = "special_tradings_higher_than_10_"
 	prefixSpecialTradingsContinuousDirection = "special_tradings_continues_direction_"
 	prefixChinaStockTradings                 = "china_stock_tradings_"
+	prefixChinaStockNotKeepTradings          = "china_stock_not_keep_tradings_"
 	prefixCurrentStockReport                 = "current_stock_report_"
 	prefixDateRangeStockReport               = "date_range_stock_report_"
 	defaultSheet                             = "sheet"
