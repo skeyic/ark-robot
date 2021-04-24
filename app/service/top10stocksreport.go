@@ -244,8 +244,8 @@ func (r *Top10HoldingsReport) ToImage() error {
 			AddSeries("昨日持仓", previousHoldings)
 
 		var (
-			htmlPath  = r.htmlPath(data.Fund)
-			imagePath = r.ImagePath(data.Fund)
+			htmlPath = r.htmlPath(data.Fund)
+			//imagePath = r.ImagePath(data.Fund)
 		)
 		f, err := os.Create(htmlPath)
 		if err != nil {
@@ -258,11 +258,12 @@ func (r *Top10HoldingsReport) ToImage() error {
 			return err
 		}
 
-		err = utils.TheChartPainter.GenerateImage(htmlPath, imagePath)
-		if err != nil {
-			glog.Errorf("failed to save image file %s", imagePath)
-			return err
-		}
+		// TODO do not use chrome to generate image, will add another micro service install
+		//err = utils.TheChartPainter.GenerateImage(htmlPath, imagePath)
+		//if err != nil {
+		//	glog.Errorf("failed to save image file %s", imagePath)
+		//	return err
+		//}
 	}
 
 	return nil

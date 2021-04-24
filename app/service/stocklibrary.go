@@ -235,7 +235,6 @@ func (r *StockLibrary) LoadFromFileStore() error {
 
 func (r *StockLibrary) Save() error {
 	uByte, _ := json.Marshal(r)
-	glog.V(4).Infof("R: %+v", r)
 	err := r.fileStore.Save(uByte)
 	if err != nil {
 		glog.Errorf("failed to save stock library, err: %v", err)

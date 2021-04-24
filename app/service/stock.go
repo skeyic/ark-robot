@@ -263,7 +263,7 @@ func RemoveAbnormalData(pl statistics.Float64) statistics.Float64 {
 		if data > mean-3*variance && data < mean+3*variance {
 			npl = append(npl, data)
 		} else {
-			glog.V(10).Infof("Remove abnormal data: %f", data)
+			//glog.V(10).Infof("Remove abnormal data: %f", data)
 			needCheckAgain = true
 		}
 	}
@@ -284,13 +284,13 @@ func PickAbnormalData(pl statistics.Float64) (statistics.Float64, statistics.Flo
 
 	mean := statistics.Mean(&pl)
 	variance := statistics.Sd(&pl)
-	glog.V(4).Infof("MEAN: %f, VARIANCE: %f", mean, variance)
+	//glog.V(4).Infof("MEAN: %f, VARIANCE: %f", mean, variance)
 	for _, data := range pl {
 		if variance < theMaxVariance || (data > mean-3*variance && data < mean+3*variance) ||
 			(data/mean > 0.99 && data/mean < 1.01) {
 			npl = append(npl, data)
 		} else {
-			glog.V(10).Infof("Remove abnormal data: %f", data)
+			//glog.V(10).Infof("Remove abnormal data: %f", data)
 			apl = append(apl, data)
 			needCheckAgain = true
 		}
@@ -423,11 +423,12 @@ func (s *StockTradings) SetFixDirection() {
 		allThePercents = negativePercents
 	}
 
-	theNormalPercents, theAbnormalPercents := PickAbnormalData(allThePercents)
-	glog.V(10).Infof("NORMAL: %+v", theNormalPercents)
-	glog.V(10).Infof("ABNORMAL: %+v", theAbnormalPercents)
+	theNormalPercents, _ := PickAbnormalData(allThePercents)
+	//theNormalPercents, theAbnormalPercents := PickAbnormalData(allThePercents)
+	//glog.V(10).Infof("NORMAL: %+v", theNormalPercents)
+	//glog.V(10).Infof("ABNORMAL: %+v", theAbnormalPercents)
 	means := statistics.Mean(&theNormalPercents)
-	glog.V(10).Infof("MEANS: %f", means)
+	//glog.V(10).Infof("MEANS: %f", means)
 
 	if means < 0 {
 		s.Direction = TradeSell
@@ -467,5 +468,4 @@ func (s *StockTradings) SetFixDirection() {
 			}
 		}
 	}
-
 }
