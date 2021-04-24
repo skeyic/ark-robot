@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/360EntSecGroup-Skylar/excelize/v2 v2.3.2
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/chromedp/cdproto v0.0.0-20210323015217-0942afbea50e
 	github.com/chromedp/chromedp v0.6.10
 	github.com/emersion/go-imap v1.0.6
 	github.com/gin-gonic/gin v1.6.3
