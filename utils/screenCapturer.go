@@ -39,7 +39,7 @@ func (s *ScreenCapture) GenerateImage(imagePath string) {
 		panic(err)
 	}
 	glog.V(4).Info("START SAVE")
-	if err := ioutil.WriteFile(imagePath, buf, 0o644); err != nil {
+	if err := ioutil.WriteFile(imagePath, buf, 0x644); err != nil {
 		glog.Errorf("failed to save full screenshot %s, err: %v", imagePath, err)
 		panic(err)
 	}

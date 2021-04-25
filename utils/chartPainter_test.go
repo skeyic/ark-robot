@@ -65,7 +65,9 @@ func Test_ChartPainter2(t *testing.T) {
 
 	// capture screenshot of an element
 	var buf []byte
-	//if err := chromedp.Run(ctx, elementScreenshot(`https://pkg.go.dev/`, `img.Homepage-logo`, &buf)); err != nil {
+	//if err := chromedp.Run(ctx, elementScreenshot(`https://pkg.go.dev/`,
+	//
+	//`img.Homepage-logo`, &buf)); err != nil {
 	//	log.Fatal(err)
 	//}
 	//if err := ioutil.WriteFile("elementScreenshot.png", buf, 0o644); err != nil {
@@ -73,10 +75,10 @@ func Test_ChartPainter2(t *testing.T) {
 	//}
 
 	// capture entire browser viewport, returning png with quality=90
-	if err := chromedp.Run(ctx, fullScreenshot(`C:\Users\15902\go\src\github.com\skeyic\ark-robot\data\report\2021-04-23\temp.html`, 90, &buf)); err != nil {
+	if err := chromedp.Run(ctx, fullScreenshot(`file:///Users/carrick/go/src/github.com/skeyic/ark-robot/data/report/2021-04-23/top_10_stocks_2021-04-23ARKF.html`, 90, &buf)); err != nil {
 		log.Fatal(err)
 	}
-	if err := ioutil.WriteFile("fullScreenshotChart.png", buf, 0o644); err != nil {
+	if err := ioutil.WriteFile("fullScreenshotChart.png", buf, 0x644); err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("wrote fullScreenshotChart.png")
