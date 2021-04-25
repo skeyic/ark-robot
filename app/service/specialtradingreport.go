@@ -17,26 +17,40 @@ type SpecialTradingsReport struct {
 	previousTradings []*ARKTradings
 }
 
-type StockTxtReport struct {
-	Records map[string][]byte
+type StockTradingTxtReport struct {
+	Records map[string]map[string]*StockTrading
 }
 
-func NewStockTxtReport() *StockTxtReport {
-	return &StockTxtReport{
-		Records: make(map[string][]byte),
+func NewStockTradingTxtReport() *StockTradingTxtReport {
+	return &StockTradingTxtReport{
+		Records: make(map[string]map[string]*StockTrading),
 	}
 }
 
-func (h *StockTxtReport) Add(stock string, record []byte) {
-	h.Records[stock] = append(h.Records[stock], record...)
+func (h *StockTradingTxtReport) Add(stock string, trading *StockTrading) {
+	if h.Records[stock] == nil {
+		h.Records[stock] = make(map[string]*StockTrading)
+	}
+	h.Records[stock][trading.Fund] = trading
 }
 
-func (h *StockTxtReport) Report() []byte {
+/*
+ZY：ARKG建仓，买入xxx股；ARKK建仓，买入xxx股；ARKK增持5.6%，持股数从xxx股增到xxx股；ARKK减持5.6%，持股数从xxx股减到xxx股；ARKG清仓，卖出xxx股；ARK总持股数从4014903股增到5241248股。
+*/
+func (h *StockTradingTxtReport) Report() []byte {
 	var (
 		report []byte
 	)
 	for _, record := range h.Records {
-		report = append(report, record...)
+		var (
+			stockReport []byte
+		)
+
+		for fund, trading := range record {
+			glog.V(4).Infof("%s %v", fund, trading)
+		}
+
+		report = append(report, stockReport...)
 	}
 
 	return report
@@ -83,6 +97,7 @@ func (r *SpecialTradingsReport) Report() error {
 	var (
 		sheet                     = defaultSheet
 		idx                       = 2
+		specialTradingReport      = NewStockTradingTxtReport()
 		higherThan10Report        = NewStockTxtReport()
 		continuousDirectionReport = NewStockTxtReport()
 	)
@@ -152,6 +167,13 @@ func (r *SpecialTradingsReport) Report() error {
 		}
 
 		for _, trading := range toReportTradings {
+			// special trading
+			if math.Abs(trading.Percent) > 10 {
+				higherThan10Report.Add(trading.Ticker, NewSpecialTradingTxtFromTrading(trading))
+				specialTradingReport.Add(trading.Ticker, trading)
+			}
+
+			// trading trend
 			previousFixedDirection1 := getTradingFixedDirection(r.previousTradings[1], fund, trading.Ticker)
 			previousFixedDirection2 := getTradingFixedDirection(r.previousTradings[0], fund, trading.Ticker)
 			if previousFixedDirection1 == trading.FixedDirection && previousFixedDirection2 == trading.FixedDirection {
@@ -161,10 +183,6 @@ func (r *SpecialTradingsReport) Report() error {
 					getTradingHolding(r.previousTradings[1], fund, trading.Ticker),
 					getTradingHolding(r.previousTradings[0], fund, trading.Ticker),
 				))
-			} else {
-				if math.Abs(trading.Percent) > 10 {
-					higherThan10Report.Add(trading.Ticker, NewSpecialTradingTxtFromTrading(trading))
-				}
 			}
 
 			line := strconv.Itoa(idx)

@@ -85,3 +85,28 @@ func floatToStringIntOnlyWithSign(data float64) (result string) {
 	result += fmt.Sprintf("%.0f", math.Ceil(data))
 	return
 }
+
+type StockTxtReport struct {
+	Records map[string][]byte
+}
+
+func NewStockTxtReport() *StockTxtReport {
+	return &StockTxtReport{
+		Records: make(map[string][]byte),
+	}
+}
+
+func (h *StockTxtReport) Add(stock string, record []byte) {
+	h.Records[stock] = append(h.Records[stock], record...)
+}
+
+func (h *StockTxtReport) Report() []byte {
+	var (
+		report []byte
+	)
+	for _, record := range h.Records {
+		report = append(report, record...)
+	}
+
+	return report
+}
