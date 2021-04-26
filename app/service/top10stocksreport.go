@@ -1,14 +1,15 @@
 package service
 
 import (
+	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/utils"
 	"os"
-	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -21,6 +22,7 @@ type Top10HoldingsReport struct {
 	holdings        *ARKHoldings
 	previousHolding *ARKHoldings
 	Data            []*Top10HoldingsData
+	DiffData        []*Top10Diff
 }
 
 type Top10HoldingsData struct {
@@ -35,6 +37,32 @@ type RankData struct {
 	CurrentWeight  float64
 	Shards         float64
 	MarketValue    float64
+}
+
+type Top10Diff struct {
+	Fund string
+	Data []*RankDiffData
+}
+
+type RankDiffData struct {
+	Ticker       string
+	PreviousRank int
+	CurrentRank  int
+}
+
+func (r *RankDiffData) ToTxt() string {
+	if r.CurrentRank == 0 {
+		return fmt.Sprintf("%s不再是前十持仓，", r.Ticker)
+	}
+	if r.PreviousRank == 0 {
+		return fmt.Sprintf("%s进入前十持仓，位列第%d名，", r.Ticker, r.CurrentRank)
+	}
+	return ""
+	//if r.PreviousRank < r.CurrentRank {
+	//	return fmt.Sprintf("%s从第%d名降到第%d名，", r.Ticker, r.PreviousRank, r.CurrentRank)
+	//} else {
+	//	return fmt.Sprintf("%s从第%d名进到第%d名，", r.Ticker, r.PreviousRank, r.CurrentRank)
+	//}
 }
 
 func NewTop10HoldingsReport(date time.Time) *Top10HoldingsReport {
@@ -67,6 +95,11 @@ func (r *Top10HoldingsReport) Report() error {
 		return err
 	}
 
+	err = r.ToTxt()
+	if err != nil {
+		return err
+	}
+
 	err = r.ToImage()
 	if err != nil {
 		return err
@@ -84,11 +117,10 @@ func (r *Top10HoldingsReport) Load() error {
 
 	for _, fund := range allARKTypes {
 		var (
-			idx              = 1
-			toReportHoldings = make(map[float64]*StockHolding)
-			toSortWeight     sort.Float64Slice
-			previousHoldings *StockHoldings
-			top10HoldingData = &Top10HoldingsData{Fund: fund}
+			previousHoldings      *StockHoldings
+			previousTop10Holdings []*StockHolding
+			top10HoldingData      = &Top10HoldingsData{Fund: fund}
+			top10DiffData         []*RankDiffData
 		)
 		holdings := r.holdings.GetFundStockHoldings(fund)
 		if holdings == nil {
@@ -96,33 +128,16 @@ func (r *Top10HoldingsReport) Load() error {
 		}
 		if r.previousHolding != nil {
 			previousHoldings = r.previousHolding.GetFundStockHoldings(fund)
+			previousTop10Holdings = previousHoldings.GetTop10()
 		}
 
-		for _, holding := range holdings.Holdings {
-			if toSkipTicker(holding.Ticker) {
-				continue
-			}
-			weight := holding.Weight
-			if _, hit := toReportHoldings[weight]; hit {
-				weight += 0.000001
-			}
-			toReportHoldings[weight] = holding
-			toSortWeight = append(toSortWeight, weight)
-		}
+		top10Holdings := holdings.GetTop10()
 
-		sort.Sort(sort.Reverse(toSortWeight))
-
-		for _, weight := range toSortWeight {
-			// Only the top 10
-			if idx > maxIdx {
-				break
-			}
-
+		for _, holding := range top10Holdings {
 			var (
 				previousWeight float64
 			)
 
-			holding := toReportHoldings[weight]
 			if previousHoldings != nil && previousHoldings.Holdings != nil {
 				previousHolding := previousHoldings.Holdings[holding.Ticker]
 				if previousHolding != nil {
@@ -139,9 +154,62 @@ func (r *Top10HoldingsReport) Load() error {
 				MarketValue:    holding.MarketValue,
 			})
 
-			idx++
+			//rank := idx + 1
+			//if previousTop10Holdings != nil {
+			//	for previousIdx, previousHolding := range previousTop10Holdings {
+			//		if previousHolding.Ticker == holding.Ticker && previousIdx+1 != rank {
+			//			top10DiffData = append(top10DiffData, &RankDiffData{
+			//				Ticker:       holding.Ticker,
+			//				Company:      holding.Company,
+			//				PreviousRank: previousIdx + 1,
+			//				CurrentRank:  rank,
+			//			})
+			//			break
+			//		}
+			//	}
+			//}
 		}
 
+		// Check difference with previous top10
+
+		var (
+			previousRankMap = make(map[string]int)
+		)
+
+		for idx, previousHolding := range previousTop10Holdings {
+			previousRankMap[previousHolding.Ticker] = idx + 1
+		}
+
+		for idx, currentHolding := range top10Holdings {
+			previousRank, hit := previousRankMap[currentHolding.Ticker]
+			if hit {
+				if idx+1 != previousRank {
+					top10DiffData = append(top10DiffData, &RankDiffData{
+						Ticker:       currentHolding.Ticker,
+						PreviousRank: previousRank,
+						CurrentRank:  idx + 1,
+					})
+				}
+
+				// Mark
+				previousRankMap[currentHolding.Ticker] = -1
+			}
+		}
+
+		for ticker, previousRank := range previousRankMap {
+			// Not in current top10
+			if previousRank != -1 {
+				top10DiffData = append(top10DiffData, &RankDiffData{
+					Ticker:       ticker,
+					PreviousRank: previousRank,
+				})
+			}
+		}
+
+		r.DiffData = append(r.DiffData, &Top10Diff{
+			Fund: fund,
+			Data: top10DiffData,
+		})
 		r.Data = append(r.Data, top10HoldingData)
 	}
 
@@ -269,6 +337,47 @@ func (r *Top10HoldingsReport) ToImage() error {
 	return nil
 }
 
+func (r *Top10HoldingsReport) ToTxt() error {
+	var (
+		err    error
+		report string
+	)
+
+	for _, data := range r.DiffData {
+		var (
+			exits      bool
+			fundReport string
+		)
+		if len(data.Data) > 0 {
+			for _, diffData := range data.Data {
+				txt := diffData.ToTxt()
+				if len(txt) > 0 {
+					exits = true
+				}
+				fundReport += diffData.ToTxt()
+			}
+			if exits {
+				fundReport = data.Fund + "：" + fundReport
+				fundReport = strings.TrimSuffix(fundReport, "，")
+				fundReport += "。\n"
+			}
+		}
+		report += fundReport
+	}
+
+	if len(report) == 0 {
+		report = "NO DATA TODAY"
+		glog.V(4).Infof("No higher than 10 tradings")
+	}
+	err = utils.NewFileStoreSvc(r.TxtPath()).SaveString(report)
+	if err != nil {
+		glog.Errorf("failed to save txt %s, err: %v", r.TxtPath(), err)
+		return err
+	}
+
+	return err
+}
+
 func (r *Top10HoldingsReport) ReportFolder() string {
 	return reportPath + "/" + r.Date
 }
@@ -279,6 +388,14 @@ func (r *Top10HoldingsReport) ExcelPath() string {
 
 func (r *Top10HoldingsReport) ExcelName() string {
 	return prefixTop10Holdings + r.Date + ".xlsx"
+}
+
+func (r *Top10HoldingsReport) TxtPath() string {
+	return r.ReportFolder() + "/" + r.TxtName()
+}
+
+func (r *Top10HoldingsReport) TxtName() string {
+	return prefixTop10Holdings + r.Date + ".txt"
 }
 
 func (r *Top10HoldingsReport) htmlPath(fund string) string {

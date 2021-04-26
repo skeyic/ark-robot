@@ -102,6 +102,42 @@ func NewStockHoldings(date time.Time, fund string, holdings []*StockHolding) *St
 	return s
 }
 
+func (h *StockHoldings) GetTop10() []*StockHolding {
+	var (
+		top10Holdings    []*StockHolding
+		idx              = 1
+		toReportHoldings = make(map[float64]*StockHolding)
+		toSortWeight     sort.Float64Slice
+	)
+
+	for _, holding := range h.Holdings {
+		if toSkipTicker(holding.Ticker) {
+			continue
+		}
+		weight := holding.Weight
+		if _, hit := toReportHoldings[weight]; hit {
+			weight += 0.000001
+		}
+		toReportHoldings[weight] = holding
+		toSortWeight = append(toSortWeight, weight)
+	}
+
+	sort.Sort(sort.Reverse(toSortWeight))
+
+	for _, weight := range toSortWeight {
+		// Only the top 10
+		if idx > maxIdx {
+			break
+		}
+
+		top10Holdings = append(top10Holdings, toReportHoldings[weight])
+
+		idx++
+	}
+
+	return top10Holdings
+}
+
 func (h *StockHoldings) GenerateTrading(p *StockHoldings) *StockTradings {
 	var (
 		tradings = &StockTradings{

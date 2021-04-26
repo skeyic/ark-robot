@@ -41,6 +41,10 @@ func (f *FileStoreSvc) Save(content []byte) error {
 	return SaveToFile(f.fileName, content)
 }
 
+func (f *FileStoreSvc) SaveString(content string) error {
+	return SaveToFile(f.fileName, []byte(content))
+}
+
 func (f *FileStoreSvc) Read() (content []byte, err error) {
 	return ReadFromFile(f.fileName)
 }
