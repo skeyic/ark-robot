@@ -52,16 +52,16 @@ type RankDiffData struct {
 
 func (r *RankDiffData) ToTxt() string {
 	if r.CurrentRank == 0 {
-		return fmt.Sprintf("%s不再是前十持仓，", r.Ticker)
+		return fmt.Sprintf("%s掉出前十；", r.Ticker)
 	}
 	if r.PreviousRank == 0 {
-		return fmt.Sprintf("%s进入前十持仓，位列第%d名，", r.Ticker, r.CurrentRank)
+		return fmt.Sprintf("%s进入前十持仓，位列第%d名；", r.Ticker, r.CurrentRank)
 	}
 	return ""
 	//if r.PreviousRank < r.CurrentRank {
-	//	return fmt.Sprintf("%s从第%d名降到第%d名，", r.Ticker, r.PreviousRank, r.CurrentRank)
+	//	return fmt.Sprintf("%s从第%d名降到第%d名；", r.Ticker, r.PreviousRank, r.CurrentRank)
 	//} else {
-	//	return fmt.Sprintf("%s从第%d名进到第%d名，", r.Ticker, r.PreviousRank, r.CurrentRank)
+	//	return fmt.Sprintf("%s从第%d名进到第%d名；", r.Ticker, r.PreviousRank, r.CurrentRank)
 	//}
 }
 
@@ -193,7 +193,13 @@ func (r *Top10HoldingsReport) Load() error {
 
 				// Mark
 				previousRankMap[currentHolding.Ticker] = -1
+			} else {
+				top10DiffData = append(top10DiffData, &RankDiffData{
+					Ticker:      currentHolding.Ticker,
+					CurrentRank: idx + 1,
+				})
 			}
+
 		}
 
 		for ticker, previousRank := range previousRankMap {
@@ -358,7 +364,7 @@ func (r *Top10HoldingsReport) ToTxt() error {
 			}
 			if exits {
 				fundReport = data.Fund + "：" + fundReport
-				fundReport = strings.TrimSuffix(fundReport, "，")
+				fundReport = strings.TrimSuffix(fundReport, "；")
 				fundReport += "。\n"
 			}
 		}
