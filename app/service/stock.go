@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"github.com/golang/glog"
 	"github.com/grd/statistics"
 	"sort"
 	"strconv"
@@ -458,7 +457,7 @@ func (s *StockTradings) SetFixDirection() {
 		if isKeep {
 			trading.FixedDirection = TradeKeep
 		} else {
-			glog.V(4).Infof("thisPercent: %f, means: %f", trading.Percent, means)
+			//glog.V(4).Infof("thisPercent: %f, means: %f", trading.Percent, means)
 			if means < 0 && trading.Direction == TradeSell && trading.Percent > means {
 				trading.FixedDirection = TradeRelativeBuy
 			} else if means > 0 && trading.Direction == TradeBuy && trading.Percent < means {

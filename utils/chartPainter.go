@@ -30,6 +30,10 @@ func (c *ChartPainter) GenerateImage(htmlPath, imagePath string) error {
 		return err
 	}
 
+	if CheckFileExist(imagePath) {
+		DeleteFile(imagePath)
+	}
+
 	// save image
 	if err := ioutil.WriteFile(imagePath, buf, 0x644); err != nil {
 		glog.Errorf("failed to save image, image: %s, err: %v", imagePath, err)

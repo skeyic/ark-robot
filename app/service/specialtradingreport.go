@@ -35,25 +35,31 @@ func (h *StockTradingTxtReport) Add(stock string, trading *StockTrading) {
 }
 
 /*
-ZY：ARKG建仓，买入xxx股；ARKK建仓，买入xxx股；ARKK增持5.6%，持股数从xxx股增到xxx股；ARKK减持5.6%，持股数从xxx股减到xxx股；ARKG清仓，卖出xxx股；ARK总持股数从4014903股增到5241248股。
+ZY：ARKG建仓，买入xxx股；ARKK建仓，买入xxx股；ARKK增持5.6%，持股数从xxx股增到xxx股；
+ARKK减持5.6%，持股数从xxx股减到xxx股；ARKG清仓，卖出xxx股；ARK总持股数从4014903股增到5241248股。
 */
 func (h *StockTradingTxtReport) Report() []byte {
 	var (
-		report []byte
+		report string
 	)
-	for _, record := range h.Records {
+	for ticker, record := range h.Records {
 		var (
-			stockReport []byte
+			stockReport                        = ticker + "："
+			totalHolding, previousTotalHolding float64
 		)
 
-		for fund, trading := range record {
-			glog.V(4).Infof("%s %v", fund, trading)
+		for _, trading := range record {
+			stockReport += NewStockTradingTxtFromTrading(trading)
+			totalHolding += trading.Holding
+			previousTotalHolding += trading.PreviousHolding
 		}
-
-		report = append(report, stockReport...)
+		if len(record) > 1 {
+			stockReport += NewHoldingChangeTxt(totalHolding, previousTotalHolding)
+		}
+		report += stockReport + "\n"
 	}
 
-	return report
+	return []byte(report)
 }
 
 func NewSpecialTradingsReport(date time.Time, percent float64) *SpecialTradingsReport {
@@ -95,10 +101,10 @@ func (r *SpecialTradingsReport) Report() error {
 	}
 
 	var (
-		sheet                     = defaultSheet
-		idx                       = 2
-		specialTradingReport      = NewStockTradingTxtReport()
-		higherThan10Report        = NewStockTxtReport()
+		sheet                = defaultSheet
+		idx                  = 2
+		specialTradingReport = NewStockTradingTxtReport()
+		//higherThan10Report        = NewStockTxtReport()
 		continuousDirectionReport = NewStockTxtReport()
 	)
 
@@ -169,7 +175,7 @@ func (r *SpecialTradingsReport) Report() error {
 		for _, trading := range toReportTradings {
 			// special trading
 			if math.Abs(trading.Percent) > 10 {
-				higherThan10Report.Add(trading.Ticker, NewSpecialTradingTxtFromTrading(trading))
+				//higherThan10Report.Add(trading.Ticker, NewSpecialTradingTxtFromTrading(trading))
 				specialTradingReport.Add(trading.Ticker, trading)
 			}
 
@@ -204,7 +210,7 @@ func (r *SpecialTradingsReport) Report() error {
 		return err
 	}
 
-	higherThan10TxtContent := higherThan10Report.Report()
+	higherThan10TxtContent := specialTradingReport.Report()
 	if len(higherThan10TxtContent) > 0 {
 		err = utils.NewFileStoreSvc(r.HigherThan10TxtPath()).Save(higherThan10TxtContent)
 		if err != nil {
@@ -305,6 +311,29 @@ func NewSpecialTradingTxtFromTrading(trading *StockTrading) []byte {
 	return []byte(result)
 }
 
+func NewStockTradingTxtFromTrading(trading *StockTrading) string {
+	var (
+		result string
+	)
+	switch trading.Direction {
+	case TradeBuy:
+		if trading.Percent == 100 {
+			result = fmt.Sprintf("%s建仓，买入%.0f股。", trading.Fund, trading.Holding)
+		} else {
+			result = fmt.Sprintf("%s增持%.2f%%，买入%.0f股，持股数从%.0f股增到%.0f股。", trading.Fund,
+				trading.Percent, trading.Shards, trading.PreviousHolding, trading.Holding)
+		}
+	case TradeSell:
+		if trading.Percent == -100 {
+			result = fmt.Sprintf("%s清仓，卖出%.0f股。\n", trading.Fund, trading.PreviousHolding)
+		} else {
+			result = fmt.Sprintf("%s减持%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund,
+				math.Abs(trading.Percent), math.Abs(trading.Shards), trading.PreviousHolding, trading.Holding)
+		}
+	}
+	return result
+}
+
 // 今日， 昨日， 前日
 func NewContinuousDirectionSpecialTradingTxtFromTrading(trading *StockTrading, previousPercent1, previousPercent2,
 	previousHolding1, previousHolding2 float64) []byte {
@@ -322,4 +351,14 @@ func NewContinuousDirectionSpecialTradingTxtFromTrading(trading *StockTrading, p
 			trading.Holding, previousHolding1, previousHolding2)
 	}
 	return []byte(result)
+}
+
+func NewHoldingChangeTxt(holding, previousHolding float64) string {
+	if holding > previousHolding {
+		return fmt.Sprintf("ARK本日总计买入%.0f股。", holding-previousHolding)
+	} else if holding < previousHolding {
+		return fmt.Sprintf("ARK本日总计卖出%.0f股。", previousHolding-holding)
+	} else {
+		return "ARK本日总计持股数未发生变化。"
+	}
 }
