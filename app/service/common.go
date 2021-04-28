@@ -15,6 +15,7 @@ var (
 	theFirstARKType = "ARKF"
 	theLastARKType  = "ARKX"
 	arkxDate, _     = time.Parse(TheDateFormat, "2021-03-30")
+	TheTotal        = "TOTAL"
 )
 
 var (

@@ -16,7 +16,9 @@ type StockDateRangeReport struct {
 	FromDate   time.Time
 	EndDate    time.Time
 	ReportTime time.Time
-	Details    *stockDateRangeDetails
+
+	// generate by load
+	Details *stockDateRangeDetails
 }
 
 func NewStockDateRangeReport(ticker string, fromDate, endDate time.Time) *StockDateRangeReport {
@@ -34,12 +36,122 @@ type stockDateRangeDetails struct {
 	dateList    []time.Time
 	fundList    []string
 	dailyDetail map[time.Time]*stockDailyDetail
+
+	tradingSummary *stockDataRangeTradingAnalysis
+}
+
+func (d *stockDateRangeDetails) GenerateTradingAnalysis() *stockDataRangeTradingAnalysis {
+	var (
+		tradingAnalysis = &stockDataRangeTradingAnalysis{}
+	)
+
+	for _, theDate := range d.dateList {
+		tradingAnalysis.AddTrading(theDate, d.dailyDetail[theDate].totalTradingShards)
+	}
+
+	return tradingAnalysis
+}
+
+func (d *stockDateRangeDetails) TxtReport() string {
+	var (
+		report string
+	)
+
+	for dateIdx, theDate := range d.dateList {
+		var (
+			holdings                = d.dailyDetail[theDate].holdings
+			tradings                = d.dailyDetail[theDate].tradings
+			totalHoldingShards      = d.dailyDetail[theDate].totalHoldingShards
+			totalHoldingMarketValue = d.dailyDetail[theDate].totalHoldingMarketValue
+			totalTradingShards      = d.dailyDetail[theDate].totalTradingShards
+			today                   = fmt.Sprintf("%d月%d日，", theDate.Month(), theDate.Day())
+			txtDailyHoldingReport   = today
+			txtDailyHoldingTemp     string
+			txtDailyTradingTemp     string
+		)
+
+		for idx, fund := range d.fundList {
+			var (
+				holding = holdings[fund]
+				trading = tradings[fund]
+			)
+			if holding != nil {
+				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
+					utils.ThousandFormatFloat64(holding.Shards), holding.Weight)
+			}
+
+			if trading.IsBuy() {
+				txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
+			} else if trading.IsSell() {
+				txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+			}
+
+			// Set the total
+			if idx == len(d.fundList)-1 {
+				if d.dailyDetail[theDate].totalHoldingShards != 0 {
+					txtDailyHoldingTemp = fmt.Sprintf("ARK共持有%s股，市值为%s美元，其中",
+						utils.ThousandFormatFloat64(totalHoldingShards), utils.ThousandFormatFloat64(totalHoldingMarketValue)) + txtDailyHoldingTemp
+				} else {
+					txtDailyHoldingTemp = "ARK未持有"
+				}
+
+				txtDailyTradingTemp += "ARK总持有股数"
+				if totalTradingShards > 0 {
+					txtDailyTradingTemp += fmt.Sprintf("增加%s股。\n", utils.ThousandFormatFloat64(totalTradingShards))
+				} else if totalTradingShards < 0 {
+					txtDailyTradingTemp += fmt.Sprintf("减少%s股。\n", utils.ThousandFormatFloat64(-1*totalTradingShards))
+				} else {
+					txtDailyTradingTemp += "没有变化。\n"
+				}
+			}
+
+		}
+		if dateIdx == 0 {
+			txtDailyHoldingReport = "期初" + txtDailyHoldingReport
+			txtDailyHoldingReport += txtDailyHoldingTemp
+		} else if dateIdx == len(d.dateList)-1 {
+			txtDailyHoldingReport = "期末" + txtDailyHoldingReport
+			txtDailyHoldingReport += txtDailyHoldingTemp
+		}
+
+		report += "  " + today + txtDailyTradingTemp
+	}
+
+	return d.tradingSummary.TxtReport() + report
 }
 
 type stockDailyDetail struct {
-	date     time.Time
+	theDate  time.Time
 	holdings map[string]*StockHolding
 	tradings map[string]*StockTrading
+
+	totalHoldingShards      float64
+	totalHoldingMarketValue float64
+	totalTradingShards      float64
+}
+
+func newStockDailyDetail(theDate time.Time, holdings map[string]*StockHolding, tradings map[string]*StockTrading) *stockDailyDetail {
+	detail := &stockDailyDetail{
+		theDate:  theDate,
+		holdings: holdings,
+		tradings: tradings,
+	}
+
+	detail.Sum()
+	return detail
+}
+
+func (d *stockDailyDetail) Sum() {
+	var (
+		totalHoldingShards, totalHoldingMarketValue, totalTradingShards float64
+	)
+	for _, holding := range d.holdings {
+		totalHoldingShards += holding.Shards
+		totalHoldingMarketValue += holding.MarketValue
+	}
+	for _, trading := range d.tradings {
+		totalTradingShards += trading.Shards
+	}
 }
 
 func (r *StockDateRangeReport) Load() error {
@@ -93,18 +205,16 @@ func (r *StockDateRangeReport) Load() error {
 		var (
 			theDate = dateList[i]
 		)
-		stockDetails.dailyDetail[theDate] = &stockDailyDetail{
-			date:     theDate,
-			holdings: stock.HistoryStockHoldings[theDate],
-			tradings: stock.HistoryStockTradings[theDate],
-		}
+		stockDetails.dailyDetail[theDate] = newStockDailyDetail(theDate, stock.HistoryStockHoldings[theDate], stock.HistoryStockTradings[theDate])
 	}
 
 	r.Details = stockDetails
+	r.Details.GenerateTradingAnalysis()
+
 	return nil
 }
 
-type tradingReport struct {
+type stockDataRangeTradingAnalysis struct {
 	maxBuyShards float64
 	maxBuyDate   time.Time
 
@@ -118,7 +228,7 @@ type tradingReport struct {
 	totalShards float64
 }
 
-func (t *tradingReport) AddTrading(date time.Time, shards float64) {
+func (t *stockDataRangeTradingAnalysis) AddTrading(date time.Time, shards float64) {
 	if shards > 0 {
 		t.buyDays++
 		if t.maxBuyShards < shards {
@@ -138,7 +248,7 @@ func (t *tradingReport) AddTrading(date time.Time, shards float64) {
 	t.totalShards += shards
 }
 
-func (t *tradingReport) TxtReport() string {
+func (t *stockDataRangeTradingAnalysis) TxtReport() string {
 	var (
 		msg = "本期总计"
 	)
@@ -166,13 +276,108 @@ func (t *tradingReport) TxtReport() string {
 	return msg
 }
 
+func (r *StockDateRangeReport) ReportAsExcel() error {
+	var (
+		err      error
+		fileName = r.ExcelPath()
+	)
+
+	err = r.InitExcelFromTemplate()
+	if err != nil {
+		glog.Errorf("failed to init excel from template, err: %v", err)
+		return err
+	}
+
+	f, err := excelize.OpenFile(fileName)
+	if err != nil {
+		glog.Errorf("failed to open excel %s, err: %v", fileName, err)
+		return err
+	}
+
+	var (
+		sheet = defaultSheet
+
+		dateIdxList = []string{"B", "C", "D", "E", "F", "G",
+			"H", "I", "J", "K", "L", "M", "N", "O", "P",
+			"Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+		maxDate = len(dateIdxList)
+	)
+
+	for dateIdx, theDate := range r.Details.dateList {
+		if dateIdx > maxDate {
+			glog.Warningf("MAX DATE RANGE REACHED, we have: %d, max: %d", len(r.Details.dateList), maxDate)
+			break
+		}
+
+		var (
+			totalShards        float64
+			totalMarketValue   float64
+			totalTradingShards float64
+			fundIdx            = 25
+			holdings           = r.Details.dailyDetail[theDate].holdings
+			tradings           = r.Details.dailyDetail[theDate].tradings
+		)
+
+		for idx, fund := range r.Details.fundList {
+			holding := holdings[fund]
+			var currentShards float64
+
+			line := strconv.Itoa(fundIdx)
+			// Set the date column
+			if idx == 0 {
+				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, theDate.Format(TheDateFormat))
+				fundIdx++
+			}
+
+			line = strconv.Itoa(fundIdx)
+			if dateIdx == 0 {
+				f.SetCellValue(sheet, "A"+line, fund)
+			}
+			if holding != nil {
+				totalShards += holding.Shards
+				totalMarketValue += holding.MarketValue
+				currentShards = holding.Shards
+			} else {
+				//txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%.0f股(比重%.2f%%)，", holding.Fund, holding.Shards, holding.Weight)
+			}
+			f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", currentShards))
+			fundIdx++
+
+			trading := tradings[fund]
+			//glog.V(4).Infof("TRADING: %v", trading)
+			totalTradingShards += trading.Shards
+
+			// Set the total
+			if idx == len(r.Details.fundList)-1 {
+				line = strconv.Itoa(fundIdx)
+				if dateIdx == 0 {
+					f.SetCellValue(sheet, "A"+line, "TOTAL")
+				}
+				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", totalShards))
+			}
+		}
+
+	}
+
+	err = f.Save()
+	if err != nil {
+		glog.Errorf("failed to save excel %s, err: %v", fileName, err)
+		return err
+	}
+
+	//glog.V(4).Infof("%s", txtReport)
+	//glog.V(4).Infof("%s", txtTradingReport)
+
+	return nil
+}
+
 func (r *StockDateRangeReport) Report() error {
 	var (
 		err       error
 		fileName  = r.ExcelPath()
 		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
 			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
-		theTradingReport = &tradingReport{}
+		theTradingReport = &stockDataRangeTradingAnalysis{}
 		txtTradingReport string
 	)
 
@@ -360,6 +565,14 @@ func (r *StockDateRangeReport) TxtPath() string {
 
 func (r *StockDateRangeReport) TxtName() string {
 	return r.FileName() + ".txt"
+}
+
+func (r *StockDateRangeReport) htmlPath() string {
+	return r.FileName() + ".html"
+}
+
+func (r *StockDateRangeReport) ImagePath() string {
+	return r.FileName() + ".png"
 }
 
 func (r *StockDateRangeReport) FileName() string {

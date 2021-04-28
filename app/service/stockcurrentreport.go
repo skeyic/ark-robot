@@ -85,7 +85,7 @@ func NewStockCurrentReport(ticker string, fromDate, endDate time.Time) *StockCur
 //		fileName  = r.ExcelPath()
 //		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
 //			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
-//		theTradingReport = &tradingReport{}
+//		theTradingReport = &stockDataRangeTradingAnalysis{}
 //		txtTradingReport string
 //	)
 //
