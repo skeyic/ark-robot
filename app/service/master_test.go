@@ -254,3 +254,31 @@ func Test_MasterCheckStocks(t *testing.T) {
 	}
 	TheStockLibraryMaster.lock.RUnlock()
 }
+
+func Test_MasterReportStocks2(t *testing.T) {
+	var (
+		err    error
+		stocks = []string{"TSLA"}
+		//stocks      = []string{"JD"}
+		fromDate, _ = time.Parse(TheDateFormat, "2021-04-23")
+		endDate, _  = time.Parse(TheDateFormat, "2021-04-28")
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the master, err: %v", err)
+		return
+	}
+
+	for _, stock := range stocks {
+		//NewStockDateRangeReport(stock, fromDate, endDate).Report()
+		err = TheMaster.ReportStock(stock, fromDate, endDate)
+		if err != nil {
+			glog.Errorf("failed to report stock %s from %s to %s, err: %v", stock, fromDate, endDate, err)
+			return
+		}
+	}
+
+	glog.V(4).Info("REPORTED")
+}

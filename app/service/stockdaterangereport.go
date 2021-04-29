@@ -8,6 +8,7 @@ import (
 	"math"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -40,7 +41,7 @@ type stockDateRangeDetails struct {
 	tradingSummary *stockDataRangeTradingAnalysis
 }
 
-func (d *stockDateRangeDetails) GenerateTradingAnalysis() *stockDataRangeTradingAnalysis {
+func (d *stockDateRangeDetails) GenerateTradingAnalysis() {
 	var (
 		tradingAnalysis = &stockDataRangeTradingAnalysis{}
 	)
@@ -49,12 +50,13 @@ func (d *stockDateRangeDetails) GenerateTradingAnalysis() *stockDataRangeTrading
 		tradingAnalysis.AddTrading(theDate, d.dailyDetail[theDate].totalTradingShards)
 	}
 
-	return tradingAnalysis
+	d.tradingSummary = tradingAnalysis
 }
 
 func (d *stockDateRangeDetails) TxtReport() string {
 	var (
-		report string
+		holdingReport string
+		tradingReport string
 	)
 
 	for dateIdx, theDate := range d.dateList {
@@ -108,16 +110,17 @@ func (d *stockDateRangeDetails) TxtReport() string {
 		}
 		if dateIdx == 0 {
 			txtDailyHoldingReport = "期初" + txtDailyHoldingReport
-			txtDailyHoldingReport += txtDailyHoldingTemp
+			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
+			holdingReport += txtDailyHoldingReport + "\n"
 		} else if dateIdx == len(d.dateList)-1 {
 			txtDailyHoldingReport = "期末" + txtDailyHoldingReport
-			txtDailyHoldingReport += txtDailyHoldingTemp
+			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
+			holdingReport += txtDailyHoldingReport + "\n"
 		}
-
-		report += "  " + today + txtDailyTradingTemp
+		tradingReport += "  " + today + txtDailyTradingTemp
 	}
 
-	return d.tradingSummary.TxtReport() + report
+	return holdingReport + d.tradingSummary.TxtReport() + tradingReport
 }
 
 type stockDailyDetail struct {
@@ -152,6 +155,9 @@ func (d *stockDailyDetail) Sum() {
 	for _, trading := range d.tradings {
 		totalTradingShards += trading.Shards
 	}
+	d.totalHoldingShards = totalHoldingShards
+	d.totalHoldingMarketValue = totalHoldingMarketValue
+	d.totalTradingShards = totalTradingShards
 }
 
 func (r *StockDateRangeReport) Load() error {
@@ -205,10 +211,12 @@ func (r *StockDateRangeReport) Load() error {
 		var (
 			theDate = dateList[i]
 		)
+		glog.V(4).Infof("THE DATA: %s", theDate)
 		stockDetails.dailyDetail[theDate] = newStockDailyDetail(theDate, stock.HistoryStockHoldings[theDate], stock.HistoryStockTradings[theDate])
 	}
 
 	r.Details = stockDetails
+	glog.V(4).Infof("stockDetails: %+v", stockDetails)
 	r.Details.GenerateTradingAnalysis()
 
 	return nil
@@ -372,6 +380,33 @@ func (r *StockDateRangeReport) ReportAsExcel() error {
 }
 
 func (r *StockDateRangeReport) Report() error {
+	var (
+		err       error
+		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
+			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
+	)
+
+	err = r.Load()
+	if err != nil {
+		return err
+	}
+
+	err = r.ReportAsExcel()
+	if err != nil {
+		glog.Errorf("failed to report excel, err: %v", err)
+		return err
+	}
+
+	err = utils.NewFileStoreSvc(r.TxtPath()).Save([]byte(txtReport + r.Details.TxtReport()))
+	if err != nil {
+		glog.Errorf("failed to save txt %s, err: %v", r.TxtPath(), err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *StockDateRangeReport) OldReport() error {
 	var (
 		err       error
 		fileName  = r.ExcelPath()
