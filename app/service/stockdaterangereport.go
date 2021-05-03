@@ -3,9 +3,12 @@ package service
 import (
 	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/utils"
 	"math"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -211,12 +214,10 @@ func (r *StockDateRangeReport) Load() error {
 		var (
 			theDate = dateList[i]
 		)
-		glog.V(4).Infof("THE DATA: %s", theDate)
 		stockDetails.dailyDetail[theDate] = newStockDailyDetail(theDate, stock.HistoryStockHoldings[theDate], stock.HistoryStockTradings[theDate])
 	}
 
 	r.Details = stockDetails
-	glog.V(4).Infof("stockDetails: %+v", stockDetails)
 	r.Details.GenerateTradingAnalysis()
 
 	return nil
@@ -284,7 +285,7 @@ func (t *stockDataRangeTradingAnalysis) TxtReport() string {
 	return msg
 }
 
-func (r *StockDateRangeReport) ReportAsExcel() error {
+func (r *StockDateRangeReport) ReportExcel() error {
 	var (
 		err      error
 		fileName = r.ExcelPath()
@@ -379,6 +380,72 @@ func (r *StockDateRangeReport) ReportAsExcel() error {
 	return nil
 }
 
+func (r *StockDateRangeReport) ReportImage() error {
+	var (
+		dates           []string
+		currentHoldings = make([]opts.BarData, 0)
+	)
+
+	for _, stockData := range r.Details.dailyDetail {
+		dates = append(dates, stockData.theDate.Format(TheDateFormat))
+		currentHoldings = append(currentHoldings, opts.BarData{
+			Name:  "Current",
+			Value: stockData.totalHoldingShards,
+			Label: &opts.Label{
+				Show: true,
+			},
+			Tooltip: &opts.Tooltip{
+				Show: true,
+			},
+		})
+	}
+
+	// create a new bar instance
+	bar := charts.NewBar()
+
+	// set some global options like Title/Legend/ToolTip or anything else
+	bar.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title: `ARK持仓中` + r.Ticker + fmt.Sprintf("持股数（%d月%d日至%d月%d日）",
+				r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day()),
+			//Top: "5%",
+			//Bottom: "20%",
+			Left: "center",
+			//Right: "20%",
+
+		}), charts.WithLegendOpts(opts.Legend{
+			Show: true,
+			Top:  "7%",
+		}))
+
+	bar.SetXAxis(dates).
+		AddSeries("当前持股数", currentHoldings)
+
+	var (
+		htmlPath  = r.HtmlPath()
+		imagePath = r.ImagePath()
+	)
+	f, err := os.Create(htmlPath)
+	if err != nil {
+		glog.Errorf("failed to create html file %s", htmlPath)
+		return err
+	}
+	err = bar.Render(f)
+	if err != nil {
+		glog.Errorf("failed to render html file %s", htmlPath)
+		return err
+	}
+
+	// TODO do not use chrome to generate image, will add another micro service install
+	err = utils.TheChartPainter.GenerateImage(htmlPath, imagePath)
+	if err != nil {
+		glog.Errorf("failed to save image file %s", imagePath)
+		return err
+	}
+
+	return nil
+}
+
 func (r *StockDateRangeReport) Report() error {
 	var (
 		err       error
@@ -391,9 +458,15 @@ func (r *StockDateRangeReport) Report() error {
 		return err
 	}
 
-	err = r.ReportAsExcel()
+	err = r.ReportExcel()
 	if err != nil {
 		glog.Errorf("failed to report excel, err: %v", err)
+		return err
+	}
+
+	err = r.ReportImage()
+	if err != nil {
+		glog.Errorf("failed to report image, err: %v", err)
 		return err
 	}
 
@@ -583,7 +656,7 @@ func (r *StockDateRangeReport) OldReport() error {
 }
 
 func (r *StockDateRangeReport) ReportFolder() string {
-	return stockReportPath + "/" + time.Now().Format("2006-01-02-15-04-05")
+	return stockReportPath + "/" + r.ReportTime.Format("2006-01-02-15-04-05")
 }
 
 func (r *StockDateRangeReport) ExcelPath() string {
@@ -602,11 +675,19 @@ func (r *StockDateRangeReport) TxtName() string {
 	return r.FileName() + ".txt"
 }
 
-func (r *StockDateRangeReport) htmlPath() string {
+func (r *StockDateRangeReport) HtmlPath() string {
+	return r.ReportFolder() + "/" + r.HtmlName()
+}
+
+func (r *StockDateRangeReport) HtmlName() string {
 	return r.FileName() + ".html"
 }
 
 func (r *StockDateRangeReport) ImagePath() string {
+	return r.ReportFolder() + "/" + r.ImageName()
+}
+
+func (r *StockDateRangeReport) ImageName() string {
 	return r.FileName() + ".png"
 }
 

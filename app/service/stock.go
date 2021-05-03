@@ -37,6 +37,12 @@ type StockHolding struct {
 	Weight      float64
 }
 
+var (
+	missingTickerMap = map[string]string{
+		"CM LIFE SCIENCES II INC": "CMIIU",
+	}
+)
+
 func NewStockHoldingFromRecord(record []string) *StockHolding {
 	date, _ := time.Parse("1/2/2006", record[0])
 	shards, _ := strconv.ParseFloat(record[5], 64)
@@ -45,7 +51,12 @@ func NewStockHoldingFromRecord(record []string) *StockHolding {
 
 	ticker := record[3]
 	if ticker == "" {
-		ticker = strings.ReplaceAll(record[2], " ", "_")
+		newTicker, hit := missingTickerMap[record[2]]
+		if hit {
+			ticker = newTicker
+		} else {
+			ticker = strings.ReplaceAll(record[2], " ", "_")
+		}
 	}
 
 	return &StockHolding{
