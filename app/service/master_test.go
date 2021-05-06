@@ -282,3 +282,32 @@ func Test_MasterReportStocks2(t *testing.T) {
 
 	glog.V(4).Info("REPORTED")
 }
+
+func Test_MasterReportStocks3(t *testing.T) {
+	var (
+		err error
+		//stocks = []string{"TSLA"}
+		stocks = []string{"BIDU"}
+		days   int
+		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
+		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the master, err: %v", err)
+		return
+	}
+
+	for _, stock := range stocks {
+		//NewStockDateRangeReport(stock, fromDate, endDate).Report()
+		err = TheMaster.ReportStockByDays(stock, 30)
+		if err != nil {
+			glog.Errorf("failed to report stock %s for %d days, err: %v", stock, days, err)
+			return
+		}
+	}
+
+	glog.V(4).Info("REPORTED")
+}

@@ -20,6 +20,7 @@ type StockDateRangeReport struct {
 	FromDate   time.Time
 	EndDate    time.Time
 	ReportTime time.Time
+	TotalDays  int
 
 	// generate by load
 	Details *stockDateRangeDetails
@@ -31,6 +32,17 @@ func NewStockDateRangeReport(ticker string, fromDate, endDate time.Time) *StockD
 		FromDate:   fromDate,
 		EndDate:    endDate,
 		ReportTime: time.Now(),
+	}
+	utils.CheckFolder(r.ReportFolder())
+	return r
+}
+
+func NewStockDateRangeReportFromDays(ticker string, days int) *StockDateRangeReport {
+	r := &StockDateRangeReport{
+		Ticker:     ticker,
+		EndDate:    time.Now(),
+		ReportTime: time.Now(),
+		TotalDays:  days,
 	}
 	utils.CheckFolder(r.ReportFolder())
 	return r
@@ -176,12 +188,25 @@ func (r *StockDateRangeReport) Load() error {
 	}
 
 	var (
-		dateList timeList
+		dateList    timeList
+		currentDays int
+		byDays      = r.TotalDays != 0
 	)
 
 	for theDate := range stock.HistoryStockHoldings {
-		if theDate.Equal(r.FromDate) || theDate.Equal(r.EndDate) || (theDate.After(r.FromDate) && theDate.Before(r.EndDate)) {
-			dateList = append(dateList, theDate)
+		if byDays {
+			if currentDays > r.TotalDays {
+				break
+			}
+			if theDate.Equal(r.EndDate) || theDate.Before(r.EndDate) {
+				dateList = append(dateList, theDate)
+				currentDays++
+			}
+		} else {
+			if theDate.Equal(r.FromDate) || theDate.Equal(r.EndDate) || (theDate.After(r.FromDate) && theDate.Before(r.EndDate)) {
+				dateList = append(dateList, theDate)
+				r.TotalDays++
+			}
 		}
 	}
 	if len(dateList) == 0 {
@@ -189,6 +214,7 @@ func (r *StockDateRangeReport) Load() error {
 	}
 
 	sort.Sort(dateList)
+	r.FromDate = dateList[0]
 
 	var (
 		fundList []string
@@ -308,7 +334,11 @@ func (r *StockDateRangeReport) ReportExcel() error {
 
 		dateIdxList = []string{"B", "C", "D", "E", "F", "G",
 			"H", "I", "J", "K", "L", "M", "N", "O", "P",
-			"Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+			"Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+			"AA", "AB", "AC", "AD", "AE", "AF", "AG", "AH", "AI",
+			"AJ", "AK", "AL", "AM", "AN", "AO", "AP", "AQ", "AR",
+			"AS", "AT", "AU", "AV", "AW", "AX", "AY", "AZ",
+		}
 		maxDate = len(dateIdxList)
 	)
 
@@ -353,7 +383,7 @@ func (r *StockDateRangeReport) ReportExcel() error {
 			fundIdx++
 
 			trading := tradings[fund]
-			//glog.V(4).Infof("TRADING: %v", trading)
+			glog.V(4).Infof("TRADING: %v", trading)
 			totalTradingShards += trading.Shards
 
 			// Set the total
@@ -386,9 +416,9 @@ func (r *StockDateRangeReport) ReportImage() error {
 		currentHoldingsData []float64
 	)
 
-	for _, stockData := range r.Details.dailyDetail {
-		dates = append(dates, stockData.theDate.Format(TheDateFormat))
-		currentHoldingsData = append(currentHoldingsData, stockData.totalHoldingShards)
+	for _, theDate := range r.Details.dateList {
+		dates = append(dates, theDate.Format(TheDateFormat))
+		currentHoldingsData = append(currentHoldingsData, r.Details.dailyDetail[theDate].totalHoldingShards)
 	}
 
 	// create a bar and line
