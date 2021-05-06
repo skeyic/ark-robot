@@ -31,6 +31,7 @@ func InitRouter() *gin.Engine {
 	{
 		report.POST("/report", control.DoReport)
 		report.POST("/report_stock", control.DoReportStock)
+		report.POST("/report_stock_by_days", control.DoReportStockByDays)
 	}
 
 	return r

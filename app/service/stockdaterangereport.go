@@ -20,7 +20,7 @@ type StockDateRangeReport struct {
 	FromDate   time.Time
 	EndDate    time.Time
 	ReportTime time.Time
-	TotalDays  int
+	TotalDays  int64
 
 	// generate by load
 	Details *stockDateRangeDetails
@@ -37,7 +37,7 @@ func NewStockDateRangeReport(ticker string, fromDate, endDate time.Time) *StockD
 	return r
 }
 
-func NewStockDateRangeReportFromDays(ticker string, days int) *StockDateRangeReport {
+func NewStockDateRangeReportFromDays(ticker string, days int64) *StockDateRangeReport {
 	r := &StockDateRangeReport{
 		Ticker:     ticker,
 		EndDate:    time.Now(),
@@ -188,19 +188,14 @@ func (r *StockDateRangeReport) Load() error {
 	}
 
 	var (
-		dateList    timeList
-		currentDays int
-		byDays      = r.TotalDays != 0
+		dateList timeList
+		byDays   = r.TotalDays != 0
 	)
 
 	for theDate := range stock.HistoryStockHoldings {
 		if byDays {
-			if currentDays > r.TotalDays {
-				break
-			}
 			if theDate.Equal(r.EndDate) || theDate.Before(r.EndDate) {
 				dateList = append(dateList, theDate)
-				currentDays++
 			}
 		} else {
 			if theDate.Equal(r.FromDate) || theDate.Equal(r.EndDate) || (theDate.After(r.FromDate) && theDate.Before(r.EndDate)) {
@@ -214,6 +209,11 @@ func (r *StockDateRangeReport) Load() error {
 	}
 
 	sort.Sort(dateList)
+
+	if byDays {
+		dateList = dateList[len(dateList)-int(r.TotalDays):]
+	}
+
 	r.FromDate = dateList[0]
 
 	var (
@@ -475,15 +475,18 @@ func (r *StockDateRangeReport) ReportImage() error {
 
 func (r *StockDateRangeReport) Report() error {
 	var (
-		err       error
-		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
-			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
+		err error
 	)
 
 	err = r.Load()
 	if err != nil {
 		return err
 	}
+
+	var (
+		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
+			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
+	)
 
 	err = r.ReportExcel()
 	if err != nil {

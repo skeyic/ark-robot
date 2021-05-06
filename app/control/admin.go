@@ -157,3 +157,52 @@ func DoReportStock(c *gin.Context) {
 
 	utils.NewOkResponse(c, fmt.Sprintf("report finished, stock %s, fromDate: %s, endDate: %s", ticker, fromDateInput, endDateInput))
 }
+
+// @Summary ReportStockByDays
+// @Tags Report
+// @Description let the master report special stock in a date range
+// @Accept json
+// @Produce json
+// @Param stock query string true "The stock ticker"
+// @Param days query int true "The report days"
+// @Success 200 {object} utils.WebResponse "Ok"
+// @Failure 400 {object} utils.WebResponse "Bad request"
+// @Failure 500 {object} utils.WebResponse "Internal error"
+// @Router /report/report_stock_by_days [post]
+func DoReportStockByDays(c *gin.Context) {
+	var (
+		err    error
+		days   int64
+		ticker string
+	)
+
+	daysInput := c.Query("days")
+	days, err = strconv.ParseInt(daysInput, 10, 64)
+	if err != nil {
+		msg := fmt.Sprintf("Incorrect days: %s, err: %v", daysInput, err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	ticker = c.Query("stock")
+	if ticker == "" {
+		msg := fmt.Sprintf("Empty stock")
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	tickers := strings.Split(ticker, ",")
+	for _, theTicker := range tickers {
+		err = service.TheMaster.ReportStockByDays(theTicker, days)
+		if err != nil {
+			msg := fmt.Sprintf("failed to report stock %s, days: %d, err: %v", ticker, days, err)
+			glog.Error(msg)
+			utils.NewBadRequestError(c, msg)
+			return
+		}
+	}
+
+	utils.NewOkResponse(c, fmt.Sprintf("report finished, stock %s, days: %d", ticker, days))
+}

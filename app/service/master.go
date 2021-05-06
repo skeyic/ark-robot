@@ -173,7 +173,7 @@ func (m *Master) ReportStock(ticker string, fromDate, endDate time.Time) error {
 	return nil
 }
 
-func (m *Master) ReportStockByDays(ticker string, days int) error {
+func (m *Master) ReportStockByDays(ticker string, days int64) error {
 	var (
 		err error
 	)
