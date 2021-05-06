@@ -41,6 +41,10 @@ var (
 	missingTickerMap = map[string]string{
 		"CM LIFE SCIENCES II INC": "CMIIU",
 	}
+	updateTickerMap = map[string]string{
+		"3690": "MPNGY",
+		"1833": "PNGAY",
+	}
 )
 
 func NewStockHoldingFromRecord(record []string) *StockHolding {

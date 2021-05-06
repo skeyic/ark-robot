@@ -30,55 +30,29 @@ func httpserver(w http.ResponseWriter, _ *http.Request) {
 		Subtitle: "It's extremely easy to use, right?",
 	}))
 
+	var (
+		theX = []string{"X1", "X2", "X3", "X4", "X5"}
+		theY = []float64{1.0, 1.3, 1.5, 1.1, 1.7}
+	)
+
 	// Put data into instance
-	bar.SetXAxis([]string{"2.1", "2.2", "2.3", "2.4"}).
-		AddSeries("AAA", []opts.BarData{
-			opts.BarData{
-				Name:  "ARKK",
-				Value: 40,
-				Label: &opts.Label{
-					Show: true,
-					//Color:     "",
-					//Position:  "",
-					//Formatter: "",
-				},
-				//ItemStyle: nil,
-				Tooltip: &opts.Tooltip{
-					Show: true,
-				},
-			},
-			opts.BarData{
-				Name:  "ARKW",
-				Value: 30,
-				Label: &opts.Label{
-					Show: true,
-					//Color:     "",
-					//Position:  "",
-					//Formatter: "",
-				},
-				//ItemStyle: nil,
-				Tooltip: &opts.Tooltip{
-					Show: true,
-				},
-			},
-			opts.BarData{
-				Name:  "ARKK",
-				Value: 15,
-				//Label:     nil,
-				//ItemStyle: nil,
-				Tooltip: &opts.Tooltip{
-					Show: true,
-				},
-			},
-			opts.BarData{
-				Name:  "ARKK",
-				Value: 20,
-				//Label:     nil,
-				Tooltip: &opts.Tooltip{
-					Show: true,
-				},
-			},
-		})
+	bar.SetXAxis(theX).
+		AddSeries("Bar Data", ToBarData("Value", theY)).SetSeriesOptions(
+		charts.WithMarkLineNameTypeItemOpts(
+			opts.MarkLineNameTypeItem{Name: "Maximum", Type: "max"},
+			//opts.MarkLineNameTypeItem{Name: "Avg", Type: "average"},
+		),
+	)
+
+	line := charts.NewLine()
+	line.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{Title: "basic line example", Subtitle: "This is the subtitle."}),
+	)
+
+	line.SetXAxis(theX).
+		AddSeries("Line Data", ToLineData("Value", theY))
+
+	bar.Overlap(line)
 	//AddSeries("Category A", generateBarItems()).
 	//AddSeries("Category B", generateBarItems())
 	// Where the magic happens

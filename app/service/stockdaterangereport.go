@@ -382,26 +382,20 @@ func (r *StockDateRangeReport) ReportExcel() error {
 
 func (r *StockDateRangeReport) ReportImage() error {
 	var (
-		dates           []string
-		currentHoldings = make([]opts.BarData, 0)
+		dates               []string
+		currentHoldingsData []float64
 	)
 
 	for _, stockData := range r.Details.dailyDetail {
 		dates = append(dates, stockData.theDate.Format(TheDateFormat))
-		currentHoldings = append(currentHoldings, opts.BarData{
-			Name:  "Current",
-			Value: stockData.totalHoldingShards,
-			Label: &opts.Label{
-				Show: true,
-			},
-			Tooltip: &opts.Tooltip{
-				Show: true,
-			},
-		})
+		currentHoldingsData = append(currentHoldingsData, stockData.totalHoldingShards)
 	}
 
-	// create a new bar instance
-	bar := charts.NewBar()
+	// create a bar and line
+	var (
+		bar  = charts.NewBar()
+		line = charts.NewLine()
+	)
 
 	// set some global options like Title/Legend/ToolTip or anything else
 	bar.SetGlobalOptions(
@@ -412,14 +406,17 @@ func (r *StockDateRangeReport) ReportImage() error {
 			//Bottom: "20%",
 			Left: "center",
 			//Right: "20%",
-
 		}), charts.WithLegendOpts(opts.Legend{
 			Show: true,
 			Top:  "7%",
 		}))
-
-	bar.SetXAxis(dates).
-		AddSeries("当前持股数", currentHoldings)
+	bar.SetXAxis(dates).AddSeries("当前持股数", utils.ToBarData("Current", currentHoldingsData))
+	line.SetXAxis(dates).AddSeries("", utils.ToLineData("Current", currentHoldingsData),
+		charts.WithLineStyleOpts(opts.LineStyle{
+			Color: "red",
+			Width: 2,
+		}))
+	bar.Overlap(line)
 
 	var (
 		htmlPath  = r.HtmlPath()

@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"github.com/chromedp/chromedp"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/golang/glog"
 	"io/ioutil"
 )
@@ -41,4 +42,39 @@ func (c *ChartPainter) GenerateImage(htmlPath, imagePath string) error {
 	}
 
 	return nil
+}
+
+func ToBarData(name string, data []float64) []opts.BarData {
+	var (
+		theData []opts.BarData
+	)
+	for _, value := range data {
+		theData = append(theData,
+			opts.BarData{
+				Name:  name,
+				Value: value,
+				Label: &opts.Label{
+					Show: true,
+				},
+				//ItemStyle: nil,
+				Tooltip: &opts.Tooltip{
+					Show: true,
+				},
+			})
+	}
+	return theData
+}
+
+func ToLineData(name string, data []float64) []opts.LineData {
+	var (
+		theData []opts.LineData
+	)
+	for _, value := range data {
+		theData = append(theData,
+			opts.LineData{
+				Name:  name,
+				Value: value,
+			})
+	}
+	return theData
 }
