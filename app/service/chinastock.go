@@ -47,6 +47,10 @@ func (m *ChinaStockManager) ManuallyAddChinaStock() {
 				Name:   "MEITUAN-CLASS B",
 			},
 			&ChinaStock{
+				Ticker: "9923",
+				Name:   "YEAHKA LTD",
+			},
+			&ChinaStock{
 				Ticker: "MEITUAN",
 				Name:   "MEITUAN-CLASS B",
 			},

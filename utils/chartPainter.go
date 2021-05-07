@@ -46,7 +46,8 @@ func (c *ChartPainter) GenerateImage(htmlPath, imagePath string) error {
 
 func ToBarData(name string, data []float64) []opts.BarData {
 	var (
-		theData []opts.BarData
+		theData   []opts.BarData
+		showLabel = len(data) < 10
 	)
 	for _, value := range data {
 		theData = append(theData,
@@ -54,7 +55,8 @@ func ToBarData(name string, data []float64) []opts.BarData {
 				Name:  name,
 				Value: value,
 				Label: &opts.Label{
-					Show: true,
+					Show:     showLabel,
+					Position: "insideTop",
 				},
 				//ItemStyle: nil,
 				Tooltip: &opts.Tooltip{
@@ -74,6 +76,20 @@ func ToLineData(name string, data []float64) []opts.LineData {
 			opts.LineData{
 				Name:  name,
 				Value: value,
+			})
+	}
+	return theData
+}
+
+func ToPercentLineData(name string, data []float64, percent float64) []opts.LineData {
+	var (
+		theData []opts.LineData
+	)
+	for _, value := range data {
+		theData = append(theData,
+			opts.LineData{
+				Name:  name,
+				Value: value / percent,
 			})
 	}
 	return theData

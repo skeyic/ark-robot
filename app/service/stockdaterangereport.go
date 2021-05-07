@@ -441,9 +441,9 @@ func (r *StockDateRangeReport) ReportImage() error {
 			Top:  "7%",
 		}))
 	bar.SetXAxis(dates).AddSeries("当前持股数", utils.ToBarData("Current", currentHoldingsData))
-	line.SetXAxis(dates).AddSeries("", utils.ToLineData("Current", currentHoldingsData),
+	line.SetXAxis(dates).AddSeries("", utils.ToPercentLineData("Current", currentHoldingsData, 2.0),
 		charts.WithLineStyleOpts(opts.LineStyle{
-			Color: "red",
+			//Color: "white",
 			Width: 2,
 		}))
 	bar.Overlap(line)
@@ -509,181 +509,181 @@ func (r *StockDateRangeReport) Report() error {
 	return nil
 }
 
-func (r *StockDateRangeReport) OldReport() error {
-	var (
-		err       error
-		fileName  = r.ExcelPath()
-		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
-			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
-		theTradingReport = &stockDataRangeTradingAnalysis{}
-		txtTradingReport string
-	)
-
-	err = r.Load()
-	if err != nil {
-		return err
-	}
-
-	err = r.InitExcelFromTemplate()
-	if err != nil {
-		glog.Errorf("failed to init excel from template, err: %v", err)
-		return err
-	}
-
-	f, err := excelize.OpenFile(fileName)
-	if err != nil {
-		glog.Errorf("failed to open excel %s, err: %v", fileName, err)
-		return err
-	}
-
-	/*
-				    A           B           C           D           E           F
-				25		        2021-03-29	2021-03-30	2021-03-31	2021-04-01	2021-04-02
-				26	ARKW持仓变动	10013448 	102200000 	10013408 	10002000 	10013448
-				27	ARKF持仓变动	100230000 	10001245 	10013448 	100014000 	100014000
-				28	ARK总持仓变动	110243448 	112201245 	20026856 	110016000 	110027448
-
-			txtReport
-			关于HUYA，从4月5日至4月9日:
-
-			txtDailyHoldingReport
-		    期初4月5日，ARK共持有10023448股，市值为1234567美元，其中ARKK持有500000股（比重1%），ARKW持有500000股（比重1%），期末4月9日，ARK共持有10002485股，市值为1234567美元，其中ARKK400000股（比重1%），ARKW400000股（比重1%）。
-
-			txtDailyTradingReport
-			本期总计减持/增持20963股，共计减持2日，增持2日，没有变动1日。最大减持发生在4月8日，减持30000股，最大增持发生在4月6日，增持30000股。
-			具体情况如下：
-
-			txtDailyTradingDetail
-			  4月5日，ARKK增持10000股，ARKW减持20000股，ARK总持有股数减少10000股；
-			  4月6日，ARKK增持10000股，ARKW增持20000股，ARK总持有股数增加30000股；
-			  4月7日，ARKK增持20000股，ARKW没有变动，ARK总持有股数增加20000股；
-			  4月8日，ARKK减持10000股，ARKW减持20000股，ARK总持股数有减少30000股；
-			  4月9日，ARK总持股数没有变动。
-	*/
-
-	var (
-		sheet = defaultSheet
-
-		dateIdxList = []string{"B", "C", "D", "E", "F", "G",
-			"H", "I", "J", "K", "L", "M", "N", "O", "P",
-			"Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
-		maxDate = len(dateIdxList)
-	)
-
-	for dateIdx, theDate := range r.Details.dateList {
-		if dateIdx > maxDate {
-			glog.Warningf("MAX DATE RANGE REACHED, we have: %d, max: %d", len(r.Details.dateList), maxDate)
-			break
-		}
-
-		var (
-			totalShards           float64
-			totalMarketValue      float64
-			totalTradingShards    float64
-			fundIdx               = 25
-			holdings              = r.Details.dailyDetail[theDate].holdings
-			tradings              = r.Details.dailyDetail[theDate].tradings
-			today                 = fmt.Sprintf("%d月%d日，", theDate.Month(), theDate.Day())
-			txtDailyHoldingReport = today
-			txtDailyHoldingTemp   string
-			txtDailyTradingTemp   string
-		)
-
-		for idx, fund := range r.Details.fundList {
-			holding := holdings[fund]
-			var currentShards float64
-
-			line := strconv.Itoa(fundIdx)
-			// Set the date column
-			if idx == 0 {
-				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, theDate.Format(TheDateFormat))
-				fundIdx++
-			}
-
-			line = strconv.Itoa(fundIdx)
-			if dateIdx == 0 {
-				f.SetCellValue(sheet, "A"+line, fund)
-			}
-			if holding != nil {
-				totalShards += holding.Shards
-				totalMarketValue += holding.MarketValue
-				currentShards = holding.Shards
-				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
-					utils.ThousandFormatFloat64(holding.Shards), holding.Weight)
-			} else {
-				//txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%.0f股(比重%.2f%%)，", holding.Fund, holding.Shards, holding.Weight)
-			}
-			f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", currentShards))
-			fundIdx++
-
-			trading := tradings[fund]
-			//glog.V(4).Infof("TRADING: %v", trading)
-			totalTradingShards += trading.Shards
-
-			if trading.IsBuy() {
-				txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
-			} else if trading.IsSell() {
-				txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
-			}
-
-			// Set the total
-			if idx == len(r.Details.fundList)-1 {
-				line = strconv.Itoa(fundIdx)
-				if dateIdx == 0 {
-					f.SetCellValue(sheet, "A"+line, "TOTAL")
-				}
-				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", totalShards))
-				if totalShards != 0 {
-					txtDailyHoldingTemp = fmt.Sprintf("ARK共持有%s股，市值为%s美元，其中",
-						utils.ThousandFormatFloat64(totalShards), utils.ThousandFormatFloat64(totalMarketValue)) + txtDailyHoldingTemp
-				} else {
-					txtDailyHoldingTemp = "ARK未持有"
-				}
-
-				theTradingReport.AddTrading(theDate, totalTradingShards)
-				txtDailyTradingTemp += "ARK总持有股数"
-				if totalTradingShards > 0 {
-					txtDailyTradingTemp += fmt.Sprintf("增加%s股。\n", utils.ThousandFormatFloat64(totalTradingShards))
-				} else if totalTradingShards < 0 {
-					txtDailyTradingTemp += fmt.Sprintf("减少%s股。\n", utils.ThousandFormatFloat64(-1*totalTradingShards))
-				} else {
-					txtDailyTradingTemp += "没有变化。\n"
-				}
-			}
-		}
-
-		if dateIdx == 0 {
-			txtDailyHoldingReport = "期初" + txtDailyHoldingReport
-			txtDailyHoldingReport += txtDailyHoldingTemp
-			txtReport += txtDailyHoldingReport + "\n"
-		} else if dateIdx == len(r.Details.dateList)-1 {
-			txtDailyHoldingReport = "期末" + txtDailyHoldingReport
-			txtDailyHoldingReport += txtDailyHoldingTemp
-			txtReport += txtDailyHoldingReport + "\n"
-		}
-
-		txtTradingReport += "  " + today + txtDailyTradingTemp
-	}
-
-	txtTradingReport = theTradingReport.TxtReport() + txtTradingReport
-
-	err = f.Save()
-	if err != nil {
-		glog.Errorf("failed to save excel %s, err: %v", fileName, err)
-		return err
-	}
-
-	err = utils.NewFileStoreSvc(r.TxtPath()).Save([]byte(txtReport + txtTradingReport))
-	if err != nil {
-		glog.Errorf("failed to save txt %s, err: %v", r.TxtPath(), err)
-		return err
-	}
-
-	//glog.V(4).Infof("%s", txtReport)
-	//glog.V(4).Infof("%s", txtTradingReport)
-
-	return nil
-}
+//func (r *StockDateRangeReport) OldReport() error {
+//	var (
+//		err       error
+//		fileName  = r.ExcelPath()
+//		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
+//			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
+//		theTradingReport = &stockDataRangeTradingAnalysis{}
+//		txtTradingReport string
+//	)
+//
+//	err = r.Load()
+//	if err != nil {
+//		return err
+//	}
+//
+//	err = r.InitExcelFromTemplate()
+//	if err != nil {
+//		glog.Errorf("failed to init excel from template, err: %v", err)
+//		return err
+//	}
+//
+//	f, err := excelize.OpenFile(fileName)
+//	if err != nil {
+//		glog.Errorf("failed to open excel %s, err: %v", fileName, err)
+//		return err
+//	}
+//
+//	/*
+//				    A           B           C           D           E           F
+//				25		        2021-03-29	2021-03-30	2021-03-31	2021-04-01	2021-04-02
+//				26	ARKW持仓变动	10013448 	102200000 	10013408 	10002000 	10013448
+//				27	ARKF持仓变动	100230000 	10001245 	10013448 	100014000 	100014000
+//				28	ARK总持仓变动	110243448 	112201245 	20026856 	110016000 	110027448
+//
+//			txtReport
+//			关于HUYA，从4月5日至4月9日:
+//
+//			txtDailyHoldingReport
+//		    期初4月5日，ARK共持有10023448股，市值为1234567美元，其中ARKK持有500000股（比重1%），ARKW持有500000股（比重1%），期末4月9日，ARK共持有10002485股，市值为1234567美元，其中ARKK400000股（比重1%），ARKW400000股（比重1%）。
+//
+//			txtDailyTradingReport
+//			本期总计减持/增持20963股，共计减持2日，增持2日，没有变动1日。最大减持发生在4月8日，减持30000股，最大增持发生在4月6日，增持30000股。
+//			具体情况如下：
+//
+//			txtDailyTradingDetail
+//			  4月5日，ARKK增持10000股，ARKW减持20000股，ARK总持有股数减少10000股；
+//			  4月6日，ARKK增持10000股，ARKW增持20000股，ARK总持有股数增加30000股；
+//			  4月7日，ARKK增持20000股，ARKW没有变动，ARK总持有股数增加20000股；
+//			  4月8日，ARKK减持10000股，ARKW减持20000股，ARK总持股数有减少30000股；
+//			  4月9日，ARK总持股数没有变动。
+//	*/
+//
+//	var (
+//		sheet = defaultSheet
+//
+//		dateIdxList = []string{"B", "C", "D", "E", "F", "G",
+//			"H", "I", "J", "K", "L", "M", "N", "O", "P",
+//			"Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+//		maxDate = len(dateIdxList)
+//	)
+//
+//	for dateIdx, theDate := range r.Details.dateList {
+//		if dateIdx > maxDate {
+//			glog.Warningf("MAX DATE RANGE REACHED, we have: %d, max: %d", len(r.Details.dateList), maxDate)
+//			break
+//		}
+//
+//		var (
+//			totalShards           float64
+//			totalMarketValue      float64
+//			totalTradingShards    float64
+//			fundIdx               = 25
+//			holdings              = r.Details.dailyDetail[theDate].holdings
+//			tradings              = r.Details.dailyDetail[theDate].tradings
+//			today                 = fmt.Sprintf("%d月%d日，", theDate.Month(), theDate.Day())
+//			txtDailyHoldingReport = today
+//			txtDailyHoldingTemp   string
+//			txtDailyTradingTemp   string
+//		)
+//
+//		for idx, fund := range r.Details.fundList {
+//			holding := holdings[fund]
+//			var currentShards float64
+//
+//			line := strconv.Itoa(fundIdx)
+//			// Set the date column
+//			if idx == 0 {
+//				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, theDate.Format(TheDateFormat))
+//				fundIdx++
+//			}
+//
+//			line = strconv.Itoa(fundIdx)
+//			if dateIdx == 0 {
+//				f.SetCellValue(sheet, "A"+line, fund)
+//			}
+//			if holding != nil {
+//				totalShards += holding.Shards
+//				totalMarketValue += holding.MarketValue
+//				currentShards = holding.Shards
+//				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
+//					utils.ThousandFormatFloat64(holding.Shards), holding.Weight)
+//			} else {
+//				//txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%.0f股(比重%.2f%%)，", holding.Fund, holding.Shards, holding.Weight)
+//			}
+//			f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", currentShards))
+//			fundIdx++
+//
+//			trading := tradings[fund]
+//			//glog.V(4).Infof("TRADING: %v", trading)
+//			totalTradingShards += trading.Shards
+//
+//			if trading.IsBuy() {
+//				txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
+//			} else if trading.IsSell() {
+//				txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+//			}
+//
+//			// Set the total
+//			if idx == len(r.Details.fundList)-1 {
+//				line = strconv.Itoa(fundIdx)
+//				if dateIdx == 0 {
+//					f.SetCellValue(sheet, "A"+line, "TOTAL")
+//				}
+//				f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", totalShards))
+//				if totalShards != 0 {
+//					txtDailyHoldingTemp = fmt.Sprintf("ARK共持有%s股，市值为%s美元，其中",
+//						utils.ThousandFormatFloat64(totalShards), utils.ThousandFormatFloat64(totalMarketValue)) + txtDailyHoldingTemp
+//				} else {
+//					txtDailyHoldingTemp = "ARK未持有"
+//				}
+//
+//				theTradingReport.AddTrading(theDate, totalTradingShards)
+//				txtDailyTradingTemp += "ARK总持有股数"
+//				if totalTradingShards > 0 {
+//					txtDailyTradingTemp += fmt.Sprintf("增加%s股。\n", utils.ThousandFormatFloat64(totalTradingShards))
+//				} else if totalTradingShards < 0 {
+//					txtDailyTradingTemp += fmt.Sprintf("减少%s股。\n", utils.ThousandFormatFloat64(-1*totalTradingShards))
+//				} else {
+//					txtDailyTradingTemp += "没有变化。\n"
+//				}
+//			}
+//		}
+//
+//		if dateIdx == 0 {
+//			txtDailyHoldingReport = "期初" + txtDailyHoldingReport
+//			txtDailyHoldingReport += txtDailyHoldingTemp
+//			txtReport += txtDailyHoldingReport + "\n"
+//		} else if dateIdx == len(r.Details.dateList)-1 {
+//			txtDailyHoldingReport = "期末" + txtDailyHoldingReport
+//			txtDailyHoldingReport += txtDailyHoldingTemp
+//			txtReport += txtDailyHoldingReport + "\n"
+//		}
+//
+//		txtTradingReport += "  " + today + txtDailyTradingTemp
+//	}
+//
+//	txtTradingReport = theTradingReport.TxtReport() + txtTradingReport
+//
+//	err = f.Save()
+//	if err != nil {
+//		glog.Errorf("failed to save excel %s, err: %v", fileName, err)
+//		return err
+//	}
+//
+//	err = utils.NewFileStoreSvc(r.TxtPath()).Save([]byte(txtReport + txtTradingReport))
+//	if err != nil {
+//		glog.Errorf("failed to save txt %s, err: %v", r.TxtPath(), err)
+//		return err
+//	}
+//
+//	//glog.V(4).Infof("%s", txtReport)
+//	//glog.V(4).Infof("%s", txtTradingReport)
+//
+//	return nil
+//}
 
 func (r *StockDateRangeReport) ReportFolder() string {
 	return stockReportPath + "/" + r.ReportTime.Format("2006-01-02-15-04-05")
