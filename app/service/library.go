@@ -117,6 +117,14 @@ func (a *ARKHoldings) GetFundStockHoldings(fund string) *StockHoldings {
 	}
 }
 
+func (a *ARKHoldings) GetStockFundStockHolding(fund, ticker string) *StockHolding {
+	theHolding := a.GetFundStockHoldings(fund)
+	if theHolding != nil {
+		return theHolding.GetStockHolding(ticker)
+	}
+	return nil
+}
+
 func (a *ARKHoldings) GenerateTrading(p *ARKHoldings) *ARKTradings {
 	var (
 		arkTradings = NewARKTradings()
@@ -197,6 +205,14 @@ func (a *ARKTradings) GetFundStockTradings(fund string) *StockTradings {
 	default:
 		panic(fmt.Sprintf("Incorrect fund type: %s", fund))
 	}
+}
+
+func (a *ARKTradings) GetStockFundStockTrading(fund, ticker string) *StockTrading {
+	theTrading := a.GetFundStockTradings(fund)
+	if theTrading != nil {
+		return theTrading.GetStockTrading(ticker)
+	}
+	return nil
 }
 
 type Library struct {

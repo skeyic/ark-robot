@@ -117,6 +117,10 @@ func NewStockHoldings(date time.Time, fund string, holdings []*StockHolding) *St
 	return s
 }
 
+func (h *StockHoldings) GetStockHolding(ticker string) *StockHolding {
+	return h.Holdings[ticker]
+}
+
 func (h *StockHoldings) GetTop10() []*StockHolding {
 	var (
 		top10Holdings    []*StockHolding
@@ -517,5 +521,163 @@ func (s *StockTradings) SetFixDirection() {
 				trading.FixedDirection = trading.Direction
 			}
 		}
+	}
+}
+
+func (s *StockTradings) GetStockTrading(ticker string) *StockTrading {
+	return s.Tradings[ticker]
+}
+
+type StockARKHoldings struct {
+	Ticker string
+	Date   time.Time
+	ARKK   *StockHolding
+	ARKQ   *StockHolding
+	ARKW   *StockHolding
+	ARKG   *StockHolding
+	ARKF   *StockHolding
+	ARKX   *StockHolding
+}
+
+func NewStockARKHoldings(ticker string, date time.Time) *StockARKHoldings {
+	return &StockARKHoldings{
+		Ticker: ticker,
+		Date:   date,
+	}
+}
+
+func NewLatestStockARKHoldingsFromLibrary(ticker string) *StockARKHoldings {
+	var (
+		latestDate = TheLibrary.GetLatestHoldingDate()
+	)
+
+	theHoldings := TheLibrary.GetHoldings(latestDate)
+
+	arkHoldings := &StockARKHoldings{
+		Ticker: ticker,
+		Date:   latestDate,
+		ARKK:   theHoldings.GetStockFundStockHolding("ARKK", ticker),
+		ARKQ:   theHoldings.GetStockFundStockHolding("ARKQ", ticker),
+		ARKW:   theHoldings.GetStockFundStockHolding("ARKW", ticker),
+		ARKG:   theHoldings.GetStockFundStockHolding("ARKG", ticker),
+		ARKF:   theHoldings.GetStockFundStockHolding("ARKF", ticker),
+		ARKX:   theHoldings.GetStockFundStockHolding("ARKX", ticker),
+	}
+
+	return arkHoldings
+}
+
+func (s *StockARKHoldings) Add(t *StockHolding) {
+	switch t.Fund {
+	case "ARKK":
+		s.ARKK = t
+	case "ARKQ":
+		s.ARKQ = t
+	case "ARKW":
+		s.ARKW = t
+	case "ARKG":
+		s.ARKG = t
+	case "ARKF":
+		s.ARKF = t
+	case "ARKX":
+		s.ARKX = t
+	default:
+		panic(errFundNotMatch)
+	}
+}
+
+func (s *StockARKHoldings) GetFundHolding(fund string) *StockHolding {
+	switch fund {
+	case "ARKK":
+		return s.ARKK
+	case "ARKQ":
+		return s.ARKQ
+	case "ARKW":
+		return s.ARKW
+	case "ARKG":
+		return s.ARKG
+	case "ARKF":
+		return s.ARKF
+	case "ARKX":
+		return s.ARKX
+	default:
+		panic(errFundNotMatch)
+	}
+}
+
+type StockARKTradings struct {
+	Ticker string
+	Date   time.Time
+	ARKK   *StockTrading
+	ARKQ   *StockTrading
+	ARKW   *StockTrading
+	ARKG   *StockTrading
+	ARKF   *StockTrading
+	ARKX   *StockTrading
+}
+
+func NewStockARKTradings(ticker string, date time.Time) *StockARKTradings {
+	return &StockARKTradings{
+		Ticker: ticker,
+		Date:   date,
+	}
+}
+
+func NewLatestStockARKTradingsFromLibrary(ticker string) *StockARKTradings {
+	var (
+		latestDate = TheLibrary.GetLatestHoldingDate()
+	)
+
+	theTradings := TheLibrary.GetTradings(latestDate)
+
+	arkTradings := &StockARKTradings{
+		Ticker: ticker,
+		Date:   latestDate,
+		ARKK:   theTradings.GetStockFundStockTrading("ARKK", ticker),
+		ARKQ:   theTradings.GetStockFundStockTrading("ARKQ", ticker),
+		ARKW:   theTradings.GetStockFundStockTrading("ARKW", ticker),
+		ARKG:   theTradings.GetStockFundStockTrading("ARKG", ticker),
+		ARKF:   theTradings.GetStockFundStockTrading("ARKF", ticker),
+		ARKX:   theTradings.GetStockFundStockTrading("ARKX", ticker),
+	}
+
+	return arkTradings
+}
+
+func (s *StockARKTradings) Add(t *StockTrading) {
+	switch t.Fund {
+	case "ARKK":
+		s.ARKK = t
+	case "ARKQ":
+		s.ARKQ = t
+	case "ARKW":
+		s.ARKW = t
+	case "ARKG":
+		s.ARKG = t
+	case "ARKF":
+		s.ARKF = t
+	case "ARKX":
+		s.ARKX = t
+	default:
+		panic(errFundNotMatch)
+	}
+}
+
+func (s *StockARKTradings) GetFundTrading(fund string) *StockTrading {
+	switch fund {
+	case "ARKK":
+		return s.ARKK
+	case "ARKQ":
+		return s.ARKQ
+	case "ARKW":
+		return s.ARKW
+	case "ARKG":
+		return s.ARKG
+	case "ARKF":
+		return s.ARKF
+	case "ARKX":
+		return s.ARKX
+	default:
+		panic(errFundNotMatch)
 	}
 }

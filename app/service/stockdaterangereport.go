@@ -56,41 +56,41 @@ type stockDateRangeDetails struct {
 	tradingSummary *stockDataRangeTradingAnalysis
 }
 
-func (d *stockDateRangeDetails) GenerateTradingAnalysis() {
+func (r *stockDateRangeDetails) GenerateTradingAnalysis() {
 	var (
 		tradingAnalysis = &stockDataRangeTradingAnalysis{}
 	)
 
-	for _, theDate := range d.dateList {
-		tradingAnalysis.AddTrading(theDate, d.dailyDetail[theDate].totalTradingShards)
+	for _, theDate := range r.dateList {
+		tradingAnalysis.AddTrading(theDate, r.dailyDetail[theDate].totalTradingShards)
 	}
 
-	d.tradingSummary = tradingAnalysis
+	r.tradingSummary = tradingAnalysis
 }
 
-func (d *stockDateRangeDetails) TxtReport() string {
+func (r *stockDateRangeDetails) TxtReport() string {
 	var (
 		holdingReport string
 		tradingReport string
 	)
 
-	for dateIdx, theDate := range d.dateList {
+	for dateIdx, theDate := range r.dateList {
 		var (
-			holdings                = d.dailyDetail[theDate].holdings
-			tradings                = d.dailyDetail[theDate].tradings
-			totalHoldingShards      = d.dailyDetail[theDate].totalHoldingShards
-			totalHoldingMarketValue = d.dailyDetail[theDate].totalHoldingMarketValue
-			totalTradingShards      = d.dailyDetail[theDate].totalTradingShards
+			holdings                = r.dailyDetail[theDate].holdings
+			tradings                = r.dailyDetail[theDate].tradings
+			totalHoldingShards      = r.dailyDetail[theDate].totalHoldingShards
+			totalHoldingMarketValue = r.dailyDetail[theDate].totalHoldingMarketValue
+			totalTradingShards      = r.dailyDetail[theDate].totalTradingShards
 			today                   = fmt.Sprintf("%d月%d日，", theDate.Month(), theDate.Day())
 			txtDailyHoldingReport   = today
 			txtDailyHoldingTemp     string
 			txtDailyTradingTemp     string
 		)
 
-		for idx, fund := range d.fundList {
+		for idx, fund := range r.fundList {
 			var (
-				holding = holdings[fund]
-				trading = tradings[fund]
+				holding = holdings.GetFundHolding(fund)
+				trading = tradings.GetFundTrading(fund)
 			)
 			if holding != nil {
 				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
@@ -104,8 +104,8 @@ func (d *stockDateRangeDetails) TxtReport() string {
 			}
 
 			// Set the total
-			if idx == len(d.fundList)-1 {
-				if d.dailyDetail[theDate].totalHoldingShards != 0 {
+			if idx == len(r.fundList)-1 {
+				if r.dailyDetail[theDate].totalHoldingShards != 0 {
 					txtDailyHoldingTemp = fmt.Sprintf("ARK共持有%s股，市值为%s美元，其中",
 						utils.ThousandFormatFloat64(totalHoldingShards), utils.ThousandFormatFloat64(totalHoldingMarketValue)) + txtDailyHoldingTemp
 				} else {
@@ -127,7 +127,7 @@ func (d *stockDateRangeDetails) TxtReport() string {
 			txtDailyHoldingReport = "期初" + txtDailyHoldingReport
 			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
 			holdingReport += txtDailyHoldingReport + "\n"
-		} else if dateIdx == len(d.dateList)-1 {
+		} else if dateIdx == len(r.dateList)-1 {
 			txtDailyHoldingReport = "期末" + txtDailyHoldingReport
 			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
 			holdingReport += txtDailyHoldingReport + "\n"
@@ -135,20 +135,90 @@ func (d *stockDateRangeDetails) TxtReport() string {
 		tradingReport += "  " + today + txtDailyTradingTemp
 	}
 
-	return holdingReport + d.tradingSummary.TxtReport() + tradingReport
+	return holdingReport + r.tradingSummary.TxtReport() + tradingReport
+}
+
+func (r *stockDateRangeDetails) TxtReportV2() string {
+	var (
+		holdingReport string
+		tradingReport string
+	)
+
+	for dateIdx, theDate := range r.dateList {
+		var (
+			holdings                = r.dailyDetail[theDate].holdings
+			tradings                = r.dailyDetail[theDate].tradings
+			totalHoldingShards      = r.dailyDetail[theDate].totalHoldingShards
+			totalHoldingMarketValue = r.dailyDetail[theDate].totalHoldingMarketValue
+			totalTradingShards      = r.dailyDetail[theDate].totalTradingShards
+			today                   = fmt.Sprintf("%d月%d日，", theDate.Month(), theDate.Day())
+			txtDailyHoldingReport   = today
+			txtDailyHoldingTemp     string
+			txtDailyTradingTemp     string
+		)
+
+		for idx, fund := range r.fundList {
+			var (
+				holding = holdings.GetFundHolding(fund)
+				trading = tradings.GetFundTrading(fund)
+			)
+			if holding != nil {
+				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
+					utils.ThousandFormatFloat64(holding.Shards), holding.Weight)
+			}
+
+			if trading.IsBuy() {
+				txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
+			} else if trading.IsSell() {
+				txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+			}
+
+			// Set the total
+			if idx == len(r.fundList)-1 {
+				if r.dailyDetail[theDate].totalHoldingShards != 0 {
+					txtDailyHoldingTemp = fmt.Sprintf("ARK共持有%s股，市值为%s美元，其中",
+						utils.ThousandFormatFloat64(totalHoldingShards), utils.ThousandFormatFloat64(totalHoldingMarketValue)) + txtDailyHoldingTemp
+				} else {
+					txtDailyHoldingTemp = "ARK未持有"
+				}
+
+				txtDailyTradingTemp += "ARK总持有股数"
+				if totalTradingShards > 0 {
+					txtDailyTradingTemp += fmt.Sprintf("增加%s股。\n", utils.ThousandFormatFloat64(totalTradingShards))
+				} else if totalTradingShards < 0 {
+					txtDailyTradingTemp += fmt.Sprintf("减少%s股。\n", utils.ThousandFormatFloat64(-1*totalTradingShards))
+				} else {
+					txtDailyTradingTemp += "没有变化。\n"
+				}
+			}
+
+		}
+		if dateIdx == 0 {
+			txtDailyHoldingReport = "期初" + txtDailyHoldingReport
+			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
+			holdingReport += txtDailyHoldingReport + "\n"
+		} else if dateIdx == len(r.dateList)-1 {
+			txtDailyHoldingReport = "期末" + txtDailyHoldingReport
+			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
+			holdingReport += txtDailyHoldingReport + "\n"
+		}
+		tradingReport += "  " + today + txtDailyTradingTemp
+	}
+
+	return holdingReport + r.tradingSummary.TxtReport() + tradingReport
 }
 
 type stockDailyDetail struct {
 	theDate  time.Time
-	holdings map[string]*StockHolding
-	tradings map[string]*StockTrading
+	holdings *StockARKHoldings
+	tradings *StockARKTradings
 
 	totalHoldingShards      float64
 	totalHoldingMarketValue float64
 	totalTradingShards      float64
 }
 
-func newStockDailyDetail(theDate time.Time, holdings map[string]*StockHolding, tradings map[string]*StockTrading) *stockDailyDetail {
+func newStockDailyDetail(theDate time.Time, holdings *StockARKHoldings, tradings *StockARKTradings) *stockDailyDetail {
 	detail := &stockDailyDetail{
 		theDate:  theDate,
 		holdings: holdings,
@@ -163,12 +233,16 @@ func (d *stockDailyDetail) Sum() {
 	var (
 		totalHoldingShards, totalHoldingMarketValue, totalTradingShards float64
 	)
-	for _, holding := range d.holdings {
-		totalHoldingShards += holding.Shards
-		totalHoldingMarketValue += holding.MarketValue
-	}
-	for _, trading := range d.tradings {
-		totalTradingShards += trading.Shards
+	for _, fund := range allARKTypes {
+		holding := d.holdings.GetFundHolding(fund)
+		if holding != nil {
+			totalHoldingShards += holding.Shards
+			totalHoldingMarketValue += holding.MarketValue
+		}
+		trading := d.tradings.GetFundTrading(fund)
+		if trading != nil {
+			totalTradingShards += trading.Shards
+		}
 	}
 	d.totalHoldingShards = totalHoldingShards
 	d.totalHoldingMarketValue = totalHoldingMarketValue
@@ -224,7 +298,7 @@ func (r *StockDateRangeReport) Load() error {
 		for i := 0; i < len(dateList); i++ {
 			holdings := stock.HistoryStockHoldings[dateList[i]]
 
-			holding := holdings[fund]
+			holding := holdings.GetFundHolding(fund)
 			if holding != nil {
 				fundList = append(fundList, fund)
 				break
@@ -358,7 +432,7 @@ func (r *StockDateRangeReport) ReportExcel() error {
 		)
 
 		for idx, fund := range r.Details.fundList {
-			holding := holdings[fund]
+			holding := holdings.GetFundHolding(fund)
 			var currentShards float64
 
 			line := strconv.Itoa(fundIdx)
@@ -382,7 +456,7 @@ func (r *StockDateRangeReport) ReportExcel() error {
 			f.SetCellValue(sheet, dateIdxList[dateIdx]+line, fmt.Sprintf("%.0f", currentShards))
 			fundIdx++
 
-			trading := tradings[fund]
+			trading := tradings.GetFundTrading(fund)
 			glog.V(4).Infof("TRADING: %v", trading)
 			totalTradingShards += trading.Shards
 

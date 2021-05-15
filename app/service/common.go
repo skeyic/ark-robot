@@ -31,5 +31,15 @@ var (
 	errEmptyReport        = errors.New("nothing to report")
 	errGetChinaStock      = errors.New("get china stock failed")
 	errStockNotFound      = errors.New("stock not found")
+	errStockNotHold       = errors.New("stock not hold")
 	errNoDataInDateRange  = errors.New("no data in date range")
 )
+
+var IgnoreTickers = []string{
+	"MORGAN_STANLEY_GOVT_INSTL_8035",
+	"JAPANESE_YEN",
+	"HONG_KONG_DOLLAR",
+	"DREYFUS_GOVT_CASH_MAN_INS",
+	"CANADIAN_DOLLAR",
+	"SOUTH_AFRICAN_RAND",
+}

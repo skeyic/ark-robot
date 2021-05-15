@@ -50,7 +50,7 @@ func TestStockLibrary(t *testing.T) {
 			if fund != "ARKG" {
 				continue
 			}
-			trading := fundTradings[fund]
+			trading := fundTradings.GetFundTrading(fund)
 			if trading != nil {
 				glog.V(4).Infof("DATE: %s, FUND: %s, FD: %s, SHARDS: %f, PERCENT: %f", dateList[i], fund, trading.FixedDirection, trading.Shards, trading.Percent)
 			}

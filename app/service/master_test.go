@@ -28,13 +28,7 @@ func Test_MasterFreshInit(t *testing.T) {
 		return
 	}
 
-	for date := range TheLibrary.HistoryStockHoldings {
-		glog.V(4).Infof("H DATE: %s", date)
-	}
-
-	for date := range TheLibrary.HistoryStockTradings {
-		glog.V(4).Infof("T DATE: %s", date)
-	}
+	glog.V(4).Infof("LATEST DATE: %s", TheLibrary.GetLatestHoldingDate())
 }
 
 func Test_MasterGetPreviousHoldings(t *testing.T) {
@@ -302,7 +296,7 @@ func Test_MasterReportStocks3(t *testing.T) {
 
 	for _, stock := range stocks {
 		//NewStockDateRangeReport(stock, fromDate, endDate).Report()
-		err = TheMaster.ReportStockByDays(stock, 30)
+		err = TheMaster.ReportStockByDays(stock, 10)
 		if err != nil {
 			glog.Errorf("failed to report stock %s for %d days, err: %v", stock, days, err)
 			return
@@ -310,4 +304,73 @@ func Test_MasterReportStocks3(t *testing.T) {
 	}
 
 	glog.V(4).Info("REPORTED")
+}
+
+func Test_MasterReportStocksCurrent(t *testing.T) {
+	var (
+		err error
+		//stocks = []string{"TSLA"}
+		stocks = []string{"HUYA"}
+		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
+		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the master, err: %v", err)
+		return
+	}
+
+	for _, stock := range stocks {
+		//NewStockDateRangeReport(stock, fromDate, endDate).Report()
+		err = TheMaster.ReportStockCurrent(stock)
+		if err != nil {
+			glog.Errorf("failed to report stock %s, err: %v", stock, err)
+			return
+		}
+	}
+
+	glog.V(4).Info("REPORTED")
+}
+
+func Test_MasterNewStockLibraryMaster(t *testing.T) {
+	var (
+		err error
+		//stocks = []string{"TSLA"}
+		stocks = []string{"HUYA"}
+		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
+		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the master, err: %v", err)
+		return
+	}
+
+	for _, stock := range stocks {
+		//NewStockDateRangeReport(stock, fromDate, endDate).Report()
+		currentHolding := TheStockLibraryMaster.GetStockCurrentHolding(stock)
+		if currentHolding != nil {
+			for _, fund := range allARKTypes {
+				holding := currentHolding.GetFundHolding(fund)
+				if holding != nil {
+					glog.V(4).Infof("FUND: %s, Holding %v", fund, holding)
+				} else {
+					glog.V(4).Infof("FUND: %s, no holding", fund)
+				}
+			}
+		} else {
+			glog.V(4).Infof("currentHolding is empty")
+		}
+
+		theLibrary := TheStockLibraryMaster.GetStockLibrary(stock)
+		glog.V(4).Infof("H: %v", theLibrary.LatestStockHolding)
+		glog.V(4).Infof("T: %v", theLibrary.LatestStockTrading)
+		for _, holding := range theLibrary.HistoryStockHoldings {
+			glog.V(4).Infof("HH: %v", holding)
+		}
+	}
 }

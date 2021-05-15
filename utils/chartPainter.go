@@ -47,7 +47,7 @@ func (c *ChartPainter) GenerateImage(htmlPath, imagePath string) error {
 func ToBarData(name string, data []float64) []opts.BarData {
 	var (
 		theData   []opts.BarData
-		showLabel = len(data) < 10
+		showLabel = len(data) <= 10
 	)
 	for _, value := range data {
 		theData = append(theData,

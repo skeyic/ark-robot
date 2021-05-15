@@ -187,6 +187,24 @@ func (m *Master) ReportStockByDays(ticker string, days int64) error {
 	return nil
 }
 
+func (m *Master) ReportStockCurrent(ticker string) error {
+	var (
+		err error
+	)
+
+	r := NewStockCurrentReport(ticker)
+
+	err = r.Load()
+	if err != nil {
+		glog.Errorf("report stock %s failed, err: %v", ticker, err)
+		return err
+	}
+
+	glog.V(4).Infof("RR: %s", r.TxtReport())
+
+	return nil
+}
+
 func (m *Master) IndexLatestToES() (err error) {
 	latestDate := TheLibrary.GetLatestHoldingDate()
 	if latestDate.IsZero() {

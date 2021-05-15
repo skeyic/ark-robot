@@ -136,14 +136,35 @@ func (r *StockLibraryMaster) AddStockTradings(arkTradings *ARKTradings) {
 	}
 }
 
-func (r *StockLibraryMaster) GetStockCurrentHolding(ticker, fund string) *StockHolding {
+func (r *StockLibraryMaster) GetStockLibrary(ticker string) *StockLibrary {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	return r.StockLibraries[ticker]
+}
+
+func (r *StockLibraryMaster) GetStockCurrentHolding(ticker string) *StockARKHoldings {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
 	stockLibrary := r.StockLibraries[ticker]
 	if stockLibrary != nil {
 		if stockLibrary.LatestStockHolding != nil {
-			return stockLibrary.LatestStockHolding[fund]
+			return stockLibrary.LatestStockHolding
+		}
+	}
+
+	return nil
+}
+
+func (r *StockLibraryMaster) GetStockCurrentFundHolding(ticker, fund string) *StockHolding {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	stockLibrary := r.StockLibraries[ticker]
+	if stockLibrary != nil {
+		if stockLibrary.LatestStockHolding != nil {
+			return stockLibrary.LatestStockHolding.GetFundHolding(fund)
 		}
 	}
 
@@ -154,10 +175,10 @@ type StockLibrary struct {
 	lock                 *sync.RWMutex
 	Ticker               string
 	fileStore            *utils.FileStoreSvc
-	LatestStockHolding   map[string]*StockHolding
-	LatestStockTrading   map[string]*StockTrading
-	HistoryStockHoldings map[time.Time]map[string]*StockHolding
-	HistoryStockTradings map[time.Time]map[string]*StockTrading
+	LatestStockHolding   *StockARKHoldings
+	LatestStockTrading   *StockARKTradings
+	HistoryStockHoldings map[time.Time]*StockARKHoldings
+	HistoryStockTradings map[time.Time]*StockARKTradings
 }
 
 func NewStockLibrary(ticker string) *StockLibrary {
@@ -165,10 +186,8 @@ func NewStockLibrary(ticker string) *StockLibrary {
 		Ticker:               ticker,
 		fileStore:            utils.NewFileStoreSvc(stockLibraryFolder + strings.TrimSpace(ticker)),
 		lock:                 &sync.RWMutex{},
-		LatestStockHolding:   make(map[string]*StockHolding),
-		LatestStockTrading:   make(map[string]*StockTrading),
-		HistoryStockHoldings: make(map[time.Time]map[string]*StockHolding),
-		HistoryStockTradings: make(map[time.Time]map[string]*StockTrading),
+		HistoryStockHoldings: make(map[time.Time]*StockARKHoldings),
+		HistoryStockTradings: make(map[time.Time]*StockARKTradings),
 	}
 	r.init()
 	return r
@@ -184,17 +203,11 @@ func NewStockLibraryFromBytes(theBytes []byte) *StockLibrary {
 
 	r.lock = &sync.RWMutex{}
 	r.fileStore = utils.NewFileStoreSvc(stockLibraryFolder + strings.TrimSpace(r.Ticker))
-	if r.LatestStockHolding == nil {
-		r.LatestStockHolding = make(map[string]*StockHolding)
-	}
-	if r.LatestStockTrading == nil {
-		r.LatestStockTrading = make(map[string]*StockTrading)
-	}
 	if r.HistoryStockHoldings == nil {
-		r.HistoryStockHoldings = make(map[time.Time]map[string]*StockHolding)
+		r.HistoryStockHoldings = make(map[time.Time]*StockARKHoldings)
 	}
 	if r.HistoryStockTradings == nil {
-		r.HistoryStockTradings = make(map[time.Time]map[string]*StockTrading)
+		r.HistoryStockTradings = make(map[time.Time]*StockARKTradings)
 	}
 	return r
 }
@@ -253,11 +266,11 @@ func (r *StockLibrary) MustSave() {
 func (r *StockLibrary) AddStockHolding(s *StockHolding) {
 	r.lock.Lock()
 	if r.HistoryStockHoldings[s.Date] == nil {
-		r.HistoryStockHoldings[s.Date] = make(map[string]*StockHolding)
+		r.HistoryStockHoldings[s.Date] = NewStockARKHoldings(r.Ticker, s.Date)
 	}
-	r.HistoryStockHoldings[s.Date][s.Fund] = s
-	if r.LatestStockHolding[s.Fund] == nil || r.LatestStockHolding[s.Fund].Date.Before(s.Date) {
-		r.LatestStockHolding[s.Fund] = s
+	r.HistoryStockHoldings[s.Date].Add(s)
+	if r.LatestStockHolding == nil || r.LatestStockHolding.Date.Before(s.Date) {
+		r.LatestStockHolding = r.HistoryStockHoldings[s.Date]
 	}
 	r.lock.Unlock()
 	r.MustSave()
@@ -266,11 +279,11 @@ func (r *StockLibrary) AddStockHolding(s *StockHolding) {
 func (r *StockLibrary) AddStockTrading(s *StockTrading) {
 	r.lock.Lock()
 	if r.HistoryStockTradings[s.Date] == nil {
-		r.HistoryStockTradings[s.Date] = make(map[string]*StockTrading)
+		r.HistoryStockTradings[s.Date] = NewStockARKTradings(r.Ticker, s.Date)
 	}
-	r.HistoryStockTradings[s.Date][s.Fund] = s
-	if r.LatestStockTrading[s.Fund] == nil || r.LatestStockTrading[s.Fund].Date.Before(s.Date) {
-		r.LatestStockTrading[s.Fund] = s
+	r.HistoryStockTradings[s.Date].Add(s)
+	if r.LatestStockTrading == nil || r.LatestStockTrading.Date.Before(s.Date) {
+		r.LatestStockTrading = r.HistoryStockTradings[s.Date]
 	}
 	r.lock.Unlock()
 	r.MustSave()
@@ -278,11 +291,8 @@ func (r *StockLibrary) AddStockTrading(s *StockTrading) {
 
 func (r *StockLibrary) AddStockTradingWithoutLock(s *StockTrading) {
 	if r.HistoryStockTradings[s.Date] == nil {
-		r.HistoryStockTradings[s.Date] = make(map[string]*StockTrading)
+		r.HistoryStockTradings[s.Date] = NewStockARKTradings(r.Ticker, s.Date)
 	}
-	r.HistoryStockTradings[s.Date][s.Fund] = s
-	if r.LatestStockTrading[s.Fund] == nil || r.LatestStockTrading[s.Fund].Date.Before(s.Date) {
-		r.LatestStockTrading[s.Fund] = s
-	}
+	r.HistoryStockTradings[s.Date].Add(s)
 	r.MustSave()
 }

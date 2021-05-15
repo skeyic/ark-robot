@@ -1,84 +1,70 @@
 package service
 
 import (
+	"github.com/golang/glog"
 	"time"
 )
 
+const (
+	HistoryDays = 5
+)
+
+// StockCurrentReport ...
+// Current holding - phase 1
+// Latest trading - TODO
+// Data range report of last 5 days - phase 1
 type StockCurrentReport struct {
-	Ticker  string
-	EndDate time.Time
-	Details *stockDateRangeDetails
+	Ticker          string
+	ReportDate      time.Time
+	CurrentHolding  *StockARKHoldings
+	DataRangeReport *StockDateRangeReport
 }
 
-func NewStockCurrentReport(ticker string, fromDate, endDate time.Time) *StockCurrentReport {
+func NewStockCurrentReport(ticker string) *StockCurrentReport {
 	return &StockCurrentReport{
-		Ticker:  ticker,
-		EndDate: time.Now(),
+		Ticker:     ticker,
+		ReportDate: time.Now(),
 	}
 }
 
-//func (r *StockCurrentReport) Load() error {
+func (r *StockCurrentReport) Load() error {
+	var (
+		err error
+	)
+
+	latestDate := TheLibrary.GetLatestHoldingDate()
+	if latestDate.IsZero() {
+		return errNoLatestDate
+	}
+
+	r.DataRangeReport = NewStockDateRangeReportFromDays(r.Ticker, HistoryDays)
+	err = r.DataRangeReport.Load()
+	if err != nil {
+		glog.Errorf("failed to load the data range report, ticker: %s, from: %s, end: %s, days: %d, err: %v",
+			r.Ticker, r.DataRangeReport.FromDate, r.DataRangeReport.EndDate, r.DataRangeReport.TotalDays, err)
+		return err
+	}
+
+	allDates := r.DataRangeReport.Details.dateList
+	if allDates[len(allDates)-1] != latestDate {
+		glog.Warningf("The stock %s was not in the ARK holding of %s", r.Ticker, latestDate)
+		return errStockNotHold
+	}
+
+	return nil
+}
+
+func (r *StockCurrentReport) TxtReport() string {
+	return r.DataRangeReport.Details.TxtReport()
+}
+
+//func (r *StockCurrentReport) TxtReport() string {
 //	var (
-//		stockDetails = &stockDateRangeDetails{
-//			dailyDetail: make(map[time.Time]*stockDailyDetail),
-//		}
+//		holdingReport string
+//		tradingReport string
 //	)
-//
-//	stock := TheStockLibraryMaster.StockLibraries[r.Ticker]
-//	if stock == nil {
-//		return errStockNotFound
-//	}
-//
-//	var (
-//		dateList timeList
-//	)
-//
-//	for theDate := range stock.HistoryStockHoldings {
-//		if theDate.Equal(r.FromDate) || theDate.Equal(r.EndDate) || (theDate.After(r.FromDate) && theDate.Before(r.EndDate)) {
-//			dateList = append(dateList, theDate)
-//		}
-//	}
-//	if len(dateList) == 0 {
-//		return errNoDataInDateRange
-//	}
-//
-//	sort.Sort(dateList)
-//
-//	var (
-//		fundList []string
-//	)
-//
-//	for _, fund := range allARKTypes {
-//		for i := 0; i < len(dateList); i++ {
-//			holdings := stock.HistoryStockHoldings[dateList[i]]
-//
-//			holding := holdings[fund]
-//			if holding != nil {
-//				fundList = append(fundList, fund)
-//				break
-//			}
-//		}
-//	}
-//
-//	glog.V(4).Infof("%s was holding in %v from %s to %s", r.Ticker, fundList, r.FromDate.Format(TheDateFormat), r.EndDate.Format(TheDateFormat))
-//	stockDetails.fundList = fundList
-//	stockDetails.dateList = dateList
-//
-//	for i := 0; i < len(dateList); i++ {
-//		var (
-//			theDate = dateList[i]
-//		)
-//		stockDetails.dailyDetail[theDate] = &stockDailyDetail{
-//			date:     theDate,
-//			holdings: stock.HistoryStockHoldings[theDate],
-//			tradings: stock.HistoryStockTradings[theDate],
-//		}
-//	}
-//
-//	r.Details = stockDetails
-//	return nil
 //}
-//
+
 //func (r *StockCurrentReport) Report() error {
 //	var (
 //		err       error
