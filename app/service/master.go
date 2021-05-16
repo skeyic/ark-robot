@@ -187,22 +187,18 @@ func (m *Master) ReportStockByDays(ticker string, days int64) error {
 	return nil
 }
 
-func (m *Master) ReportStockCurrent(ticker string) error {
-	var (
-		err error
-	)
-
+func (m *Master) ReportStockCurrent(ticker string) (report string, err error) {
 	r := NewStockCurrentReport(ticker)
 
 	err = r.Load()
 	if err != nil {
 		glog.Errorf("report stock %s failed, err: %v", ticker, err)
-		return err
+		return
 	}
 
-	glog.V(4).Infof("RR: %s", r.TxtReport())
+	report = r.TxtReport()
 
-	return nil
+	return
 }
 
 func (m *Master) IndexLatestToES() (err error) {

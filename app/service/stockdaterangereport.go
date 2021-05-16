@@ -457,7 +457,7 @@ func (r *StockDateRangeReport) ReportExcel() error {
 			fundIdx++
 
 			trading := tradings.GetFundTrading(fund)
-			glog.V(4).Infof("TRADING: %v", trading)
+			//glog.V(4).Infof("TRADING: %v", trading)
 			totalTradingShards += trading.Shards
 
 			// Set the total
@@ -760,7 +760,7 @@ func (r *StockDateRangeReport) Report() error {
 //}
 
 func (r *StockDateRangeReport) ReportFolder() string {
-	return stockReportPath + "/" + r.ReportTime.Format("2006-01-02-15-04-05")
+	return stockReportPath + "/" + r.Ticker + "_" + r.ReportTime.Format("2006-01-02-15-04-05")
 }
 
 func (r *StockDateRangeReport) ExcelPath() string {

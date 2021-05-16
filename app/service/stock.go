@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/grd/statistics"
+	"github.com/skeyic/ark-robot/utils"
 	"sort"
 	"strconv"
 	"strings"
@@ -603,6 +604,37 @@ func (s *StockARKHoldings) GetFundHolding(fund string) *StockHolding {
 	default:
 		panic(errFundNotMatch)
 	}
+}
+
+func (s *StockARKHoldings) TxtReport() string {
+	var (
+		report           string
+		fundNum          int
+		totalShards      float64
+		totalMarketValue float64
+	)
+
+	for _, fund := range allARKTypes {
+		theHolding := s.GetFundHolding(fund)
+		if theHolding != nil {
+			report += fmt.Sprintf("  %s持有%s股(比重%.2f%%)，市值为%s美元。\n", theHolding.Fund,
+				utils.ThousandFormatFloat64(theHolding.Shards), theHolding.Weight,
+				utils.ThousandFormatFloat64(theHolding.MarketValue))
+			totalShards += theHolding.Shards
+			totalMarketValue += theHolding.MarketValue
+			fundNum++
+		}
+	}
+
+	if fundNum == 1 {
+		report = fmt.Sprintf("ARK仅有一款基金持有%s：\n", s.Ticker) + report
+	} else {
+		report = fmt.Sprintf("ARK共有%d款基金持有%s，共计%s股，总计市值%s美元。其中：\n", fundNum, s.Ticker,
+			utils.ThousandFormatFloat64(totalShards), utils.ThousandFormatFloat64(totalMarketValue)) + report
+	}
+	//report += strings.TrimSuffix(report, "，") + "。" + "\n"
+
+	return report
 }
 
 type StockARKTradings struct {

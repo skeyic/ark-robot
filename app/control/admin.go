@@ -206,3 +206,42 @@ func DoReportStockByDays(c *gin.Context) {
 
 	utils.NewOkResponse(c, fmt.Sprintf("report finished, stock %s, days: %d", ticker, days))
 }
+
+// @Summary DoReportStockCurrent
+// @Tags Report
+// @Description let the master report special stock current status
+// @Accept json
+// @Produce json
+// @Param stock query string true "The stock ticker"
+// @Success 200 {object} utils.WebResponse "Ok"
+// @Failure 400 {object} utils.WebResponse "Bad request"
+// @Failure 500 {object} utils.WebResponse "Internal error"
+// @Router /report/report_stock_current [post]
+func DoReportStockCurrent(c *gin.Context) {
+	var (
+		err    error
+		report string
+		ticker string
+	)
+
+	ticker = c.Query("stock")
+	if ticker == "" {
+		msg := fmt.Sprintf("Empty stock")
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	tickers := strings.Split(ticker, ",")
+	for _, theTicker := range tickers {
+		report, err = service.TheMaster.ReportStockCurrent(theTicker)
+		if err != nil {
+			msg := fmt.Sprintf("failed to report stock %s, err: %v", ticker, err)
+			glog.Error(msg)
+			utils.NewBadRequestError(c, msg)
+			return
+		}
+	}
+
+	utils.NewOkResponse(c, report)
+}

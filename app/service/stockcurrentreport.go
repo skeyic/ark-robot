@@ -37,6 +37,12 @@ func (r *StockCurrentReport) Load() error {
 		return errNoLatestDate
 	}
 
+	latestStockHolding := TheStockLibraryMaster.GetStockCurrentHolding(r.Ticker)
+	if latestStockHolding.Date != latestDate {
+		return errStockNotHold
+	}
+	r.CurrentHolding = latestStockHolding
+
 	r.DataRangeReport = NewStockDateRangeReportFromDays(r.Ticker, HistoryDays)
 	err = r.DataRangeReport.Load()
 	if err != nil {
@@ -55,7 +61,12 @@ func (r *StockCurrentReport) Load() error {
 }
 
 func (r *StockCurrentReport) TxtReport() string {
-	return r.DataRangeReport.Details.TxtReport()
+	var (
+		report = r.CurrentHolding.TxtReport()
+	)
+
+	report += "\n分析最近五日的交易数据：" + r.DataRangeReport.Details.TxtReport()
+	return report
 }
 
 //func (r *StockCurrentReport) TxtReport() string {

@@ -366,11 +366,25 @@ func Test_MasterNewStockLibraryMaster(t *testing.T) {
 			glog.V(4).Infof("currentHolding is empty")
 		}
 
-		theLibrary := TheStockLibraryMaster.GetStockLibrary(stock)
-		glog.V(4).Infof("H: %v", theLibrary.LatestStockHolding)
-		glog.V(4).Infof("T: %v", theLibrary.LatestStockTrading)
-		for _, holding := range theLibrary.HistoryStockHoldings {
-			glog.V(4).Infof("HH: %v", holding)
+		currentTrading := TheStockLibraryMaster.GetStockCurrentTrading(stock)
+		if currentTrading != nil {
+			for _, fund := range allARKTypes {
+				holding := currentTrading.GetFundTrading(fund)
+				if holding != nil {
+					glog.V(4).Infof("FUND: %s, Trading %v", fund, holding)
+				} else {
+					glog.V(4).Infof("FUND: %s, no trading", fund)
+				}
+			}
+		} else {
+			glog.V(4).Infof("currentTrading is empty")
 		}
+
+		//theLibrary := TheStockLibraryMaster.GetStockLibrary(stock)
+		//glog.V(4).Infof("H: %v", theLibrary.LatestStockHolding)
+		//glog.V(4).Infof("T: %v", theLibrary.LatestStockTrading)
+		//for _, holding := range theLibrary.HistoryStockHoldings {
+		//	glog.V(4).Infof("HH: %v", holding)
+		//}
 	}
 }

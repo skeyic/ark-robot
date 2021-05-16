@@ -26,12 +26,13 @@ func InitRouter() *gin.Engine {
 		admin.POST("/download", control.DoDownload)
 	}
 
-	// User
+	// Report
 	report := r.Group("/report")
 	{
 		report.POST("/report", control.DoReport)
 		report.POST("/report_stock", control.DoReportStock)
 		report.POST("/report_stock_by_days", control.DoReportStockByDays)
+		report.POST("/report_stock_current", control.DoReportStockCurrent)
 	}
 
 	return r
