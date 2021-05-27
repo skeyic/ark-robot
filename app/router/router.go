@@ -20,20 +20,38 @@ func InitRouter() *gin.Engine {
 	// Basic
 	r.GET("/", control.Index)
 
-	// Admin
-	admin := r.Group("/admin")
+	// Action
+	actions := r.Group("/actions")
 	{
-		admin.POST("/download", control.DoDownload)
+		{
+			actions.POST("/download", control.Download)
+		}
+
+		reports := actions.Group("/reports")
+		{
+			reports.POST("", control.Report)
+			reports.POST("/stock", control.ReportStock)
+			reports.POST("/stock_by_days", control.ReportStockByDays)
+		}
 	}
 
-	// Report
-	report := r.Group("/report")
+	// Data
+	data := r.Group("/data")
 	{
-		report.POST("/report", control.DoReport)
-		report.POST("/report_stock", control.DoReportStock)
-		report.POST("/report_stock_by_days", control.DoReportStockByDays)
-		report.POST("/report_stock_current", control.DoReportStockCurrent)
+		reports := data.Group("/reports")
+		{
+			reports.POST("/:ticker/current", control.ReportStockCurrent)
+		}
+
+		tickers := data.Group("/tickers")
+		{
+			tickers.GET("", control.GetAllTickers)
+			tickers.GET(":ticker", control.IsTicker)
+		}
 	}
+
+	//Debug
+	//debug := r.Group("/debug", control.Debug)
 
 	return r
 }

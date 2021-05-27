@@ -12,16 +12,17 @@ import (
 	"time"
 )
 
+// Download
 // @Summary Download
-// @Tags Admin
+// @Tags Action
 // @Description let the master download latest data
 // @Accept json
 // @Produce json
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /admin/download [post]
-func DoDownload(c *gin.Context) {
+// @Router /actions/download [post]
+func Download(c *gin.Context) {
 	var (
 		err error
 	)
@@ -37,8 +38,9 @@ func DoDownload(c *gin.Context) {
 	utils.NewOkResponse(c, "downloaded")
 }
 
+// Report ...
 // @Summary Report
-// @Tags Report
+// @Tags Action
 // @Description let the master report special date
 // @Accept json
 // @Produce json
@@ -48,8 +50,8 @@ func DoDownload(c *gin.Context) {
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /report/report [post]
-func DoReport(c *gin.Context) {
+// @Router /actions/reports/report [post]
+func Report(c *gin.Context) {
 	var (
 		err                   error
 		date                  time.Time
@@ -99,8 +101,9 @@ func DoReport(c *gin.Context) {
 	utils.NewOkResponse(c, fmt.Sprintf("report finished, date: %s", dateInput))
 }
 
+// ReportStock ...
 // @Summary ReportStock
-// @Tags Report
+// @Tags Action
 // @Description let the master report special stock in a date range
 // @Accept json
 // @Produce json
@@ -110,8 +113,8 @@ func DoReport(c *gin.Context) {
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /report/report_stock [post]
-func DoReportStock(c *gin.Context) {
+// @Router /actions/reports/stock [post]
+func ReportStock(c *gin.Context) {
 	var (
 		err               error
 		fromDate, endDate time.Time
@@ -158,8 +161,9 @@ func DoReportStock(c *gin.Context) {
 	utils.NewOkResponse(c, fmt.Sprintf("report finished, stock %s, fromDate: %s, endDate: %s", ticker, fromDateInput, endDateInput))
 }
 
+// ReportStockByDays ...
 // @Summary ReportStockByDays
-// @Tags Report
+// @Tags Action
 // @Description let the master report special stock in a date range
 // @Accept json
 // @Produce json
@@ -168,8 +172,8 @@ func DoReportStock(c *gin.Context) {
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /report/report_stock_by_days [post]
-func DoReportStockByDays(c *gin.Context) {
+// @Router /actions/reports/stock_by_days [post]
+func ReportStockByDays(c *gin.Context) {
 	var (
 		err    error
 		days   int64
@@ -205,43 +209,4 @@ func DoReportStockByDays(c *gin.Context) {
 	}
 
 	utils.NewOkResponse(c, fmt.Sprintf("report finished, stock %s, days: %d", ticker, days))
-}
-
-// @Summary DoReportStockCurrent
-// @Tags Report
-// @Description let the master report special stock current status
-// @Accept json
-// @Produce json
-// @Param stock query string true "The stock ticker"
-// @Success 200 {object} utils.WebResponse "Ok"
-// @Failure 400 {object} utils.WebResponse "Bad request"
-// @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /report/report_stock_current [post]
-func DoReportStockCurrent(c *gin.Context) {
-	var (
-		err    error
-		report string
-		ticker string
-	)
-
-	ticker = c.Query("stock")
-	if ticker == "" {
-		msg := fmt.Sprintf("Empty stock")
-		glog.Error(msg)
-		utils.NewBadRequestError(c, msg)
-		return
-	}
-
-	tickers := strings.Split(ticker, ",")
-	for _, theTicker := range tickers {
-		report, err = service.TheMaster.ReportStockCurrent(theTicker)
-		if err != nil {
-			msg := fmt.Sprintf("failed to report stock %s, err: %v", ticker, err)
-			glog.Error(msg)
-			utils.NewBadRequestError(c, msg)
-			return
-		}
-	}
-
-	utils.NewOkResponse(c, report)
 }
