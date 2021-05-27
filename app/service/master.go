@@ -201,6 +201,14 @@ func (m *Master) ReportStockCurrent(ticker string) (report string, err error) {
 	return
 }
 
+func (m *Master) IsTicker(ticker string) bool{
+	return TheStockLibraryMaster.IsTicker(ticker)
+}
+
+func (m *Master) GetAllTickers() []string{
+	return TheStockLibraryMaster.GetAllTickers()
+}
+
 func (m *Master) IndexLatestToES() (err error) {
 	latestDate := TheLibrary.GetLatestHoldingDate()
 	if latestDate.IsZero() {

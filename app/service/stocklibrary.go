@@ -62,6 +62,22 @@ func (r *StockLibraryMaster) MustSave() {
 	}
 }
 
+func (r *StockLibraryMaster) IsTicker(ticker string) bool {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	_, ok := r.StockLibraries[ticker]
+	return ok
+}
+
+func (r *StockLibraryMaster) GetAllTickers() (p []string) {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	for ticker := range r.StockLibraries {
+		p = append(p, ticker)
+	}
+	return
+}
+
 func (r *StockLibraryMaster) ListAllStocks() (files []string, err error) {
 	walkFunc := func(path string, info os.FileInfo, err error) error {
 		if info == nil {
