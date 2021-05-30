@@ -1,4 +1,4 @@
-FROM xiaxuanli.com:5555/crhome-alpine:1.0
+FROM tanglicai.xyz:5555/crhome-alpine:1.0
 
 ENV ENV="/etc/profile"
 WORKDIR /application

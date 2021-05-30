@@ -2,7 +2,7 @@
 set -ex
 module="ark-robot"
 bin="ark-robot"
-remote="xiaxuanli.com:5555"
+remote="tanglicai.xyz:5555"
 
 swag init
 

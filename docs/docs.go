@@ -81,6 +81,62 @@ var doc = `{
                 }
             }
         },
+        "/actions/reports/report": {
+            "post": {
+                "description": "let the master report special date",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Action"
+                ],
+                "summary": "Report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The report date",
+                        "name": "date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Full report or not",
+                        "name": "full",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Special trading percent",
+                        "name": "percent",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/actions/reports/stock": {
             "post": {
                 "description": "let the master report special stock in a date range",
@@ -207,8 +263,8 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "The stock ticker",
-                        "name": "stock",
-                        "in": "query",
+                        "name": "ticker",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -286,8 +342,8 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "The stock ticker",
-                        "name": "stock",
-                        "in": "query",
+                        "name": "ticker",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -306,62 +362,6 @@ var doc = `{
                     },
                     "404": {
                         "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/utils.WebResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.WebResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/reports/report": {
-            "post": {
-                "description": "let the master report special date",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Action"
-                ],
-                "summary": "Report",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The report date",
-                        "name": "date",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Full report or not",
-                        "name": "full",
-                        "in": "query"
-                    },
-                    {
-                        "type": "number",
-                        "description": "Special trading percent",
-                        "name": "percent",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "schema": {
-                            "$ref": "#/definitions/utils.WebResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
                         "schema": {
                             "$ref": "#/definitions/utils.WebResponse"
                         }

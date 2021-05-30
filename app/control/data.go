@@ -15,7 +15,7 @@ import (
 // @Description let the master report special stock current status
 // @Accept json
 // @Produce json
-// @Param stock query string true "The stock ticker"
+// @Param ticker path string true "The stock ticker"
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
@@ -27,7 +27,7 @@ func ReportStockCurrent(c *gin.Context) {
 		ticker string
 	)
 
-	ticker = c.Query("stock")
+	ticker = c.Param("ticker")
 	if ticker == "" {
 		msg := fmt.Sprintf("Empty stock")
 		glog.Error(msg)
@@ -35,15 +35,12 @@ func ReportStockCurrent(c *gin.Context) {
 		return
 	}
 
-	tickers := strings.Split(ticker, ",")
-	for _, theTicker := range tickers {
-		report, err = service.TheMaster.ReportStockCurrent(theTicker)
-		if err != nil {
-			msg := fmt.Sprintf("failed to report stock %s, err: %v", ticker, err)
-			glog.Error(msg)
-			utils.NewBadRequestError(c, msg)
-			return
-		}
+	report, err = service.TheMaster.ReportStockCurrent(ticker)
+	if err != nil {
+		msg := fmt.Sprintf("failed to report stock %s, err: %v", ticker, err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
 	}
 
 	utils.NewOkResponse(c, report)
@@ -71,7 +68,7 @@ func GetAllTickers(c *gin.Context) {
 // @Description let the master report special stock current status
 // @Accept json
 // @Produce json
-// @Param stock query string true "The stock ticker"
+// @Param ticker path string true "The stock ticker"
 // @Success 200 {object} utils.WebResponse "OK"
 // @Failure 404 {object} utils.WebResponse "Not found"
 // @Failure 400 {object} utils.WebResponse "Bad request"
@@ -82,7 +79,7 @@ func IsTicker(c *gin.Context) {
 		ticker string
 	)
 
-	ticker = c.Query("stock")
+	ticker = c.Param("ticker")
 	if ticker == "" {
 		msg := fmt.Sprintf("Empty stock")
 		glog.Error(msg)
