@@ -86,6 +86,10 @@ func (m *ChinaStockManager) ManuallyAddChinaStock() {
 				Ticker: "BYDDY",
 				Name:   "BYD CO LTD-UNSPONSORED ADR",
 			},
+			&ChinaStock{
+				Ticker: "6060",
+				Name:   "ZHONGAN ONLINE P&C INSURAN-H",
+			},
 		}
 	)
 	for _, stock := range stocks {
