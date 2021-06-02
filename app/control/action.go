@@ -50,7 +50,7 @@ func Download(c *gin.Context) {
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /actions/reports/report [post]
+// @Router /actions/reports [post]
 func Report(c *gin.Context) {
 	var (
 		err                   error
