@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -17,8 +18,40 @@ const (
 	maxIdx = 10 //Top10
 )
 
+var (
+	TheTop10HoldingsReportMaster = NewTop10HoldingsReportMaster()
+)
+
+type Top10HoldingsReportMaster struct {
+	lock    *sync.RWMutex
+	Reports map[string]*Top10HoldingsReport
+}
+
+func NewTop10HoldingsReportMaster() *Top10HoldingsReportMaster {
+	return &Top10HoldingsReportMaster{
+		lock:    &sync.RWMutex{},
+		Reports: make(map[string]*Top10HoldingsReport),
+	}
+}
+
+func (m *Top10HoldingsReportMaster) GetFundTop10(fund string) (report string) {
+	m.lock.RLock()
+	theReport := m.Reports[fund]
+	m.lock.RUnlock()
+
+	if theReport == nil {
+		theReport = NewTop10HoldingsReport(TheLibrary.GetLatestHoldingDate(), []string{fund})
+		m.lock.Lock()
+		m.Reports[fund] = theReport
+		m.lock.Unlock()
+	}
+	glog.V(4).Infof("THE REPORT: %v", theReport)
+	return theReport.TxtReport()
+}
+
 type Top10HoldingsReport struct {
 	Date            string
+	Funds           []string
 	holdings        *ARKHoldings
 	previousHolding *ARKHoldings
 	Data            []*Top10HoldingsData
@@ -26,8 +59,9 @@ type Top10HoldingsReport struct {
 }
 
 type Top10HoldingsData struct {
-	Fund string
-	Data []*RankData
+	Fund     string
+	Data     []*RankData
+	DiffData *Top10Diff
 }
 
 type RankData struct {
@@ -57,24 +91,31 @@ func (r *RankDiffData) ToTxt() string {
 	if r.PreviousRank == 0 {
 		return fmt.Sprintf("%s进入前十持仓，位列第%d名；", r.Ticker, r.CurrentRank)
 	}
-	return ""
-	//if r.PreviousRank < r.CurrentRank {
-	//	return fmt.Sprintf("%s从第%d名降到第%d名；", r.Ticker, r.PreviousRank, r.CurrentRank)
-	//} else {
-	//	return fmt.Sprintf("%s从第%d名进到第%d名；", r.Ticker, r.PreviousRank, r.CurrentRank)
-	//}
+	if r.PreviousRank < r.CurrentRank {
+		return fmt.Sprintf("%s从第%d名降到第%d名；", r.Ticker, r.PreviousRank, r.CurrentRank)
+	} else if r.PreviousRank > r.CurrentRank {
+		return fmt.Sprintf("%s从第%d名进到第%d名；", r.Ticker, r.PreviousRank, r.CurrentRank)
+	} else {
+		return ""
+	}
 }
 
-func NewTop10HoldingsReport(date time.Time) *Top10HoldingsReport {
+func NewTop10HoldingsReport(date time.Time, funds []string) *Top10HoldingsReport {
 	var (
 		r = &Top10HoldingsReport{
 			Date:            date.Format(TheDateFormat),
+			Funds:           funds,
 			holdings:        TheLibrary.GetHoldings(date),
 			previousHolding: TheLibrary.GetPreviousHoldings(date, 1)[0],
 		}
 	)
 
 	utils.CheckFolder(r.ReportFolder())
+
+	err := r.Load()
+	if err != nil {
+		panic(fmt.Sprintf("failed to load the Top 10 report, err: %v", err))
+	}
 
 	return r
 }
@@ -84,11 +125,6 @@ func (r *Top10HoldingsReport) Report() error {
 		err      error
 		fileName = r.ExcelPath()
 	)
-
-	err = r.Load()
-	if err != nil {
-		return err
-	}
 
 	err = r.ToExcel()
 	if err != nil {
@@ -115,7 +151,7 @@ func (r *Top10HoldingsReport) Load() error {
 		return errEmptyReport
 	}
 
-	for _, fund := range allARKTypes {
+	for _, fund := range r.Funds {
 		var (
 			previousHoldings      *StockHoldings
 			previousTop10Holdings []*StockHolding
@@ -153,24 +189,7 @@ func (r *Top10HoldingsReport) Load() error {
 				Shards:         holding.Shards,
 				MarketValue:    holding.MarketValue,
 			})
-
-			//rank := idx + 1
-			//if previousTop10Holdings != nil {
-			//	for previousIdx, previousHolding := range previousTop10Holdings {
-			//		if previousHolding.Ticker == holding.Ticker && previousIdx+1 != rank {
-			//			top10DiffData = append(top10DiffData, &RankDiffData{
-			//				Ticker:       holding.Ticker,
-			//				Company:      holding.Company,
-			//				PreviousRank: previousIdx + 1,
-			//				CurrentRank:  rank,
-			//			})
-			//			break
-			//		}
-			//	}
-			//}
 		}
-
-		// Check difference with previous top10
 
 		var (
 			previousRankMap = make(map[string]int)
@@ -212,10 +231,11 @@ func (r *Top10HoldingsReport) Load() error {
 			}
 		}
 
-		r.DiffData = append(r.DiffData, &Top10Diff{
+		top10HoldingData.DiffData = &Top10Diff{
 			Fund: fund,
 			Data: top10DiffData,
-		})
+		}
+
 		r.Data = append(r.Data, top10HoldingData)
 	}
 
@@ -343,27 +363,42 @@ func (r *Top10HoldingsReport) ToImage() error {
 	return nil
 }
 
-func (r *Top10HoldingsReport) ToTxt() error {
+/*
+基金【ARKK】的前十持仓信息：
+排名 | 股票 | 公司 | 股数 | 市值（美元） | 上期排名 | 变化
+排名1，TSLA（TESLA INC）共2,855,797股，市值2,433,795,877.31美元，上个交易日排名1，无变化。
+*/
+func (r *Top10HoldingsReport) TxtReport() string {
 	var (
-		err    error
 		report string
 	)
 
-	for _, data := range r.DiffData {
+	for _, data := range r.Data {
 		var (
 			exits      bool
 			fundReport string
 		)
-		if len(data.Data) > 0 {
-			for _, diffData := range data.Data {
+
+		fundReport += fmt.Sprintf("基金【%s】的前十持仓信息:\n", data.Fund)
+
+		if len(data.Data) != 0 {
+			for idx, theData := range data.Data {
+				fundReport += fmt.Sprintf("排名%2d：%s（%s）共%s股，市值%s美元，比重%.2f%%，上个交易日比重%.2f%%；\n", idx+1, theData.Ticker,
+					theData.Company, utils.ThousandFormatFloat64(theData.Shards), utils.ThousandFormatFloat64(theData.MarketValue),
+					theData.CurrentWeight, theData.PreviousWeight)
+			}
+		}
+
+		if data.DiffData != nil && len(data.DiffData.Data) != 0 {
+			fundReport += "\n排名变化："
+			for _, diffData := range data.DiffData.Data {
 				txt := diffData.ToTxt()
 				if len(txt) > 0 {
 					exits = true
 				}
-				fundReport += diffData.ToTxt()
+				fundReport += "\n" + diffData.ToTxt()
 			}
 			if exits {
-				fundReport = data.Fund + "：" + fundReport
 				fundReport = strings.TrimSuffix(fundReport, "；")
 				fundReport += "。\n"
 			}
@@ -371,9 +406,18 @@ func (r *Top10HoldingsReport) ToTxt() error {
 		report += fundReport
 	}
 
+	return report
+}
+
+func (r *Top10HoldingsReport) ToTxt() error {
+	var (
+		err    error
+		report = r.TxtReport()
+	)
+
 	if len(report) == 0 {
 		report = "NO DATA TODAY"
-		glog.V(4).Infof("No higher than 10 tradings")
+		glog.V(4).Infof("No top 10 holdings")
 	}
 	err = utils.NewFileStoreSvc(r.TxtPath()).SaveString(report)
 	if err != nil {

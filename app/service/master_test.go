@@ -324,12 +324,36 @@ func Test_MasterReportStocksCurrent(t *testing.T) {
 
 	for _, stock := range stocks {
 		//NewStockDateRangeReport(stock, fromDate, endDate).Report()
-		err = TheMaster.ReportStockCurrent(stock)
+		report, err := TheMaster.ReportStockCurrent(stock)
 		if err != nil {
 			glog.Errorf("failed to report stock %s, err: %v", stock, err)
 			return
 		}
+		glog.V(4).Infof("REPORT: %s", report)
 	}
+
+	glog.V(4).Info("REPORTED")
+}
+
+func Test_MasterReportTop10(t *testing.T) {
+	var (
+		fund = "ARKK"
+		err  error
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the master, err: %v", err)
+		return
+	}
+
+	report, err := TheMaster.ReportFundTop10(fund)
+	if err != nil {
+		glog.Errorf("failed to report fund %s top10, err: %v", fund, err)
+		return
+	}
+	glog.V(4).Infof("REPORT: \n%s", report)
 
 	glog.V(4).Info("REPORTED")
 }

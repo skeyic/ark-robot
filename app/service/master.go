@@ -134,7 +134,7 @@ func (m *Master) Report(date time.Time, full bool, SpecialTradingsPercent float6
 		return err
 	}
 
-	top10HoldingsReport := NewTop10HoldingsReport(date)
+	top10HoldingsReport := NewTop10HoldingsReport(date, allARKTypes)
 	err = top10HoldingsReport.Report()
 	if err != nil {
 		glog.Errorf("top10HoldingsReport to excel failed, err: %v", err)
@@ -201,11 +201,16 @@ func (m *Master) ReportStockCurrent(ticker string) (report string, err error) {
 	return
 }
 
-func (m *Master) IsTicker(ticker string) bool{
+func (m *Master) ReportFundTop10(fund string) (report string, err error) {
+	report = TheTop10HoldingsReportMaster.GetFundTop10(fund)
+	return
+}
+
+func (m *Master) IsTicker(ticker string) bool {
 	return TheStockLibraryMaster.IsTicker(ticker)
 }
 
-func (m *Master) GetAllTickers() []string{
+func (m *Master) GetAllTickers() []string {
 	return TheStockLibraryMaster.GetAllTickers()
 }
 
