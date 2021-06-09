@@ -5,13 +5,13 @@ import (
 )
 
 var Config = struct {
-	DebugMode      bool   `default:"false" env:"DEBUG_MODE"`
-	Port           int    `default:"7766" env:"PORT"`
-	DataFolder     string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/data" env:"DATA_FOLDER"`
-	ResourceFolder string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/resource" env:"RESOURCE_FOLDER"`
+	DebugMode bool `default:"false" env:"DEBUG_MODE"`
+	Port      int  `default:"7766" env:"PORT"`
+	//DataFolder     string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/data" env:"DATA_FOLDER"`
+	//ResourceFolder string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/resource" env:"RESOURCE_FOLDER"`
 
-	//DataFolder     string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data" env:"DATA_FOLDER"`
-	//ResourceFolder string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\resource" env:"RESOURCE_FOLDER"`
+	DataFolder     string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data" env:"DATA_FOLDER"`
+	ResourceFolder string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\resource" env:"RESOURCE_FOLDER"`
 
 	NeuronServer struct {
 		URL  string `default:"http://www.xiaxuanli.com:7474" env:"NEURON_SERVER_URL"`
