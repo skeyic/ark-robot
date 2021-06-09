@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -15,7 +16,9 @@ var (
 	theFirstARKType = "ARKF"
 	theLastARKType  = "ARKX"
 	arkxDate, _     = time.Parse(TheDateFormat, "2021-03-30")
-	TheTotal        = "TOTAL"
+
+	AllFunds = strings.Join(allARKTypes, ",")
+	TheTotal = "TOTAL"
 )
 
 var (

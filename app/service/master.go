@@ -81,6 +81,7 @@ func (m *Master) StaleInit() error {
 		return err
 	}
 
+	TheTop10HoldingsReportMaster.Refresh()
 	return nil
 }
 
@@ -103,6 +104,7 @@ func (m *Master) FreshInit() error {
 	}
 
 	TheLibrary.GenerateTradings()
+	TheTop10HoldingsReportMaster.Refresh()
 
 	m.MustSave()
 	return nil

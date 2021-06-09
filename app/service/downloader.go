@@ -113,6 +113,7 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 	TheLibrary.GenerateCurrentTrading(arkHoldings)
 	TheLibrary.AddStockHoldings(arkHoldings)
 	TheStockLibraryMaster.AddStockHoldings(arkHoldings)
+	TheTop10HoldingsReportMaster.Refresh()
 
 	glog.V(4).Infof("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now())
 	if config.Config.DebugMode {

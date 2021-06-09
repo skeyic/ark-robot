@@ -19,7 +19,7 @@ import (
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /data/reports/{ticker}/current [post]
+// @Router /data/reports/stock/{ticker}/current [post]
 func ReportStockCurrent(c *gin.Context) {
 	var (
 		err    error
@@ -38,6 +38,51 @@ func ReportStockCurrent(c *gin.Context) {
 	report, err = service.TheMaster.ReportStockCurrent(ticker)
 	if err != nil {
 		msg := fmt.Sprintf("failed to report stock %s, err: %v", ticker, err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	utils.NewOkResponse(c, report)
+}
+
+// ReportFundTop10
+// @Summary ReportFundTop10
+// @Tags Data
+// @Description let the master report special fund top 10
+// @Accept json
+// @Produce json
+// @Param fund path string true "The fund name"
+// @Success 200 {object} utils.WebResponse "Ok"
+// @Failure 400 {object} utils.WebResponse "Bad request"
+// @Failure 500 {object} utils.WebResponse "Internal error"
+// @Router /data/reports/fund/{fund}/top10 [post]
+func ReportFundTop10(c *gin.Context) {
+	var (
+		err    error
+		report string
+		fund   string
+	)
+
+	fund = c.Param("fund")
+	if fund == "" {
+		msg := fmt.Sprintf("Empty fund")
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	isFund := service.IsFund(fund)
+	if !isFund {
+		msg := fmt.Sprintf("No such fund: %s, we only support %s", fund, service.AllFunds)
+		glog.Error(msg)
+		utils.NewNotFoundError(c, msg)
+		return
+	}
+
+	report, err = service.TheMaster.ReportFundTop10(fund)
+	if err != nil {
+		msg := fmt.Sprintf("failed to report fund %s top 10, err: %v", fund, err)
 		glog.Error(msg)
 		utils.NewBadRequestError(c, msg)
 		return

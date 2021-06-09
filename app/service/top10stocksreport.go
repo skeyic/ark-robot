@@ -34,18 +34,22 @@ func NewTop10HoldingsReportMaster() *Top10HoldingsReportMaster {
 	}
 }
 
+func (m *Top10HoldingsReportMaster) Refresh() {
+	m.lock.Lock()
+	for _, fund := range allARKTypes {
+		m.Reports[fund] = NewTop10HoldingsReport(TheLibrary.GetLatestHoldingDate(), []string{fund})
+	}
+	m.lock.Unlock()
+}
+
 func (m *Top10HoldingsReportMaster) GetFundTop10(fund string) (report string) {
 	m.lock.RLock()
 	theReport := m.Reports[fund]
 	m.lock.RUnlock()
 
 	if theReport == nil {
-		theReport = NewTop10HoldingsReport(TheLibrary.GetLatestHoldingDate(), []string{fund})
-		m.lock.Lock()
-		m.Reports[fund] = theReport
-		m.lock.Unlock()
+		panic("We should never reach here, no top 10 holding")
 	}
-	glog.V(4).Infof("THE REPORT: %v", theReport)
 	return theReport.TxtReport()
 }
 
@@ -379,7 +383,7 @@ func (r *Top10HoldingsReport) TxtReport() string {
 			fundReport string
 		)
 
-		fundReport += fmt.Sprintf("基金【%s】的前十持仓信息:\n", data.Fund)
+		fundReport += fmt.Sprintf("基金【%s】的前十持仓信息(%s盘前):\n", data.Fund, r.Date)
 
 		if len(data.Data) != 0 {
 			for idx, theData := range data.Data {
@@ -390,7 +394,7 @@ func (r *Top10HoldingsReport) TxtReport() string {
 		}
 
 		if data.DiffData != nil && len(data.DiffData.Data) != 0 {
-			fundReport += "\n排名变化："
+			fundReport += "\n相比上个交易日的排名变化："
 			for _, diffData := range data.DiffData.Data {
 				txt := diffData.ToTxt()
 				if len(txt) > 0 {

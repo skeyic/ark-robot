@@ -81,7 +81,7 @@ var doc = `{
                 }
             }
         },
-        "/actions/reports/report": {
+        "/actions/reports": {
             "post": {
                 "description": "let the master report special date",
                 "consumes": [
@@ -246,7 +246,51 @@ var doc = `{
                 }
             }
         },
-        "/data/reports/{ticker}/current": {
+        "/data/reports/fund/{fund}/top10": {
+            "post": {
+                "description": "let the master report special fund top 10",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Data"
+                ],
+                "summary": "ReportFundTop10",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The fund name",
+                        "name": "fund",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/data/reports/stock/{ticker}/current": {
             "post": {
                 "description": "let the master report special stock current status",
                 "consumes": [

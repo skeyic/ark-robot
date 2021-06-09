@@ -337,7 +337,7 @@ func Test_MasterReportStocksCurrent(t *testing.T) {
 
 func Test_MasterReportTop10(t *testing.T) {
 	var (
-		fund = "ARKK"
+		fund = "ARKG"
 		err  error
 	)
 

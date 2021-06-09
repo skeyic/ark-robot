@@ -22,6 +22,15 @@ var (
 	TheLibrary = NewLibrary(libraryFolder)
 )
 
+func IsFund(fund string) bool {
+	for _, theFund := range allARKTypes {
+		if theFund == fund {
+			return true
+		}
+	}
+	return false
+}
+
 type ARKHoldings struct {
 	Date time.Time
 	ARKK *StockHoldings
