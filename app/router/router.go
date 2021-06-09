@@ -40,8 +40,8 @@ func InitRouter() *gin.Engine {
 	{
 		reports := data.Group("/reports")
 		{
-			reports.POST("/stock/:ticker/current", control.ReportStockCurrent)
-			reports.POST("/fund/:fund/top10", control.ReportFundTop10)
+			reports.POST("/stocks/:ticker/current", control.ReportStockCurrent)
+			reports.POST("/funds/:fund/top10", control.ReportFundTop10)
 		}
 
 		tickers := data.Group("/tickers")

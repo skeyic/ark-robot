@@ -19,7 +19,7 @@ import (
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /data/reports/stock/{ticker}/current [post]
+// @Router /data/reports/stocks/{ticker}/current [post]
 func ReportStockCurrent(c *gin.Context) {
 	var (
 		err    error
@@ -56,7 +56,7 @@ func ReportStockCurrent(c *gin.Context) {
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
-// @Router /data/reports/fund/{fund}/top10 [post]
+// @Router /data/reports/funds/{fund}/top10 [post]
 func ReportFundTop10(c *gin.Context) {
 	var (
 		err    error
