@@ -383,7 +383,7 @@ func NewStockTradingTxtFromTrading(trading *StockTrading) string {
 		}
 	case TradeSell:
 		if trading.Percent == -100 {
-			result = fmt.Sprintf("%s清仓，卖出%.0f股。\n", trading.Fund, trading.PreviousHolding)
+			result = fmt.Sprintf("%s清仓，卖出%.0f股。", trading.Fund, trading.PreviousHolding)
 		} else {
 			result = fmt.Sprintf("%s减持%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund,
 				math.Abs(trading.Percent), math.Abs(trading.Shards), trading.PreviousHolding, trading.Holding)
