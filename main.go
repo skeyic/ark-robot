@@ -29,6 +29,7 @@ func main() {
 		panic(fmt.Sprintf("master failed to fresh init, err: %v", err))
 	}
 	go service.TheMaster.StartDownload()
+	go service.TheMaster.ReportLatestTrading(true)
 
 	r := router.InitRouter()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
