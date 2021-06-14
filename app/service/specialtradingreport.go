@@ -7,8 +7,62 @@ import (
 	"github.com/skeyic/ark-robot/utils"
 	"math"
 	"strconv"
+	"sync"
 	"time"
 )
+
+var (
+	TheContinue3DaysReportMaster = NewContinue3DaysReportMaster()
+	TheBigSwingsReportMaster     = NewBigSwingsReportMaster()
+)
+
+type Continue3DaysReportMaster struct {
+	lock   *sync.RWMutex
+	report string
+}
+
+func NewContinue3DaysReportMaster() *Continue3DaysReportMaster {
+	return &Continue3DaysReportMaster{
+		lock: &sync.RWMutex{},
+	}
+}
+
+func (m *Continue3DaysReportMaster) SetReport(report string) {
+	m.lock.Lock()
+	m.report = report
+	m.lock.Unlock()
+}
+
+func (m *Continue3DaysReportMaster) GetReport() string {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	return m.report
+}
+
+type BigSwingsReportMaster struct {
+	lock   *sync.RWMutex
+	report string
+}
+
+func NewBigSwingsReportMaster() *BigSwingsReportMaster {
+	return &BigSwingsReportMaster{
+		lock: &sync.RWMutex{},
+	}
+}
+
+func (m *BigSwingsReportMaster) SetReport(report string) {
+	m.lock.Lock()
+	m.report = report
+	m.lock.Unlock()
+}
+
+func (m *BigSwingsReportMaster) GetReport() string {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	return m.report
+}
 
 type SpecialTradingsReport struct {
 	Date             string
@@ -212,6 +266,8 @@ func (r *SpecialTradingsReport) Report() error {
 
 	higherThan10TxtContent := specialTradingReport.Report()
 	if len(higherThan10TxtContent) > 0 {
+		higherThan10TxtContent = append([]byte(fmt.Sprintf("基于ARK基金公开的截止%s（不含）的持仓数据，以下个股在上个交易日变动超过%.0f%%：\n", r.Date, r.Percent)), higherThan10TxtContent...)
+		TheBigSwingsReportMaster.SetReport(string(higherThan10TxtContent))
 		err = utils.NewFileStoreSvc(r.HigherThan10TxtPath()).Save(higherThan10TxtContent)
 		if err != nil {
 			glog.Errorf("failed to save txt %s, err: %v", r.HigherThan10TxtPath(), err)
@@ -223,6 +279,8 @@ func (r *SpecialTradingsReport) Report() error {
 
 	continuousDirectionTxtContent := continuousDirectionReport.Report()
 	if len(continuousDirectionTxtContent) > 0 {
+		continuousDirectionTxtContent = append([]byte(fmt.Sprintf("基于ARK基金公开的截止%s（不含）的持仓数据，以下个股在连续三个交易日发生同向变动：\n", r.Date)), continuousDirectionTxtContent...)
+		TheContinue3DaysReportMaster.SetReport(string(continuousDirectionTxtContent))
 		err = utils.NewFileStoreSvc(r.ContinuousDirectionTxtPath()).Save(continuousDirectionTxtContent)
 		if err != nil {
 			glog.Errorf("failed to save txt %s, err: %v", r.ContinuousDirectionTxtPath(), err)

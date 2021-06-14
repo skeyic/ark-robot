@@ -383,7 +383,7 @@ func (r *Top10HoldingsReport) TxtReport() string {
 			fundReport string
 		)
 
-		fundReport += fmt.Sprintf("基金【%s】的前十持仓信息(%s盘前):\n", data.Fund, r.Date)
+		fundReport += fmt.Sprintf("基于ARK基金公开的截止%s（不含）的持仓数据，基金【%s】的前十持仓信息如下:\n", r.Date, data.Fund)
 
 		if len(data.Data) != 0 {
 			for idx, theData := range data.Data {
@@ -404,7 +404,7 @@ func (r *Top10HoldingsReport) TxtReport() string {
 			}
 			if exits {
 				fundReport = strings.TrimSuffix(fundReport, "；")
-				fundReport += "。\n"
+				fundReport += "。\n\n"
 			}
 		}
 		report += fundReport

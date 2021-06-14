@@ -246,7 +246,77 @@ var doc = `{
                 }
             }
         },
-        "/data/reports/fund/{fund}/top10": {
+        "/data/reports/funds/all/bigswings": {
+            "get": {
+                "description": "let the master report special tradings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Data"
+                ],
+                "summary": "ReportBigSwings",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/data/reports/funds/all/continue3days": {
+            "get": {
+                "description": "let the master report continue 3 days tradings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Data"
+                ],
+                "summary": "ReportContinue3Days",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.WebResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/data/reports/funds/{fund}/top10": {
             "post": {
                 "description": "let the master report special fund top 10",
                 "consumes": [
@@ -290,7 +360,7 @@ var doc = `{
                 }
             }
         },
-        "/data/reports/stock/{ticker}/current": {
+        "/data/reports/stocks/{ticker}/current": {
             "post": {
                 "description": "let the master report special stock current status",
                 "consumes": [

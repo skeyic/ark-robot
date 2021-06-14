@@ -208,6 +208,16 @@ func (m *Master) ReportFundTop10(fund string) (report string, err error) {
 	return
 }
 
+func (m *Master) ReportContinue3Days() (report string, err error) {
+	report = TheContinue3DaysReportMaster.GetReport()
+	return
+}
+
+func (m *Master) ReportBigSwings() (report string, err error) {
+	report = TheBigSwingsReportMaster.GetReport()
+	return
+}
+
 func (m *Master) IsTicker(ticker string) bool {
 	return TheStockLibraryMaster.IsTicker(ticker)
 }

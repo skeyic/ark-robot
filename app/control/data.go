@@ -91,6 +91,60 @@ func ReportFundTop10(c *gin.Context) {
 	utils.NewOkResponse(c, report)
 }
 
+// ReportContinue3Days
+// @Summary ReportContinue3Days
+// @Tags Data
+// @Description let the master report continue 3 days tradings
+// @Accept json
+// @Produce json
+// @Success 200 {object} utils.WebResponse "Ok"
+// @Failure 400 {object} utils.WebResponse "Bad request"
+// @Failure 500 {object} utils.WebResponse "Internal error"
+// @Router /data/reports/funds/all/continue3days [get]
+func ReportContinue3Days(c *gin.Context) {
+	var (
+		err    error
+		report string
+	)
+
+	report, err = service.TheMaster.ReportContinue3Days()
+	if err != nil {
+		msg := fmt.Sprintf("failed to report continue 3 days tradings, err: %v", err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	utils.NewOkResponse(c, report)
+}
+
+// ReportBigSwings
+// @Summary ReportBigSwings
+// @Tags Data
+// @Description let the master report special tradings
+// @Accept json
+// @Produce json
+// @Success 200 {object} utils.WebResponse "Ok"
+// @Failure 400 {object} utils.WebResponse "Bad request"
+// @Failure 500 {object} utils.WebResponse "Internal error"
+// @Router /data/reports/funds/all/bigswings [get]
+func ReportBigSwings(c *gin.Context) {
+	var (
+		err    error
+		report string
+	)
+
+	report, err = service.TheMaster.ReportBigSwings()
+	if err != nil {
+		msg := fmt.Sprintf("failed to report fund big swings tradings, err: %v", err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+
+	utils.NewOkResponse(c, report)
+}
+
 // GetAllTickers
 // @Summary GetAllTickers
 // @Tags Data

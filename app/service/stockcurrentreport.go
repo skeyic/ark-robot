@@ -65,7 +65,7 @@ func (r *StockCurrentReport) TxtReport() string {
 		report = r.CurrentHolding.TxtReport()
 	)
 
-	report += "\n分析最近五日的交易数据：" + r.DataRangeReport.Details.TxtReport()
+	report += "\n分析最近五个交易日的数据：" + r.DataRangeReport.Details.TxtReport()
 	return report
 }
 

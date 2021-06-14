@@ -634,6 +634,8 @@ func (s *StockARKHoldings) TxtReport() string {
 	}
 	//report += strings.TrimSuffix(report, "，") + "。" + "\n"
 
+	report = fmt.Sprintf("基于ARK基金公开的截止%s（不含）的持仓数据，", s.Date.Format(TheDateFormat)) + report
+
 	return report
 }
 
