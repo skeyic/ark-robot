@@ -42,6 +42,7 @@ func ReportStockCurrent(c *gin.Context) {
 		utils.NewBadRequestError(c, msg)
 		return
 	}
+	glog.V(4).Infof("REPORT: %s", report)
 
 	utils.NewOkResponse(c, report)
 }
@@ -87,6 +88,7 @@ func ReportFundTop10(c *gin.Context) {
 		utils.NewBadRequestError(c, msg)
 		return
 	}
+	glog.V(4).Infof("REPORT: %s", report)
 
 	utils.NewOkResponse(c, report)
 }
@@ -114,6 +116,7 @@ func ReportContinue3Days(c *gin.Context) {
 		utils.NewBadRequestError(c, msg)
 		return
 	}
+	glog.V(4).Infof("REPORT: %s", report)
 
 	utils.NewOkResponse(c, report)
 }
@@ -141,6 +144,7 @@ func ReportBigSwings(c *gin.Context) {
 		utils.NewBadRequestError(c, msg)
 		return
 	}
+	glog.V(4).Infof("REPORT: %s", report)
 
 	utils.NewOkResponse(c, report)
 }

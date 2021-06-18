@@ -37,7 +37,7 @@ func (r *StockCurrentReport) Load() error {
 		return errNoLatestDate
 	}
 
-	latestStockHolding := TheStockLibraryMaster.GetStockCurrentHolding(r.Ticker)
+	latestStockHolding := TheStockLibraryMaster.GetStockLatestHolding(r.Ticker)
 	if latestStockHolding.Date != latestDate {
 		return errStockNotHold
 	}
@@ -65,7 +65,7 @@ func (r *StockCurrentReport) TxtReport() string {
 		report = r.CurrentHolding.TxtReport()
 	)
 
-	report += "\n分析最近五个交易日的数据：" + r.DataRangeReport.Details.TxtReport()
+	report += "\n分析最近五个交易日的数据：\n" + r.DataRangeReport.Details.TxtReport()
 	return report
 }
 

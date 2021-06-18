@@ -14,13 +14,13 @@ var Config = struct {
 	ResourceFolder string `default:"C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\resource" env:"RESOURCE_FOLDER"`
 
 	NeuronServer struct {
-		URL  string `default:"http://www.xiaxuanli.com:7474" env:"NEURON_SERVER_URL"`
+		URL  string `default:"http://www.tanglicai.xyz:7474" env:"NEURON_SERVER_URL"`
 		User string `default:"79c721a6-4d0b-4b2b-bc7c-0050fe5484a2" env:"NEURON_SERVER_USER"`
 	}
 
 	ESServer struct {
 		Force bool   `default:"false" env:"ES_SERVER_FORCE"`
-		URL   string `default:"http://www.xiaxuanli.com:7222" env:"ES_SERVER_URL"`
+		URL   string `default:"http://www.tanglicai.xyz:7222" env:"ES_SERVER_URL"`
 	}
 
 	Report struct {

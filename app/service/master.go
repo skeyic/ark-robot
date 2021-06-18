@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/config"
 	"sync"
@@ -194,6 +195,16 @@ func (m *Master) ReportStockCurrent(ticker string) (report string, err error) {
 
 	err = r.Load()
 	if err != nil {
+		if err == errStockNotHold {
+			var (
+				report = fmt.Sprintf("ARK当前未持有%s", ticker)
+			)
+			h := TheStockLibraryMaster.GetStockLatestTrading(ticker)
+			if h != nil {
+				report += fmt.Sprintf("，ARK曾经持有，但于%s清完全部的持仓。", h.Date.Format(TheDateFormat))
+			}
+			return report, nil
+		}
 		glog.Errorf("report stock %s failed, err: %v", ticker, err)
 		return
 	}

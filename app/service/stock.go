@@ -617,7 +617,7 @@ func (s *StockARKHoldings) TxtReport() string {
 	for _, fund := range allARKTypes {
 		theHolding := s.GetFundHolding(fund)
 		if theHolding != nil {
-			report += fmt.Sprintf("  %s持有%s股(比重%.2f%%)，市值为%s美元。\n", theHolding.Fund,
+			report += fmt.Sprintf("\t%s持有%s股(比重%.2f%%)，市值为%s美元。\n", theHolding.Fund,
 				utils.ThousandFormatFloat64(theHolding.Shards), theHolding.Weight,
 				utils.ThousandFormatFloat64(theHolding.MarketValue))
 			totalShards += theHolding.Shards

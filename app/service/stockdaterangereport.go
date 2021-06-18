@@ -124,15 +124,15 @@ func (r *stockDateRangeDetails) TxtReport() string {
 
 		}
 		if dateIdx == 0 {
-			txtDailyHoldingReport = "期初" + txtDailyHoldingReport
+			txtDailyHoldingReport = "\t期初" + txtDailyHoldingReport
 			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
 			holdingReport += txtDailyHoldingReport + "\n"
 		} else if dateIdx == len(r.dateList)-1 {
-			txtDailyHoldingReport = "期末" + txtDailyHoldingReport
+			txtDailyHoldingReport = " \t期末" + txtDailyHoldingReport
 			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
 			holdingReport += txtDailyHoldingReport + "\n"
 		}
-		tradingReport += "  " + today + txtDailyTradingTemp
+		tradingReport += "\t" + today + txtDailyTradingTemp
 	}
 
 	return holdingReport + r.tradingSummary.TxtReport() + tradingReport
@@ -380,7 +380,7 @@ func (t *stockDataRangeTradingAnalysis) TxtReport() string {
 			utils.ThousandFormatFloat64(-1*t.maxSellShards))
 	}
 
-	msg += "\n\n具体如下：\n"
+	msg += "\n具体如下：\n"
 
 	return msg
 }

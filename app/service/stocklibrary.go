@@ -159,7 +159,7 @@ func (r *StockLibraryMaster) GetStockLibrary(ticker string) *StockLibrary {
 	return r.StockLibraries[ticker]
 }
 
-func (r *StockLibraryMaster) GetStockCurrentHolding(ticker string) *StockARKHoldings {
+func (r *StockLibraryMaster) GetStockLatestHolding(ticker string) *StockARKHoldings {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
@@ -187,7 +187,7 @@ func (r *StockLibraryMaster) GetStockCurrentFundHolding(ticker, fund string) *St
 	return nil
 }
 
-func (r *StockLibraryMaster) GetStockCurrentTrading(ticker string) *StockARKTradings {
+func (r *StockLibraryMaster) GetStockLatestTrading(ticker string) *StockARKTradings {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 

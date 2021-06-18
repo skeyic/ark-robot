@@ -310,7 +310,7 @@ func Test_MasterReportStocksCurrent(t *testing.T) {
 	var (
 		err error
 		//stocks = []string{"TSLA"}
-		stocks = []string{"HUYA"}
+		stocks = []string{"API"}
 		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
 		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
 	)
@@ -330,6 +330,10 @@ func Test_MasterReportStocksCurrent(t *testing.T) {
 			return
 		}
 		glog.V(4).Infof("REPORT: %s", report)
+		h := TheStockLibraryMaster.GetStockLatestHolding(stock)
+		glog.V(4).Infof("HHH: %v", h)
+		t := TheStockLibraryMaster.GetStockLatestTrading(stock)
+		glog.V(4).Infof("TTT: %v", t)
 	}
 
 	glog.V(4).Info("REPORTED")
@@ -376,7 +380,7 @@ func Test_MasterNewStockLibraryMaster(t *testing.T) {
 
 	for _, stock := range stocks {
 		//NewStockDateRangeReport(stock, fromDate, endDate).Report()
-		currentHolding := TheStockLibraryMaster.GetStockCurrentHolding(stock)
+		currentHolding := TheStockLibraryMaster.GetStockLatestHolding(stock)
 		if currentHolding != nil {
 			for _, fund := range allARKTypes {
 				holding := currentHolding.GetFundHolding(fund)
@@ -390,7 +394,7 @@ func Test_MasterNewStockLibraryMaster(t *testing.T) {
 			glog.V(4).Infof("currentHolding is empty")
 		}
 
-		currentTrading := TheStockLibraryMaster.GetStockCurrentTrading(stock)
+		currentTrading := TheStockLibraryMaster.GetStockLatestTrading(stock)
 		if currentTrading != nil {
 			for _, fund := range allARKTypes {
 				holding := currentTrading.GetFundTrading(fund)
