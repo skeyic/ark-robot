@@ -15,5 +15,5 @@ func TestGRPC(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 	TheClient := &Client{server: fmt.Sprintf("localhost:%d", config.Config.RpcPort)}
-	TheClient.GetCurrentStockReport()
+	TheClient.GetCurrentStockReport("JD")
 }

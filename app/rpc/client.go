@@ -12,7 +12,11 @@ type Client struct {
 	server string
 }
 
-func (c *Client) GetCurrentStockReport() {
+func NewClient(server string) *Client {
+	return &Client{server: server}
+}
+
+func (c *Client) GetCurrentStockReport(ticker string) {
 	conn, err := grpc.Dial(c.server, grpc.WithInsecure())
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect %s", c.server))
@@ -22,7 +26,7 @@ func (c *Client) GetCurrentStockReport() {
 
 	t := cocoa.NewWaiterClient(conn)
 
-	tr, err := t.GetCurrentStockReport(context.Background(), &cocoa.Req{JsonStr: "TEST COCCA"})
+	tr, err := t.GetCurrentStockReport(context.Background(), &cocoa.Req{JsonStr: ticker})
 	if err != nil {
 		panic(fmt.Sprintf("failed to get current stock report: %v", err))
 	}

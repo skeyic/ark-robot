@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/app/router"
+	"github.com/skeyic/ark-robot/app/rpc"
 	"github.com/skeyic/ark-robot/app/service"
 	"github.com/skeyic/ark-robot/config"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -19,15 +20,18 @@ import (
 // @BasePath /
 
 func main() {
-	//var (
-	//	err error
-	//)
+	var (
+		err error
+	)
 
 	flag.Parse()
-	err := service.TheMaster.FreshInit()
+	err = service.TheMaster.FreshInit()
 	if err != nil {
 		panic(fmt.Sprintf("master failed to fresh init, err: %v", err))
 	}
+
+	go rpc.TheServer.Start()
+
 	go service.TheMaster.StartDownload()
 	go service.TheMaster.ReportLatestTrading(true)
 
