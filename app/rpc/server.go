@@ -44,6 +44,12 @@ func (s *Server) Start() {
 	}
 }
 
+func (s *Server) Hello(ctx context.Context, in *cocoa.Req) (*cocoa.Res, error) {
+	return &cocoa.Res{
+		BackJson: in.JsonStr,
+	}, nil
+}
+
 func (s *Server) GetCurrentStockReport(ctx context.Context, in *cocoa.Req) (*cocoa.Res, error) {
 	var (
 		err    error

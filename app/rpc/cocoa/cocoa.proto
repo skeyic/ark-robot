@@ -4,6 +4,7 @@ package cocoa;
 option go_package = "github.com/skeyic/ark-robot/app/rpc/cocoa";
 
 service Waiter {
+  rpc Hello (Req) returns (Res) {}
   rpc GetCurrentStockReport (Req) returns (Res) {}
 }
 

@@ -1,0 +1,2 @@
+!/bin/sh
+protoc -I cocoa/ cocoa/cocoa.proto --go_out=plugins=grpc:C:\Users\15902\go\src\
