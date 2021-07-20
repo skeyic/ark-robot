@@ -61,6 +61,7 @@ func NewStockHoldingFromRecord(record []string) *StockHolding {
 			ticker = newTicker
 		} else {
 			ticker = strings.ReplaceAll(record[2], " ", "_")
+			ticker = strings.TrimSuffix(ticker, " ")
 		}
 	}
 

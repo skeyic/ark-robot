@@ -73,7 +73,9 @@ func (r *StockLibraryMaster) GetAllTickers() (p []string) {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 	for ticker := range r.StockLibraries {
-		p = append(p, ticker)
+		if !toSkipTicker(ticker) {
+			p = append(p, ticker)
+		}
 	}
 	return
 }
