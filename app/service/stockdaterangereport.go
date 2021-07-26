@@ -22,27 +22,37 @@ type StockDateRangeReport struct {
 	ReportTime time.Time
 	TotalDays  int64
 
+	Funds []string
+
 	// generate by load
 	Details *stockDateRangeDetails
 }
 
-func NewStockDateRangeReport(ticker string, fromDate, endDate time.Time) *StockDateRangeReport {
+func NewStockDateRangeReport(ticker string, fromDate, endDate time.Time, funds string) *StockDateRangeReport {
 	r := &StockDateRangeReport{
 		Ticker:     ticker,
 		FromDate:   fromDate,
 		EndDate:    endDate,
 		ReportTime: time.Now(),
+		Funds:      strings.Split(funds, ","),
+	}
+	if len(r.Funds) == 0 {
+		r.Funds = allARKTypes
 	}
 	utils.CheckFolder(r.ReportFolder())
 	return r
 }
 
-func NewStockDateRangeReportFromDays(ticker string, days int64) *StockDateRangeReport {
+func NewStockDateRangeReportFromDays(ticker string, days int64, funds string) *StockDateRangeReport {
 	r := &StockDateRangeReport{
 		Ticker:     ticker,
 		EndDate:    time.Now(),
 		ReportTime: time.Now(),
 		TotalDays:  days,
+		Funds:      strings.Split(funds, ","),
+	}
+	if len(r.Funds) == 0 {
+		r.Funds = allARKTypes
 	}
 	utils.CheckFolder(r.ReportFolder())
 	return r
@@ -106,13 +116,13 @@ func (r *stockDateRangeDetails) TxtReport() string {
 			// Set the total
 			if idx == len(r.fundList)-1 {
 				if r.dailyDetail[theDate].totalHoldingShards != 0 {
-					txtDailyHoldingTemp = fmt.Sprintf("ARK共持有%s股，市值为%s美元，其中",
-						utils.ThousandFormatFloat64(totalHoldingShards), utils.ThousandFormatFloat64(totalHoldingMarketValue)) + txtDailyHoldingTemp
+					txtDailyHoldingTemp = fmt.Sprintf("ARK（%s）共持有%s股，市值为%s美元，其中",
+						r.fundList, utils.ThousandFormatFloat64(totalHoldingShards), utils.ThousandFormatFloat64(totalHoldingMarketValue)) + txtDailyHoldingTemp
 				} else {
 					txtDailyHoldingTemp = "ARK未持有"
 				}
 
-				txtDailyTradingTemp += "ARK总持有股数"
+				txtDailyTradingTemp += fmt.Sprintf("ARK（%s）总持有股数", r.fundList)
 				if totalTradingShards > 0 {
 					txtDailyTradingTemp += fmt.Sprintf("增加%s股。\n", utils.ThousandFormatFloat64(totalTradingShards))
 				} else if totalTradingShards < 0 {
@@ -294,7 +304,7 @@ func (r *StockDateRangeReport) Load() error {
 		fundList []string
 	)
 
-	for _, fund := range allARKTypes {
+	for _, fund := range r.Funds {
 		for i := 0; i < len(dateList); i++ {
 			holdings := stock.HistoryStockHoldings[dateList[i]]
 
@@ -558,8 +568,8 @@ func (r *StockDateRangeReport) Report() error {
 	}
 
 	var (
-		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（%d月%d日至%d月%d日）的分析: \n",
-			r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
+		txtReport = `对ARK持仓中` + r.Ticker + fmt.Sprintf("（基金：%s, 日期：%d月%d日至%d月%d日）的分析: \n",
+			r.Funds, r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
 	)
 
 	err = r.ReportExcel()

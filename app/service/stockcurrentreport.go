@@ -43,7 +43,7 @@ func (r *StockCurrentReport) Load() error {
 	}
 	r.CurrentHolding = latestStockHolding
 
-	r.DataRangeReport = NewStockDateRangeReportFromDays(r.Ticker, HistoryDays)
+	r.DataRangeReport = NewStockDateRangeReportFromDays(r.Ticker, HistoryDays, "")
 	err = r.DataRangeReport.Load()
 	if err != nil {
 		glog.Errorf("failed to load the data range report, ticker: %s, from: %s, end: %s, days: %d, err: %v",

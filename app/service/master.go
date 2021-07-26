@@ -161,12 +161,12 @@ func (m *Master) Report(date time.Time, full bool, SpecialTradingsPercent float6
 	return nil
 }
 
-func (m *Master) ReportStock(ticker string, fromDate, endDate time.Time) error {
+func (m *Master) ReportStock(ticker string, fromDate, endDate time.Time, funds string) error {
 	var (
 		err error
 	)
 
-	err = NewStockDateRangeReport(ticker, fromDate, endDate).Report()
+	err = NewStockDateRangeReport(ticker, fromDate, endDate, funds).Report()
 	if err != nil {
 		glog.Errorf("report stock %s from %s to %s failed, err: %v", ticker, fromDate.Format(TheDateFormat),
 			endDate.Format(TheDateFormat), err)
@@ -176,12 +176,12 @@ func (m *Master) ReportStock(ticker string, fromDate, endDate time.Time) error {
 	return nil
 }
 
-func (m *Master) ReportStockByDays(ticker string, days int64) error {
+func (m *Master) ReportStockByDays(ticker string, days int64, funds string) error {
 	var (
 		err error
 	)
 
-	err = NewStockDateRangeReportFromDays(ticker, days).Report()
+	err = NewStockDateRangeReportFromDays(ticker, days, funds).Report()
 	if err != nil {
 		glog.Errorf("report stock %s for %d days failed, err: %v", ticker, days, err)
 		return err

@@ -110,6 +110,7 @@ func Report(c *gin.Context) {
 // @Param stock query string true "The stock ticker"
 // @Param from_date query string true "The report from date"
 // @Param end_date query string true "The report end date"
+// @Param funds query string false "The funds"
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
@@ -119,6 +120,7 @@ func ReportStock(c *gin.Context) {
 		err               error
 		fromDate, endDate time.Time
 		ticker            string
+		funds             string
 	)
 
 	fromDateInput := c.Query("from_date")
@@ -147,9 +149,10 @@ func ReportStock(c *gin.Context) {
 		return
 	}
 
+	funds = c.Query("funds")
 	tickers := strings.Split(ticker, ",")
 	for _, theTicker := range tickers {
-		err = service.TheMaster.ReportStock(theTicker, fromDate, endDate)
+		err = service.TheMaster.ReportStock(theTicker, fromDate, endDate, funds)
 		if err != nil {
 			msg := fmt.Sprintf("failed to report stock %s, fromDate: %s, endDate: %s, err: %v", ticker, fromDateInput, endDateInput, err)
 			glog.Error(msg)
@@ -169,6 +172,7 @@ func ReportStock(c *gin.Context) {
 // @Produce json
 // @Param stock query string true "The stock ticker"
 // @Param days query int true "The report days"
+// @Param funds query string false "The funds"
 // @Success 200 {object} utils.WebResponse "Ok"
 // @Failure 400 {object} utils.WebResponse "Bad request"
 // @Failure 500 {object} utils.WebResponse "Internal error"
@@ -178,6 +182,7 @@ func ReportStockByDays(c *gin.Context) {
 		err    error
 		days   int64
 		ticker string
+		funds  string
 	)
 
 	daysInput := c.Query("days")
@@ -197,9 +202,10 @@ func ReportStockByDays(c *gin.Context) {
 		return
 	}
 
+	funds = c.Query("funds")
 	tickers := strings.Split(ticker, ",")
 	for _, theTicker := range tickers {
-		err = service.TheMaster.ReportStockByDays(theTicker, days)
+		err = service.TheMaster.ReportStockByDays(theTicker, days, funds)
 		if err != nil {
 			msg := fmt.Sprintf("failed to report stock %s, days: %d, err: %v", ticker, days, err)
 			glog.Error(msg)
