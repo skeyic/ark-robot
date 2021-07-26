@@ -34,10 +34,11 @@ func NewStockDateRangeReport(ticker string, fromDate, endDate time.Time, funds s
 		FromDate:   fromDate,
 		EndDate:    endDate,
 		ReportTime: time.Now(),
-		Funds:      strings.Split(funds, ","),
 	}
-	if len(r.Funds) == 0 {
+	if funds == "" {
 		r.Funds = allARKTypes
+	} else {
+		r.Funds = strings.Split(funds, ",")
 	}
 	utils.CheckFolder(r.ReportFolder())
 	return r
@@ -49,10 +50,11 @@ func NewStockDateRangeReportFromDays(ticker string, days int64, funds string) *S
 		EndDate:    time.Now(),
 		ReportTime: time.Now(),
 		TotalDays:  days,
-		Funds:      strings.Split(funds, ","),
 	}
-	if len(r.Funds) == 0 {
+	if funds == "" {
 		r.Funds = allARKTypes
+	} else {
+		r.Funds = strings.Split(funds, ",")
 	}
 	utils.CheckFolder(r.ReportFolder())
 	return r
@@ -219,6 +221,8 @@ func (r *stockDateRangeDetails) TxtReportV2() string {
 }
 
 type stockDailyDetail struct {
+	funds []string
+
 	theDate  time.Time
 	holdings *StockARKHoldings
 	tradings *StockARKTradings
@@ -228,8 +232,9 @@ type stockDailyDetail struct {
 	totalTradingShards      float64
 }
 
-func newStockDailyDetail(theDate time.Time, holdings *StockARKHoldings, tradings *StockARKTradings) *stockDailyDetail {
+func newStockDailyDetail(funds []string, theDate time.Time, holdings *StockARKHoldings, tradings *StockARKTradings) *stockDailyDetail {
 	detail := &stockDailyDetail{
+		funds:    funds,
 		theDate:  theDate,
 		holdings: holdings,
 		tradings: tradings,
@@ -243,7 +248,7 @@ func (d *stockDailyDetail) Sum() {
 	var (
 		totalHoldingShards, totalHoldingMarketValue, totalTradingShards float64
 	)
-	for _, fund := range allARKTypes {
+	for _, fund := range d.funds {
 		holding := d.holdings.GetFundHolding(fund)
 		if holding != nil {
 			totalHoldingShards += holding.Shards
@@ -324,7 +329,7 @@ func (r *StockDateRangeReport) Load() error {
 		var (
 			theDate = dateList[i]
 		)
-		stockDetails.dailyDetail[theDate] = newStockDailyDetail(theDate, stock.HistoryStockHoldings[theDate], stock.HistoryStockTradings[theDate])
+		stockDetails.dailyDetail[theDate] = newStockDailyDetail(r.Funds, theDate, stock.HistoryStockHoldings[theDate], stock.HistoryStockTradings[theDate])
 	}
 
 	r.Details = stockDetails
