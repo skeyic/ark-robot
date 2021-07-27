@@ -26,6 +26,7 @@ func main() {
 
 	flag.Parse()
 	err = service.TheMaster.FreshInit()
+	//err = service.TheMaster.StaleInit()
 	if err != nil {
 		panic(fmt.Sprintf("master failed to fresh init, err: %v", err))
 	}

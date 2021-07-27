@@ -166,6 +166,7 @@ func (r *StockLibraryMaster) GetStockLatestHolding(ticker string) *StockARKHoldi
 	defer r.lock.RUnlock()
 
 	stockLibrary := r.StockLibraries[ticker]
+	glog.V(10).Infof("stockLibrary: %+v", stockLibrary)
 	if stockLibrary != nil {
 		if stockLibrary.LatestStockHolding != nil {
 			return stockLibrary.LatestStockHolding

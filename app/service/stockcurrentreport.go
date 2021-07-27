@@ -36,9 +36,11 @@ func (r *StockCurrentReport) Load() error {
 	if latestDate.IsZero() {
 		return errNoLatestDate
 	}
+	glog.V(10).Infof("latestDate: %s", latestDate)
 
 	latestStockHolding := TheStockLibraryMaster.GetStockLatestHolding(r.Ticker)
-	if latestStockHolding.Date != latestDate {
+	glog.V(10).Infof("latestStockHolding: %+v", latestStockHolding)
+	if latestStockHolding == nil || latestStockHolding.Date != latestDate {
 		return errStockNotHold
 	}
 	r.CurrentHolding = latestStockHolding
@@ -52,6 +54,7 @@ func (r *StockCurrentReport) Load() error {
 	}
 
 	allDates := r.DataRangeReport.Details.dateList
+	glog.V(10).Infof("allDates: %+v", allDates)
 	if allDates[len(allDates)-1] != latestDate {
 		glog.Warningf("The stock %s was not in the ARK holding of %s", r.Ticker, latestDate)
 		return errStockNotHold

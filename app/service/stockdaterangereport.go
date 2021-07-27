@@ -299,7 +299,7 @@ func (r *StockDateRangeReport) Load() error {
 
 	sort.Sort(dateList)
 
-	if byDays {
+	if byDays && len(dateList) > int(r.TotalDays) {
 		dateList = dateList[len(dateList)-int(r.TotalDays):]
 	}
 

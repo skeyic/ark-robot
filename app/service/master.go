@@ -195,6 +195,7 @@ func (m *Master) ReportStockCurrent(ticker string) (report string, err error) {
 
 	err = r.Load()
 	if err != nil {
+		glog.Warningf("TICKER: %s, ERR: %v", ticker, err)
 		if err == errStockNotHold {
 			var (
 				report = fmt.Sprintf("ARK当前未持有%s", ticker)
