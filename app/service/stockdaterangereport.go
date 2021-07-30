@@ -104,15 +104,25 @@ func (r *stockDateRangeDetails) TxtReport() string {
 				holding = holdings.GetFundHolding(fund)
 				trading = tradings.GetFundTrading(fund)
 			)
+
 			if holding != nil {
 				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
 					utils.ThousandFormatFloat64(holding.Shards), holding.Weight)
 			}
 
-			if trading.IsBuy() {
-				txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
-			} else if trading.IsSell() {
-				txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+			glog.V(4).Infof("HOLDING: %+v", holding)
+			glog.V(4).Infof("TRADING: %+v", trading)
+
+			if trading != nil {
+				if trading.IsBuy() {
+					txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
+				} else if trading.IsSell() {
+					if holding == nil {
+						txtDailyTradingTemp += fund + fmt.Sprintf("清仓全部的%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+					} else {
+						txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+					}
+				}
 			}
 
 			// Set the total
