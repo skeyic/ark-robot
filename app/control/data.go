@@ -149,6 +149,34 @@ func ReportBigSwings(c *gin.Context) {
 	utils.NewOkResponse(c, report)
 }
 
+// ReportChinaStock
+// @Summary ReportChinaStock
+// @Tags Data
+// @Description let the master report china stock
+// @Accept json
+// @Produce json
+// @Success 200 {object} utils.WebResponse "Ok"
+// @Failure 400 {object} utils.WebResponse "Bad request"
+// @Failure 500 {object} utils.WebResponse "Internal error"
+// @Router /data/reports/funds/all/chinastock [get]
+func ReportChinaStock(c *gin.Context) {
+	var (
+		err    error
+		report string
+	)
+
+	report, err = service.TheMaster.ReportChinaStock()
+	if err != nil {
+		msg := fmt.Sprintf("failed to report china stock holding, err: %v", err)
+		glog.Error(msg)
+		utils.NewBadRequestError(c, msg)
+		return
+	}
+	glog.V(4).Infof("REPORT: %s", report)
+
+	utils.NewOkResponse(c, report)
+}
+
 // GetAllTickers
 // @Summary GetAllTickers
 // @Tags Data

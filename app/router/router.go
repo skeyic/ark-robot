@@ -44,6 +44,7 @@ func InitRouter() *gin.Engine {
 			reports.POST("/funds/:fund/top10", control.ReportFundTop10)
 			reports.GET("/funds/all/continue3days", control.ReportContinue3Days)
 			reports.GET("/funds/all/bigswings", control.ReportBigSwings)
+			reports.GET("/funds/all/chinastock", control.ReportChinaStock)
 		}
 
 		tickers := data.Group("/tickers")

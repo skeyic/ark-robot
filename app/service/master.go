@@ -230,6 +230,11 @@ func (m *Master) ReportBigSwings() (report string, err error) {
 	return
 }
 
+func (m *Master) ReportChinaStock() (report string, err error) {
+	report = TheChinaStockReportMaster.GetReport()
+	return
+}
+
 func (m *Master) IsTicker(ticker string) bool {
 	return TheStockLibraryMaster.IsTicker(ticker)
 }

@@ -122,6 +122,14 @@ func (r *ChinaStockTradingsReport) Report() error {
 		glog.V(4).Infof("No not keep tradings")
 	}
 
+	theReport := NewChinaStockHoldingReport()
+	err = theReport.Load()
+	if err != nil {
+		glog.Errorf("failed to report the china stock holding, err: %v", err)
+		return err
+	}
+	TheChinaStockReportMaster.SetReport(theReport.TxtReport())
+
 	glog.V(4).Infof("ChinaStockTradingsReport %s is provided", fileName)
 
 	return nil
