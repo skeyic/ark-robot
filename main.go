@@ -25,10 +25,15 @@ func main() {
 	)
 
 	flag.Parse()
-	err = service.TheMaster.FreshInit()
-	//err = service.TheMaster.StaleInit()
+	if config.Config.StaleInit {
+		glog.V(4).Info("STALE INIT")
+		err = service.TheMaster.StaleInit()
+	} else {
+		glog.V(4).Info("FRESH INIT")
+		err = service.TheMaster.FreshInit()
+	}
 	if err != nil {
-		panic(fmt.Sprintf("master failed to fresh init, err: %v", err))
+		panic(fmt.Sprintf("master failed to init, err: %v", err))
 	}
 
 	go rpc.TheServer.Start()

@@ -8,6 +8,7 @@ var Config = struct {
 	DebugMode bool `default:"false" env:"DEBUG_MODE"`
 	Port      int  `default:"7766" env:"PORT"`
 	RpcPort   int  `default:"7767" env:"RPC_PORT"`
+	StaleInit bool `default:"true" env:"STALE_INIT"`
 	//DataFolder     string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/data" env:"DATA_FOLDER"`
 	//ResourceFolder string `default:"/Users/carrick/go/src/github.com/skeyic/ark-robot/resource" env:"RESOURCE_FOLDER"`
 

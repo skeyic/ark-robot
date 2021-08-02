@@ -281,7 +281,7 @@ func Test_MasterReportStocks3(t *testing.T) {
 	var (
 		err error
 		//stocks = []string{"TSLA"}
-		stocks = []string{"BIDU"}
+		stocks = []string{"JD"}
 		days   int
 		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
 		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
@@ -310,14 +310,14 @@ func Test_MasterReportStocksCurrent(t *testing.T) {
 	var (
 		err error
 		//stocks = []string{"TSLA"}
-		stocks = []string{"SMFR"}
+		stocks = []string{"TCEHY"}
 		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
 		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
 	)
 
 	utils.EnableGlogForTesting()
-	//err = TheMaster.StaleInit()
-	err = TheMaster.FreshInit()
+	err = TheMaster.StaleInit()
+	//err = TheMaster.FreshInit()
 	if err != nil {
 		glog.Errorf("failed to stale init the master, err: %v", err)
 		return
@@ -416,4 +416,29 @@ func Test_MasterNewStockLibraryMaster(t *testing.T) {
 		//	glog.V(4).Infof("HH: %v", holding)
 		//}
 	}
+}
+
+func Test_MasterNewChinaStockReport(t *testing.T) {
+	var (
+		err error
+		//stocks = []string{"TSLA"}
+		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
+		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the master, err: %v", err)
+		return
+	}
+
+	report := NewChinaStockHoldingReport()
+	err = report.Load()
+	if err != nil {
+		glog.Errorf("Load failed, err: %v", err)
+		return
+	}
+
+	glog.V(4).Infof("REPORTS: %s", report.TxtReport())
 }

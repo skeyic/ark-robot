@@ -482,8 +482,10 @@ func (r *StockDateRangeReport) ReportExcel() error {
 			fundIdx++
 
 			trading := tradings.GetFundTrading(fund)
-			//glog.V(4).Infof("TRADING: %v", trading)
-			totalTradingShards += trading.Shards
+			if trading != nil {
+				//glog.V(4).Infof("TRADING: %v", trading)
+				totalTradingShards += trading.Shards
+			}
 
 			// Set the total
 			if idx == len(r.Details.fundList)-1 {
