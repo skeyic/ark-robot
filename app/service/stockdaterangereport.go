@@ -114,9 +114,6 @@ func (r *stockDateRangeDetails) TxtReport() string {
 					utils.ThousandFormatFloat64(holding.Shards), holding.Weight)
 			}
 
-			glog.V(4).Infof("HOLDING: %+v", holding)
-			glog.V(4).Infof("TRADING: %+v", trading)
-
 			if trading != nil {
 				if trading.IsBuy() {
 					txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))

@@ -273,6 +273,7 @@ func (r *SpecialTradingsReport) Report() error {
 			glog.Errorf("failed to save txt %s, err: %v", r.HigherThan10TxtPath(), err)
 			return err
 		}
+		utils.SendAlertV2("异动股票"+r.Date, string(higherThan10TxtContent))
 	} else {
 		glog.V(4).Infof("No higher than 10 tradings")
 	}
@@ -286,6 +287,7 @@ func (r *SpecialTradingsReport) Report() error {
 			glog.Errorf("failed to save txt %s, err: %v", r.ContinuousDirectionTxtPath(), err)
 			return err
 		}
+		utils.SendAlertV2("连续变动股票"+r.Date, string(continuousDirectionTxtContent))
 	} else {
 		glog.V(4).Infof("No Continuous Direction tradings")
 	}

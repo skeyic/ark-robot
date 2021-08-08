@@ -116,9 +116,7 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 	TheTop10HoldingsReportMaster.Refresh()
 
 	glog.V(4).Infof("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now())
-	if config.Config.DebugMode {
-		utils.SendAlertV2("Add to library", fmt.Sprintf("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now()))
-	}
+	utils.SendAlertV2("Add to library", fmt.Sprintf("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now()))
 
 	err := TheMaster.ReportLatestTrading(true)
 	if err != nil {
@@ -135,9 +133,9 @@ func (d *Downloader) DownloadAllARKCSVs() error {
 	}
 
 	glog.V(4).Infof("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now())
-	if config.Config.DebugMode {
-		utils.SendAlertV2("Add to library", fmt.Sprintf("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now()))
-	}
+	//if config.Config.DebugMode {
+	//	utils.SendAlertV2("Add to library", fmt.Sprintf("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now()))
+	//}
 
 	return nil
 }
