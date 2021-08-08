@@ -281,8 +281,8 @@ func Test_MasterReportStocks3(t *testing.T) {
 	var (
 		err error
 		//stocks = []string{"TSLA"}
-		stocks = []string{"JD"}
-		days   int
+		stocks       = []string{"BEKE"}
+		days   int64 = 10
 		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
 		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
 	)
@@ -296,7 +296,7 @@ func Test_MasterReportStocks3(t *testing.T) {
 
 	for _, stock := range stocks {
 		//NewStockDateRangeReport(stock, fromDate, endDate).Report()
-		err = TheMaster.ReportStockByDays(stock, 10, "")
+		err = TheMaster.ReportStockByDays(stock, days, "")
 		if err != nil {
 			glog.Errorf("failed to report stock %s for %d days, err: %v", stock, days, err)
 			return

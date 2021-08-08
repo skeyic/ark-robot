@@ -101,9 +101,13 @@ func (r *stockDateRangeDetails) TxtReport() string {
 
 		for idx, fund := range r.fundList {
 			var (
-				holding = holdings.GetFundHolding(fund)
+				holding *StockHolding
 				trading = tradings.GetFundTrading(fund)
 			)
+
+			if holdings != nil {
+				holding = holdings.GetFundHolding(fund)
+			}
 
 			if holding != nil {
 				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
@@ -259,10 +263,12 @@ func (d *stockDailyDetail) Sum() {
 		totalHoldingShards, totalHoldingMarketValue, totalTradingShards float64
 	)
 	for _, fund := range d.funds {
-		holding := d.holdings.GetFundHolding(fund)
-		if holding != nil {
-			totalHoldingShards += holding.Shards
-			totalHoldingMarketValue += holding.MarketValue
+		if d.holdings != nil {
+			holding := d.holdings.GetFundHolding(fund)
+			if holding != nil {
+				totalHoldingShards += holding.Shards
+				totalHoldingMarketValue += holding.MarketValue
+			}
 		}
 		trading := d.tradings.GetFundTrading(fund)
 		if trading != nil {
@@ -291,7 +297,7 @@ func (r *StockDateRangeReport) Load() error {
 		byDays   = r.TotalDays != 0
 	)
 
-	for theDate := range stock.HistoryStockHoldings {
+	for theDate := range stock.HistoryStockTradings {
 		if byDays {
 			if theDate.Equal(r.EndDate) || theDate.Before(r.EndDate) {
 				dateList = append(dateList, theDate)
@@ -322,11 +328,12 @@ func (r *StockDateRangeReport) Load() error {
 	for _, fund := range r.Funds {
 		for i := 0; i < len(dateList); i++ {
 			holdings := stock.HistoryStockHoldings[dateList[i]]
-
-			holding := holdings.GetFundHolding(fund)
-			if holding != nil {
-				fundList = append(fundList, fund)
-				break
+			if holdings != nil {
+				holding := holdings.GetFundHolding(fund)
+				if holding != nil {
+					fundList = append(fundList, fund)
+					break
+				}
 			}
 		}
 	}
@@ -457,7 +464,12 @@ func (r *StockDateRangeReport) ReportExcel() error {
 		)
 
 		for idx, fund := range r.Details.fundList {
-			holding := holdings.GetFundHolding(fund)
+			var (
+				holding *StockHolding
+			)
+			if holdings != nil {
+				holding = holdings.GetFundHolding(fund)
+			}
 			var currentShards float64
 
 			line := strconv.Itoa(fundIdx)
