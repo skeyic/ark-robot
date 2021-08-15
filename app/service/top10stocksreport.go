@@ -6,6 +6,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/golang/glog"
+	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
 	"os"
 	"strconv"
@@ -130,9 +131,11 @@ func (r *Top10HoldingsReport) Report() error {
 		fileName = r.ExcelPath()
 	)
 
-	err = r.ToExcel()
-	if err != nil {
-		return err
+	if config.Config.Report.WithExcel {
+		err = r.ToExcel()
+		if err != nil {
+			return err
+		}
 	}
 
 	err = r.ToTxt()

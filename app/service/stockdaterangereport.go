@@ -6,6 +6,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/golang/glog"
+	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
 	"math"
 	"os"
@@ -598,10 +599,12 @@ func (r *StockDateRangeReport) Report() error {
 			r.Funds, r.FromDate.Month(), r.FromDate.Day(), r.EndDate.Month(), r.EndDate.Day())
 	)
 
-	err = r.ReportExcel()
-	if err != nil {
-		glog.Errorf("failed to report excel, err: %v", err)
-		return err
+	if config.Config.Report.WithExcel {
+		err = r.ReportExcel()
+		if err != nil {
+			glog.Errorf("failed to report excel, err: %v", err)
+			return err
+		}
 	}
 
 	err = r.ReportImage()

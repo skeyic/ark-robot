@@ -281,8 +281,8 @@ func Test_MasterReportStocks3(t *testing.T) {
 	var (
 		err error
 		//stocks = []string{"TSLA"}
-		stocks       = []string{"BEKE"}
-		days   int64 = 10
+		stocks       = []string{"TSP"}
+		days   int64 = 100
 		//fromDate, _ = time.Parse(TheDateFormat, "2021-04-26")
 		//endDate, _  = time.Parse(TheDateFormat, "2021-04-30")
 	)

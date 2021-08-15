@@ -379,16 +379,29 @@ func NewStockTradingTxtFromTrading(trading *StockTrading) string {
 	case TradeBuy:
 		if trading.Percent == 100 {
 			result = fmt.Sprintf("%s建仓，买入%.0f股。", trading.Fund, trading.Holding)
+			go utils.SendAlertV2(fmt.Sprintf("%s建仓%s，买入%.0f股。", trading.Fund, trading.Ticker, trading.Holding), "")
 		} else {
 			result = fmt.Sprintf("%s增持%.2f%%，买入%.0f股，持股数从%.0f股增到%.0f股。", trading.Fund,
 				trading.Percent, trading.Shards, trading.PreviousHolding, trading.Holding)
+			if trading.Percent > 50 {
+				go utils.SendAlertV2(fmt.Sprintf("%s增持%s%.2f%%，买入%.0f股，持股数从%.0f股增到%.0f股。", trading.Fund,
+					trading.Ticker, trading.Percent, trading.Shards, trading.PreviousHolding, trading.Holding), "")
+			}
 		}
 	case TradeSell:
 		if trading.Percent == -100 {
 			result = fmt.Sprintf("%s清仓，卖出%.0f股。", trading.Fund, trading.PreviousHolding)
+			go utils.SendAlertV2(fmt.Sprintf("%s清仓%s，卖出%.0f股。", trading.Fund, trading.Ticker, trading.Holding), "")
 		} else {
 			result = fmt.Sprintf("%s减持%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund,
 				math.Abs(trading.Percent), math.Abs(trading.Shards), trading.PreviousHolding, trading.Holding)
+			if trading.Percent > 50 {
+				go utils.SendAlertV2(fmt.Sprintf("%s减持%s%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund, trading.Ticker,
+					math.Abs(trading.Percent), math.Abs(trading.Shards), trading.PreviousHolding, trading.Holding), "")
+			} else if trading.Percent > 20 && TheChinaStockManager.IsChinaStock(trading.Ticker) {
+				go utils.SendAlertV2(fmt.Sprintf("%s减持%s%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund, trading.Ticker,
+					math.Abs(trading.Percent), math.Abs(trading.Shards), trading.PreviousHolding, trading.Holding), "")
+			}
 		}
 	}
 	return result

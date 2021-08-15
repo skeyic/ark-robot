@@ -130,11 +130,13 @@ func (m *Master) Report(date time.Time, full bool, SpecialTradingsPercent float6
 		err error
 	)
 
-	tradingsReport := NewTradingsReport(date)
-	err = tradingsReport.Report(full)
-	if err != nil {
-		glog.Errorf("tradingsReport to excel failed, err: %v", err)
-		return err
+	if config.Config.Report.WithExcel {
+		tradingsReport := NewTradingsReport(date)
+		err = tradingsReport.Report(full)
+		if err != nil {
+			glog.Errorf("tradingsReport to excel failed, err: %v", err)
+			return err
+		}
 	}
 
 	top10HoldingsReport := NewTop10HoldingsReport(date, allARKTypes)

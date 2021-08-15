@@ -27,6 +27,7 @@ var Config = struct {
 
 	Report struct {
 		SpecialTradingPercent float64 `default:"3" env:"SPECIAL_TRADING_PERCENT"`
+		WithExcel             bool    `default:"false" env:"REPORT_WITH_EXCEL"`
 	}
 }{}
 
