@@ -112,7 +112,7 @@ func (r *stockDateRangeDetails) TxtReport() string {
 			}
 
 			if holding != nil {
-				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("%s持有%s股(比重%.2f%%)，", holding.Fund,
+				txtDailyHoldingTemp = txtDailyHoldingTemp + fmt.Sprintf("    %s持有%s股(比重%.2f%%)，", holding.Fund,
 					utils.ThousandFormatFloat64(holding.Shards), holding.Weight)
 			}
 
