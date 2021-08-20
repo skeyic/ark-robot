@@ -159,15 +159,15 @@ func (r *stockDateRangeDetails) TxtReport() string {
 
 		}
 		if dateIdx == 0 {
-			txtDailyHoldingReport = "\t期初" + txtDailyHoldingReport
+			txtDailyHoldingReport = "    期初" + txtDailyHoldingReport
 			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
 			holdingReport += txtDailyHoldingReport + "\n"
 		} else if dateIdx == len(r.dateList)-1 {
-			txtDailyHoldingReport = " \t期末" + txtDailyHoldingReport
+			txtDailyHoldingReport = "    期末" + txtDailyHoldingReport
 			txtDailyHoldingReport += strings.TrimSuffix(txtDailyHoldingTemp, "，") + "。"
 			holdingReport += txtDailyHoldingReport + "\n"
 		}
-		tradingReport += "\t" + today + txtDailyTradingTemp
+		tradingReport += "    " + today + txtDailyTradingTemp
 	}
 
 	if keyReport == "" && r.tradingSummary.TxtKeyReport() == "" {
