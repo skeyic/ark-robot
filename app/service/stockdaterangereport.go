@@ -493,7 +493,7 @@ func (t *stockDataRangeTradingAnalysis) TxtReport() string {
 			utils.ThousandFormatFloat64(-1*t.maxSellShards))
 	}
 
-	msg += "\n    具体如下：\n"
+	msg += "\n\n具体如下：\n"
 
 	return msg
 }
