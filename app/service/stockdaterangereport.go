@@ -83,8 +83,9 @@ func (r *stockDateRangeDetails) GenerateTradingAnalysis() {
 
 func (r *stockDateRangeDetails) TxtReport() string {
 	var (
-		holdingReport string
+		holdingReport = "持仓信息：\n"
 		tradingReport string
+		keyReport     string
 	)
 
 	for dateIdx, theDate := range r.dateList {
@@ -118,11 +119,21 @@ func (r *stockDateRangeDetails) TxtReport() string {
 			if trading != nil {
 				if trading.IsBuy() {
 					txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
+					if trading.Percent > 50 {
+						if trading.Percent == 100 {
+							keyReport += fmt.Sprintf("    %s%s建仓\n", theDate.Format(TheDateFormat), fund)
+						}
+						keyReport += fmt.Sprintf("    %s%s大幅增持%f%%\n", theDate.Format(TheDateFormat), fund, trading.Percent)
+					}
 				} else if trading.IsSell() {
 					if holding == nil {
 						txtDailyTradingTemp += fund + fmt.Sprintf("清仓全部的%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+						keyReport += fmt.Sprintf("    %s%s清仓\n", theDate.Format(TheDateFormat), fund)
 					} else {
 						txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+						if trading.Percent < -50 {
+							keyReport += fmt.Sprintf("    %s%s大幅减持%f%%\n", theDate.Format(TheDateFormat), fund, trading.Percent*-1)
+						}
 					}
 				}
 			}
@@ -159,13 +170,20 @@ func (r *stockDateRangeDetails) TxtReport() string {
 		tradingReport += "\t" + today + txtDailyTradingTemp
 	}
 
-	return holdingReport + r.tradingSummary.TxtReport() + tradingReport
+	if keyReport == "" && r.tradingSummary.TxtKeyReport() == "" {
+		keyReport = "重点：无。\n"
+	} else {
+		keyReport = "重点：\n" + keyReport + r.tradingSummary.TxtKeyReport()
+	}
+
+	return keyReport + "\n" + holdingReport + "\n" + r.tradingSummary.TxtReport() + tradingReport
 }
 
-func (r *stockDateRangeDetails) TxtReportV2() string {
+func (r *stockDateRangeDetails) TxtReportOld() string {
 	var (
 		holdingReport string
 		tradingReport string
+		keyReport     string
 	)
 
 	for dateIdx, theDate := range r.dateList {
@@ -193,8 +211,21 @@ func (r *stockDateRangeDetails) TxtReportV2() string {
 
 			if trading.IsBuy() {
 				txtDailyTradingTemp += fund + fmt.Sprintf("增持%s股，", utils.ThousandFormatFloat64(trading.Shards))
+				if trading.Percent > 50 {
+					if trading.Percent == 100 {
+						keyReport += fmt.Sprintf("%s%s建仓\n", theDate.Format(TheDateFormat), fund)
+					}
+					keyReport += fmt.Sprintf("%s%s增持%f%%\n", theDate.Format(TheDateFormat), fund, trading.Percent)
+				}
 			} else if trading.IsSell() {
-				txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(-1*trading.Shards))
+				txtDailyTradingTemp += fund + fmt.Sprintf("减持%s股，", utils.ThousandFormatFloat64(trading.Shards*-1))
+				if trading.Percent < -50 {
+					if trading.Percent == -100 {
+						keyReport += fmt.Sprintf("%s%s清仓\n", theDate.Format(TheDateFormat), fund)
+					} else {
+						keyReport += fmt.Sprintf("%s%s减持%f%%\n", theDate.Format(TheDateFormat), fund, trading.Percent*-1)
+					}
+				}
 			}
 
 			// Set the total
@@ -229,7 +260,13 @@ func (r *stockDateRangeDetails) TxtReportV2() string {
 		tradingReport += "  " + today + txtDailyTradingTemp
 	}
 
-	return holdingReport + r.tradingSummary.TxtReport() + tradingReport
+	if keyReport == "" && r.tradingSummary.TxtKeyReport() == "" {
+		keyReport = "重点：无。\n"
+	} else {
+		keyReport = "重点：\n" + keyReport + r.tradingSummary.TxtKeyReport()
+	}
+
+	return keyReport + holdingReport + r.tradingSummary.TxtReport() + tradingReport
 }
 
 type stockDailyDetail struct {
@@ -364,18 +401,48 @@ type stockDataRangeTradingAnalysis struct {
 	sellDays int
 	keepDays int
 
+	maxContinueBuyDays  int
+	maxContinueSellDays int
+	continueBuyDays     int
+	continueSellDays    int
+	lastDirection       TradeDirection
+
 	totalShards float64
 }
 
 func (t *stockDataRangeTradingAnalysis) AddTrading(date time.Time, shards float64) {
+	glog.V(4).Infof("DATE: %s, SHARDS: %f", date.Format(TheDateFormat), shards)
 	if shards > 0 {
 		t.buyDays++
+		if t.lastDirection == TradeBuy || t.lastDirection == TradeEmpty {
+			t.continueBuyDays++
+			if t.continueBuyDays > t.maxContinueBuyDays {
+				t.maxContinueBuyDays = t.continueBuyDays
+			}
+		} else {
+			if t.lastDirection == TradeSell {
+				t.continueSellDays = 0
+			}
+		}
+		t.lastDirection = TradeBuy
+
 		if t.maxBuyShards < shards {
 			t.maxBuyShards = shards
 			t.maxBuyDate = date
 		}
 	} else if shards < 0 {
 		t.sellDays++
+		if t.lastDirection == TradeSell || t.lastDirection == TradeEmpty {
+			t.continueSellDays++
+			if t.continueSellDays > t.maxContinueSellDays {
+				t.maxContinueSellDays = t.continueSellDays
+			}
+		} else {
+			if t.lastDirection == TradeBuy {
+				t.continueBuyDays = 0
+			}
+		}
+		t.lastDirection = TradeSell
 		if math.Abs(t.maxSellShards) < math.Abs(shards) {
 			t.maxSellShards = shards
 			t.maxSellDate = date
@@ -387,9 +454,25 @@ func (t *stockDataRangeTradingAnalysis) AddTrading(date time.Time, shards float6
 	t.totalShards += shards
 }
 
+func (t *stockDataRangeTradingAnalysis) TxtKeyReport() string {
+	var (
+		msg = ""
+	)
+
+	if t.continueBuyDays > 2 {
+		msg += fmt.Sprintf("    连续%d日获增持。\n", t.continueBuyDays)
+	}
+
+	if t.continueSellDays > 2 {
+		msg += fmt.Sprintf("    连续%d日被减持。\n", t.continueSellDays)
+	}
+
+	return msg
+}
+
 func (t *stockDataRangeTradingAnalysis) TxtReport() string {
 	var (
-		msg = "本期总计"
+		msg = "交易信息：\n    本期总计"
 	)
 
 	if t.totalShards >= 0 {
@@ -410,7 +493,7 @@ func (t *stockDataRangeTradingAnalysis) TxtReport() string {
 			utils.ThousandFormatFloat64(-1*t.maxSellShards))
 	}
 
-	msg += "\n具体如下：\n"
+	msg += "\n    具体如下：\n"
 
 	return msg
 }

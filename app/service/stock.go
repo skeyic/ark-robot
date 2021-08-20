@@ -16,6 +16,7 @@ import (
 type TradeDirection string
 
 const (
+	TradeEmpty        TradeDirection = ""
 	TradeBuy          TradeDirection = "Buy"
 	TradeRelativeBuy  TradeDirection = "Relative Buy"
 	TradeSell         TradeDirection = "Sell"
