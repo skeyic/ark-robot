@@ -479,6 +479,44 @@ func (r *Library) GetPreviousHoldings(date time.Time, days int) []*ARKHoldings {
 	return previousHoldings
 }
 
+// GetPreviousHoldingsWithoutNil if date is 10, days is 3, we will return [7, 8, 9]
+func (r *Library) GetPreviousHoldingsWithoutNil(date time.Time, days int) []*ARKHoldings {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	var (
+		dateList         timeList
+		hit              bool
+		previousHoldings []*ARKHoldings
+	)
+
+	for theDate := range r.HistoryStockHoldings {
+		dateList = append(dateList, theDate)
+	}
+
+	sort.Sort(sort.Reverse(dateList))
+
+	for _, theDate := range dateList {
+		if hit {
+			if days > 0 {
+				previousHoldings = append([]*ARKHoldings{r.HistoryStockHoldings[theDate]}, previousHoldings...)
+				days--
+			}
+		}
+		if theDate == date {
+			hit = true
+		}
+	}
+
+	// We will not add nil in the list
+	//for days > 0 {
+	//	previousHoldings = append([]*ARKHoldings{nil}, previousHoldings...)
+	//	days--
+	//}
+
+	return previousHoldings
+}
+
 // if date is 10, days is 3, we will return [7, 8, 9]
 func (r *Library) GetPreviousTradings(date time.Time, days int) []*ARKTradings {
 	r.lock.RLock()

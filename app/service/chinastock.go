@@ -103,6 +103,35 @@ func (m *ChinaStockManager) ManuallyAddChinaStock() {
 	}
 }
 
+var (
+	ChinaStockNameMap = map[string]string{
+		"TCEHY": "腾讯",
+		"6060":  "众安在线",
+		"1833":  "平安好医生",
+		"3690":  "美团",
+		"BYDDY": "比亚迪",
+		"9923":  "移卡",
+		"PDD":   "拼多多",
+		"BABA":  "阿里巴巴",
+		"JD":    "京东",
+		"BIDU":  "百度",
+		"HUYA":  "虎牙",
+		"NIU":   "小牛电动",
+		"BEKE":  "贝壳",
+		"TSM":   "台积电",
+		"TSP":   "图森未来",
+		"BZ":    "BOSS直聘",
+	}
+)
+
+func (m *ChinaStockManager) Translate(ticker string) string {
+	newTicker := ChinaStockNameMap[ticker]
+	if newTicker == "" {
+		return ticker
+	}
+	return newTicker
+}
+
 func (m *ChinaStockManager) IsChinaStock(ticker string) bool {
 	//glog.V(4).Infof("TICKER: %s, STOCK: %+v", ticker, m.stocks[ticker])
 	return m.stocks[ticker] != nil

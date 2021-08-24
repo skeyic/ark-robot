@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	TheDateFormat   = "2006-01-02"
-	TheDateIDFormat = "2006_01_02"
+	TheDateFormat        = "2006-01-02"
+	TheDateIDFormat      = "2006_01_02"
+	TheDatePainterFormat = "2006/01/02"
 )
 
 var (
