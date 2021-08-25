@@ -2,7 +2,11 @@ package service
 
 import (
 	"fmt"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/utils"
+	"os"
 	"sync"
 	"time"
 )
@@ -40,7 +44,7 @@ func (m *ChinaStockReportMaster) GetReport() string {
 // Latest trading - TODO
 // Data range report of last 5 days - phase 1
 type ChinaStockHoldingReport struct {
-	ReportDate      time.Time
+	ReportTime      time.Time
 	CurrentHolding  *ARKHoldings
 	PreviousHolding *ARKHoldings
 	details         *detailsReport
@@ -136,7 +140,7 @@ func (r *detailsReport) report() (maxReport, detailReport string) {
 		r.allMarketValue += detail.marketValue
 		r.allMarketValueDiff += detail.marketValueDiff
 
-		detailReport += fmt.Sprintf("  %s：持有%s股，市值%s美元，相比上个交易日", ticker,
+		detailReport += fmt.Sprintf("  %s：持有%s股，市值%s美元，相比上个交易日", TheChinaStockManager.Translate(ticker),
 			utils.ThousandFormatFloat64(detail.shards), utils.ThousandFormatFloat64(detail.marketValue))
 
 		if detail.shardsDiff > 0 {
@@ -157,21 +161,23 @@ func (r *detailsReport) report() (maxReport, detailReport string) {
 		maxReport += "没有变化；\n"
 	}
 
-	maxReport += fmt.Sprintf("总计持有市值最多的是%s，共计%s美元；\n", r.maxMarketValueTicker,
+	maxReport += fmt.Sprintf("总计持有市值最多的是%s，共计%s美元；\n", TheChinaStockManager.Translate(r.maxMarketValueTicker),
 		utils.ThousandFormatFloat64(r.maxMarketValue))
-	maxReport += fmt.Sprintf("总计持有市值增长最多的是%s，增加了%s美元；\n", r.maxBuyTicker,
+	maxReport += fmt.Sprintf("总计持有市值增长最多的是%s，增加了%s美元；\n", TheChinaStockManager.Translate(r.maxBuyTicker),
 		utils.ThousandFormatFloat64(r.maxBuyMarketValue))
-	maxReport += fmt.Sprintf("总计持有市值减少最多的是%s，减少了%s美元；\n", r.maxSellTicker,
+	maxReport += fmt.Sprintf("总计持有市值减少最多的是%s，减少了%s美元；\n", TheChinaStockManager.Translate(r.maxSellTicker),
 		utils.ThousandFormatFloat64(r.maxSellMarketValue*-1))
 
 	return
 }
 
 func NewChinaStockHoldingReport() *ChinaStockHoldingReport {
-	return &ChinaStockHoldingReport{
-		ReportDate: time.Now(),
+	r := &ChinaStockHoldingReport{
+		ReportTime: time.Now(),
 		details:    newDetailsReport(),
 	}
+	utils.CheckFolder(r.ReportFolder())
+	return r
 }
 
 func (r *ChinaStockHoldingReport) Load() error {
@@ -185,6 +191,31 @@ func (r *ChinaStockHoldingReport) Load() error {
 	r.PreviousHolding = holdingsList[0]
 
 	return nil
+}
+
+func (r *ChinaStockHoldingReport) ReportFolder() string {
+	return stockReportPath + "/" + prefixChinaStockReport + r.ReportTime.Format("2006-01-02-15-04-05")
+}
+
+func (r *ChinaStockHoldingReport) HtmlPath() string {
+	return r.ReportFolder() + "/" + r.HtmlName()
+}
+
+func (r *ChinaStockHoldingReport) HtmlName() string {
+	return r.FileName() + ".html"
+}
+
+func (r *ChinaStockHoldingReport) ImagePath() string {
+	return r.ReportFolder() + "/" + r.ImageName()
+}
+
+func (r *ChinaStockHoldingReport) ImageName() string {
+	return r.FileName() + ".png"
+}
+
+func (r *ChinaStockHoldingReport) FileName() string {
+	return fmt.Sprintf("%s_%s", prefixChinaStockReport,
+		r.ReportTime.Format(TheDateFormat))
 }
 
 /*
@@ -254,4 +285,71 @@ func (r *ChinaStockHoldingReport) TxtReport() string {
 	report = maxReport + "\n" + "重点操作：\n" + firstBuyReport + soldOutReport + "\n" + detailReport
 
 	return report
+}
+
+func (r *ChinaStockHoldingReport) ImageReport() error {
+	var (
+		marketValueMap = make(map[string]float64)
+		pieData        []opts.PieData
+	)
+
+	for _, fund := range allARKTypes {
+		holdings := r.CurrentHolding.GetFundStockHoldings(fund)
+		for ticker, holding := range holdings.Holdings {
+			if TheChinaStockManager.IsChinaStock(ticker) {
+				marketValueMap[ticker] += holding.MarketValue
+			}
+		}
+	}
+
+	pie := charts.NewPie()
+	pie.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title: fmt.Sprintf("%d月%d日ARK持仓中的中概股市值", r.CurrentHolding.Date.Month(), r.CurrentHolding.Date.Day()),
+			Left:  "center",
+		}),
+		charts.WithInitializationOpts(opts.Initialization{
+			//Theme:  types.ThemeEssos,
+			Width:  "1200px",
+			Height: "800px",
+		}),
+		charts.WithColorsOpts(utils.ColorsForPainter),
+	)
+
+	for ticker, marketValue := range marketValueMap {
+		theValue := int64(marketValue)
+		pieData = append(pieData, opts.PieData{
+			Name:  TheChinaStockManager.Translate(ticker),
+			Value: theValue,
+		})
+	}
+
+	pie.AddSeries("PIE", pieData).
+		SetSeriesOptions(
+			charts.WithLabelOpts(opts.Label{
+				Show:      true,
+				Formatter: "{b}: {c}",
+			}),
+			charts.WithPieChartOpts(opts.PieChart{
+				Radius:   []string{"30%", "75%"},
+				RoseType: "radius",
+			}),
+		)
+
+	var (
+		htmlPath = r.HtmlPath()
+		//imagePath = r.ImagePath()
+	)
+	f, err := os.Create(htmlPath)
+	if err != nil {
+		glog.Errorf("failed to create html file %s", htmlPath)
+		return err
+	}
+	err = pie.Render(f)
+	if err != nil {
+		glog.Errorf("failed to render html file %s", htmlPath)
+		return err
+	}
+
+	return nil
 }

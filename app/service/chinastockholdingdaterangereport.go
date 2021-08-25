@@ -20,13 +20,6 @@ type ChinaStockHoldingDateRangeReport struct {
 	TotalDays  int
 
 	holdings []*ARKHoldings
-	details  []*stockDailyHoldingDetails
-}
-
-type stockDailyHoldingDetails struct {
-	ticker      string
-	marketValue float64
-	date        string
 }
 
 func NewChinaStockHoldingDateRangeReport(fromDate, endDate time.Time) *ChinaStockHoldingDateRangeReport {
@@ -137,9 +130,7 @@ func (r *ChinaStockHoldingDateRangeReport) ReportImage() error {
 			Width:  "1200px",
 			Height: "800px",
 		}),
-		charts.WithColorsOpts(opts.Colors{
-			"#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de", "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc", "#ef4464", "#929fff", "#e75840", "#50c48f", "#26ccd8", "#3685fe", "#9977ef",
-		}),
+		charts.WithColorsOpts(utils.ColorsForPainter),
 	)
 
 	for _, theHoldings := range r.holdings {
@@ -172,11 +163,6 @@ func (r *ChinaStockHoldingDateRangeReport) ReportImage() error {
 	}))
 
 	//for _, t := range []string{types.ThemeEssos, types.ThemeChalk, types.ThemeRoma, types.ThemeRomantic, types.ThemeInfographic, types.ThemeMacarons, types.ThemePurplePassion, types.ThemeShine, types.ThemeVintage, types.ThemeWalden, types.ThemeWesteros, types.ThemeWonderland} {
-	tr.SetGlobalOptions(charts.WithInitializationOpts(opts.Initialization{
-		//Theme:  t,
-		Width:  "1200px",
-		Height: "800px",
-	}))
 	var (
 		htmlPath = r.HtmlPath()
 		//imagePath = r.ImagePath()
@@ -224,9 +210,7 @@ func (r *ChinaStockHoldingDateRangeReport) ReportWeightImage() error {
 			Width:  "1200px",
 			Height: "800px",
 		}),
-		charts.WithColorsOpts(opts.Colors{
-			"#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de", "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc", "#ef4464", "#929fff", "#e75840", "#50c48f", "#26ccd8", "#3685fe", "#9977ef",
-		}),
+		charts.WithColorsOpts(utils.ColorsForPainter),
 	)
 
 	for _, theHoldings := range r.holdings {

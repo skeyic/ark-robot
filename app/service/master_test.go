@@ -441,6 +441,12 @@ func Test_MasterNewChinaStockReport(t *testing.T) {
 	}
 
 	glog.V(4).Infof("REPORTS: %s", report.TxtReport())
+
+	err = report.ImageReport()
+	if err != nil {
+		glog.Errorf("Load failed, err: %v", err)
+		return
+	}
 }
 
 func Test_MasterNewChinaStockDateRangeReport(t *testing.T) {
@@ -484,7 +490,7 @@ func Test_MasterNewChinaStockDateRangeV2Report(t *testing.T) {
 		err error
 		//stocks = []string{"TSLA"}
 		fromDate, _ = time.Parse(TheDateFormat, "2021-03-06")
-		endDate, _  = time.Parse(TheDateFormat, "2021-08-24")
+		endDate, _  = time.Parse(TheDateFormat, "2021-08-25")
 		//days = 200
 	)
 
@@ -505,6 +511,36 @@ func Test_MasterNewChinaStockDateRangeV2Report(t *testing.T) {
 	err = report.ReportImage()
 	if err != nil {
 		glog.Errorf("report image failed, err: %v", err)
+		return
+	}
+
+	err = report.ReportWeightImage()
+	if err != nil {
+		glog.Errorf("report weight image failed, err: %v", err)
+		return
+	}
+}
+
+func Test_MasterNewStockWeightDateRangeReport(t *testing.T) {
+	var (
+		err         error
+		stocks      = []string{"TCEHY", "BIDU", "JD", "TSP", "BEKE"}
+		fromDate, _ = time.Parse(TheDateFormat, "2021-03-06")
+		endDate, _  = time.Parse(TheDateFormat, "2021-08-25")
+		//days = 200
+	)
+
+	utils.EnableGlogForTesting()
+	err = TheMaster.StaleInit()
+	if err != nil {
+		glog.Errorf("failed to stale init the master, err: %v", err)
+		return
+	}
+
+	report := NewStockWeightDateRangeReport(stocks, fromDate, endDate)
+	err = report.Load()
+	if err != nil {
+		glog.Errorf("Load failed, err: %v", err)
 		return
 	}
 

@@ -17,7 +17,9 @@ const (
 	prefixChinaStockNotKeepTradings          = "china_stock_not_keep_tradings_"
 	prefixCurrentStockReport                 = "current_stock_report_"
 	prefixDateRangeStockReport               = "date_range_stock_report_"
+	prefixChinaStockReport                   = "date_range_china_stock_report_"
 	prefixChinaStockDateRangeReport          = "date_range_china_stock_summary_report_"
+	prefixStockWeightDateRangeReport         = "date_range_stock_weight_report_"
 	defaultSheet                             = "sheet"
 )
 

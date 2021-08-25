@@ -94,6 +94,10 @@ func (m *ChinaStockManager) ManuallyAddChinaStock() {
 				Ticker: "TSP",
 				Name:   "TUSIMPLE HOLDINGS INC - A",
 			},
+			&ChinaStock{
+				Ticker: "2618",
+				Name:   "JD LOGISTICS INC",
+			},
 		}
 	)
 	for _, stock := range stocks {
@@ -121,6 +125,7 @@ var (
 		"TSM":   "台积电",
 		"TSP":   "图森未来",
 		"BZ":    "BOSS直聘",
+		"2618":  "京东物流",
 	}
 )
 

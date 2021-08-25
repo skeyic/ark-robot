@@ -8,6 +8,7 @@ import (
 	"github.com/golang/glog"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"testing"
 )
@@ -262,7 +263,7 @@ func river_http(w http.ResponseWriter, _ *http.Request) {
 
 func Test_ChartPainterRiver(t *testing.T) {
 	//http.HandleFunc("/", river_http)
-	http.HandleFunc("/", line_http)
+	http.HandleFunc("/", pie_http)
 
 	http.ListenAndServe(":8081", nil)
 
@@ -302,4 +303,60 @@ func line_http(w http.ResponseWriter, _ *http.Request) {
 			}),
 		)
 	line.Render(w)
+}
+
+var (
+	itemCntPie = 4
+	seasons    = []string{"Spring", "Summer", "Autumn ", "Winter"}
+)
+
+func generatePieItems() []opts.PieData {
+	items := make([]opts.PieData, 0)
+	for i := 0; i < itemCntPie; i++ {
+		items = append(items, opts.PieData{Name: seasons[i], Value: rand.Intn(100)})
+	}
+	return items
+}
+
+func pie_http(w http.ResponseWriter, _ *http.Request) {
+	pie := charts.NewPie()
+	pie.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title: "Rose(Radius)",
+		}),
+	)
+
+	pie.AddSeries("pie", []opts.PieData{
+		{
+			Name:  "HUYA",
+			Value: 1.0,
+		},
+		{
+			Name:  "JD",
+			Value: 1.1,
+		},
+		{
+			Name:  "TSP",
+			Value: 3.0,
+		},
+		{
+			Name:  "BIDU",
+			Value: 0.2,
+		},
+		{
+			Name:  "TCEHY",
+			Value: 1.3,
+		},
+	}).
+		SetSeriesOptions(
+			charts.WithLabelOpts(opts.Label{
+				Show:      true,
+				Formatter: "{b}: {c}",
+			}),
+			charts.WithPieChartOpts(opts.PieChart{
+				Radius:   []string{"30%", "75%"},
+				RoseType: "radius",
+			}),
+		)
+	pie.Render(w)
 }

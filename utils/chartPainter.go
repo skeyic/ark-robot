@@ -9,7 +9,12 @@ import (
 )
 
 var (
-	TheChartPainter = &ChartPainter{}
+	TheChartPainter  = &ChartPainter{}
+	ColorsForPainter = opts.Colors{
+		"#5470c6", "#91cc75", "#fac858", "#ee6666", "#73c0de", "#3ba272", "#fc8452", "#9a60b4", "#ea7ccc", "#ef4464",
+		"#929fff", "#e75840", "#50c48f", "#26ccd8", "#3685fe", "#9977ef", "#FFB6C1", "#2f4554", "#61a0a8", "#d48265",
+		"#91c7ae", "#749f83", "#ca8622", "#bda29a", "#6e7074", "#546570", "#c4ccd3",
+	}
 )
 
 type ChartPainter struct {
