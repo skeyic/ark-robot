@@ -489,8 +489,8 @@ func Test_MasterNewChinaStockDateRangeV2Report(t *testing.T) {
 	var (
 		err error
 		//stocks = []string{"TSLA"}
-		fromDate, _ = time.Parse(TheDateFormat, "2021-03-06")
-		endDate, _  = time.Parse(TheDateFormat, "2021-08-25")
+		fromDate, _ = time.Parse(TheDateFormat, "2021-06-02")
+		endDate, _  = time.Parse(TheDateFormat, "2021-09-02")
 		//days = 200
 	)
 
@@ -525,8 +525,8 @@ func Test_MasterNewStockWeightDateRangeReport(t *testing.T) {
 	var (
 		err         error
 		stocks      = []string{"TCEHY", "BIDU", "JD", "TSP", "BEKE"}
-		fromDate, _ = time.Parse(TheDateFormat, "2021-03-06")
-		endDate, _  = time.Parse(TheDateFormat, "2021-08-25")
+		fromDate, _ = time.Parse(TheDateFormat, "2021-06-06")
+		endDate, _  = time.Parse(TheDateFormat, "2021-09-02")
 		//days = 200
 	)
 

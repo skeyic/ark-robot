@@ -126,7 +126,7 @@ func (r *ChinaStockHoldingDateRangeReport) ReportImage() error {
 			Left: "center",
 		}),
 		charts.WithInitializationOpts(opts.Initialization{
-			Theme:  types.ThemeEssos,
+			//Theme:  types.ThemeEssos,
 			Width:  "1200px",
 			Height: "800px",
 		}),
