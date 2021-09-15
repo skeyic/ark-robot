@@ -77,6 +77,10 @@ func (r *StockLibraryMaster) GetAllTickers() (p []string) {
 			p = append(p, ticker)
 		}
 	}
+
+	for ticker := range ReChinaStockNameMap {
+		p = append(p, ticker)
+	}
 	return
 }
 
