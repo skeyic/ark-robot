@@ -200,7 +200,7 @@ func (m *Master) ReportStockCurrent(ticker string) (report string, err error) {
 		glog.Warningf("TICKER: %s, ERR: %v", ticker, err)
 		if err == errStockNotHold {
 			var (
-				report = fmt.Sprintf("ARK当前未持有%s", ticker)
+				report = fmt.Sprintf("ARK当前未持有%s", TheChinaStockManager.Translate(ticker))
 			)
 			h := TheStockLibraryMaster.GetStockLatestTrading(ticker)
 			if h != nil {

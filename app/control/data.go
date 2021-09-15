@@ -35,7 +35,7 @@ func ReportStockCurrent(c *gin.Context) {
 		return
 	}
 
-	report, err = service.TheMaster.ReportStockCurrent(ticker)
+	report, err = service.TheMaster.ReportStockCurrent(service.TheChinaStockManager.ReTranslate(ticker))
 	if err != nil {
 		msg := fmt.Sprintf("failed to report stock %s, err: %v", ticker, err)
 		glog.Error(msg)

@@ -261,7 +261,7 @@ func (r *ChinaStockHoldingReport) TxtReport() string {
 				}
 
 				if previousHolding == nil || previousHolding.Shards == 0 {
-					firstBuyReport += fmt.Sprintf("%s建仓了%s，买入%s股，市值%s美元；\n", fund, ticker,
+					firstBuyReport += fmt.Sprintf("%s建仓了%s，买入%s股，市值%s美元；\n", fund, TheChinaStockManager.Translate(ticker),
 						utils.ThousandFormatFloat64(holding.Shards), utils.ThousandFormatFloat64(holding.MarketValue))
 				}
 
@@ -273,7 +273,7 @@ func (r *ChinaStockHoldingReport) TxtReport() string {
 		for ticker, holding := range previousHoldings.Holdings {
 			if TheChinaStockManager.IsChinaStock(ticker) {
 				if !hitMap[ticker] {
-					soldOutReport += fmt.Sprintf("%s清仓了%s，卖出%s股；\n", fund, ticker, utils.ThousandFormatFloat64(holding.Shards))
+					soldOutReport += fmt.Sprintf("%s清仓了%s，卖出%s股；\n", fund, TheChinaStockManager.Translate(ticker), utils.ThousandFormatFloat64(holding.Shards))
 					r.details.Add(nil, holding)
 				}
 			}

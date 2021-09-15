@@ -355,16 +355,16 @@ func NewSpecialTradingTxtFromTrading(trading *StockTrading) []byte {
 	switch trading.Direction {
 	case TradeBuy:
 		if trading.Percent == 100 {
-			result = fmt.Sprintf("%s在%s中建仓，买入%.0f股。\n", trading.Ticker, trading.Fund, trading.Holding)
+			result = fmt.Sprintf("%s在%s中建仓，买入%.0f股。\n", TheChinaStockManager.Translate(trading.Ticker), trading.Fund, trading.Holding)
 		} else {
-			result = fmt.Sprintf("%s在%s中获得%.2f%%的增持，持股数从%.0f股增到%.0f股。\n", trading.Ticker, trading.Fund,
+			result = fmt.Sprintf("%s在%s中获得%.2f%%的增持，持股数从%.0f股增到%.0f股。\n", TheChinaStockManager.Translate(trading.Ticker), trading.Fund,
 				math.Abs(trading.Percent), trading.PreviousHolding, trading.Holding)
 		}
 	case TradeSell:
 		if trading.Percent == -100 {
-			result = fmt.Sprintf("%s在%s中清仓，卖出%.0f股。\n", trading.Ticker, trading.Fund, trading.Shards)
+			result = fmt.Sprintf("%s在%s中清仓，卖出%.0f股。\n", TheChinaStockManager.Translate(trading.Ticker), trading.Fund, trading.Shards)
 		} else {
-			result = fmt.Sprintf("%s在%s中被减持了%.2f%%，持股数从%.0f股减少到%.0f股。\n", trading.Ticker, trading.Fund,
+			result = fmt.Sprintf("%s在%s中被减持了%.2f%%，持股数从%.0f股减少到%.0f股。\n", TheChinaStockManager.Translate(trading.Ticker), trading.Fund,
 				math.Abs(trading.Percent), trading.PreviousHolding, trading.Holding)
 		}
 	}
@@ -379,27 +379,27 @@ func NewStockTradingTxtFromTrading(trading *StockTrading) string {
 	case TradeBuy:
 		if trading.Percent == 100 {
 			result = fmt.Sprintf("%s建仓，买入%.0f股。", trading.Fund, trading.Holding)
-			go utils.SendAlertV2(fmt.Sprintf("%s建仓%s，买入%.0f股。", trading.Fund, trading.Ticker, trading.Holding), "")
+			go utils.SendAlertV2(fmt.Sprintf("%s建仓%s，买入%.0f股。", trading.Fund, TheChinaStockManager.Translate(trading.Ticker), trading.Holding), "")
 		} else {
 			result = fmt.Sprintf("%s增持%.2f%%，买入%.0f股，持股数从%.0f股增到%.0f股。", trading.Fund,
 				trading.Percent, trading.Shards, trading.PreviousHolding, trading.Holding)
 			if trading.Percent > 50 {
 				go utils.SendAlertV2(fmt.Sprintf("%s增持%s%.2f%%，买入%.0f股，持股数从%.0f股增到%.0f股。", trading.Fund,
-					trading.Ticker, trading.Percent, trading.Shards, trading.PreviousHolding, trading.Holding), "")
+					TheChinaStockManager.Translate(trading.Ticker), trading.Percent, trading.Shards, trading.PreviousHolding, trading.Holding), "")
 			}
 		}
 	case TradeSell:
 		if trading.Percent == -100 {
 			result = fmt.Sprintf("%s清仓，卖出%.0f股。", trading.Fund, trading.PreviousHolding)
-			go utils.SendAlertV2(fmt.Sprintf("%s清仓%s，卖出%.0f股。", trading.Fund, trading.Ticker, trading.Holding), "")
+			go utils.SendAlertV2(fmt.Sprintf("%s清仓%s，卖出%.0f股。", trading.Fund, TheChinaStockManager.Translate(trading.Ticker), trading.PreviousHolding), "")
 		} else {
 			result = fmt.Sprintf("%s减持%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund,
 				math.Abs(trading.Percent), math.Abs(trading.Shards), trading.PreviousHolding, trading.Holding)
 			if trading.Percent > 50 {
-				go utils.SendAlertV2(fmt.Sprintf("%s减持%s%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund, trading.Ticker,
+				go utils.SendAlertV2(fmt.Sprintf("%s减持%s%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund, TheChinaStockManager.Translate(trading.Ticker),
 					math.Abs(trading.Percent), math.Abs(trading.Shards), trading.PreviousHolding, trading.Holding), "")
 			} else if trading.Percent > 20 && TheChinaStockManager.IsChinaStock(trading.Ticker) {
-				go utils.SendAlertV2(fmt.Sprintf("%s减持%s%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund, trading.Ticker,
+				go utils.SendAlertV2(fmt.Sprintf("%s减持%s%.2f%%，卖出%.0f股，持股数从%.0f股减少到%.0f股。", trading.Fund, TheChinaStockManager.Translate(trading.Ticker),
 					math.Abs(trading.Percent), math.Abs(trading.Shards), trading.PreviousHolding, trading.Holding), "")
 			}
 		}
@@ -415,13 +415,13 @@ func NewContinuousDirectionSpecialTradingTxtFromTrading(trading *StockTrading, p
 	)
 	switch trading.Direction {
 	case TradeSell:
-		result = fmt.Sprintf("%s最近三日在%s中均被减持，分别是%.2f%%、%.2f%%以及%.2f%%，持股数分别为%.0f股、%.0f股和%.0f股。\n", trading.Ticker, trading.Fund,
-			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2),
-			trading.Holding, previousHolding1, previousHolding2)
+		result = fmt.Sprintf("%s最近三日在%s中均被减持，分别是%.2f%%、%.2f%%以及%.2f%%，持股数分别为%.0f股、%.0f股和%.0f股。\n",
+			TheChinaStockManager.Translate(trading.Ticker), trading.Fund, math.Abs(trading.Percent),
+			math.Abs(previousPercent1), math.Abs(previousPercent2), trading.Holding, previousHolding1, previousHolding2)
 	case TradeBuy:
-		result = fmt.Sprintf("%s最近三日在%s中都获得增持，分别是%.2f%%、%.2f%%以及%.2f%%，持股数分别为%.0f股、%.0f股和%.0f股。\n", trading.Ticker, trading.Fund,
-			math.Abs(trading.Percent), math.Abs(previousPercent1), math.Abs(previousPercent2),
-			trading.Holding, previousHolding1, previousHolding2)
+		result = fmt.Sprintf("%s最近三日在%s中都获得增持，分别是%.2f%%、%.2f%%以及%.2f%%，持股数分别为%.0f股、%.0f股和%.0f股。\n",
+			TheChinaStockManager.Translate(trading.Ticker), trading.Fund, math.Abs(trading.Percent),
+			math.Abs(previousPercent1), math.Abs(previousPercent2), trading.Holding, previousHolding1, previousHolding2)
 	}
 	return []byte(result)
 }

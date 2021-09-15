@@ -127,10 +127,40 @@ var (
 		"BZ":    "BOSS直聘",
 		"2618":  "京东物流",
 	}
+
+	ReChinaStockNameMap = map[string]string{
+		"腾讯":     "TCEHY",
+		"众安在线":   "6060",
+		"众安":     "6060",
+		"平安好医生":  "1833",
+		"美团":     "3690",
+		"比亚迪":    "BYDDY",
+		"移卡":     "9923",
+		"拼多多":    "PDD",
+		"阿里巴巴":   "BABA",
+		"京东":     "JD",
+		"百度":     "BIDU",
+		"虎牙":     "HUYA",
+		"小牛电动":   "NIU",
+		"贝壳":     "BEKE",
+		"台积电":    "TSM",
+		"图森未来":   "TSP",
+		"图森":     "TSP",
+		"BOSS直聘": "BZ",
+		"京东物流":   "2618",
+	}
 )
 
 func (m *ChinaStockManager) Translate(ticker string) string {
 	newTicker := ChinaStockNameMap[ticker]
+	if newTicker == "" {
+		return ticker
+	}
+	return newTicker
+}
+
+func (m *ChinaStockManager) ReTranslate(ticker string) string {
+	newTicker := ReChinaStockNameMap[ticker]
 	if newTicker == "" {
 		return ticker
 	}

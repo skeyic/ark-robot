@@ -629,9 +629,9 @@ func (s *StockARKHoldings) TxtReport() string {
 	}
 
 	if fundNum == 1 {
-		report = fmt.Sprintf("ARK仅有一款基金持有%s：\n", s.Ticker) + report
+		report = fmt.Sprintf("ARK仅有一款基金持有%s：\n", TheChinaStockManager.Translate(s.Ticker)) + report
 	} else {
-		report = fmt.Sprintf("ARK共有%d款基金持有%s，共计%s股，总计市值%s美元。其中：\n", fundNum, s.Ticker,
+		report = fmt.Sprintf("ARK共有%d款基金持有%s，共计%s股，总计市值%s美元。其中：\n", fundNum, TheChinaStockManager.Translate(s.Ticker),
 			utils.ThousandFormatFloat64(totalShards), utils.ThousandFormatFloat64(totalMarketValue)) + report
 	}
 	//report += strings.TrimSuffix(report, "，") + "。" + "\n"
