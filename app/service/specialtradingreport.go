@@ -228,7 +228,7 @@ func (r *SpecialTradingsReport) Report() error {
 
 		for _, trading := range toReportTradings {
 			// special trading
-			if math.Abs(trading.Percent) > 10 {
+			if math.Abs(trading.Percent) > r.Percent {
 				//higherThan10Report.Add(trading.Ticker, NewSpecialTradingTxtFromTrading(trading))
 				specialTradingReport.Add(trading.Ticker, trading)
 			}
@@ -264,16 +264,16 @@ func (r *SpecialTradingsReport) Report() error {
 		return err
 	}
 
-	higherThan10TxtContent := specialTradingReport.Report()
-	if len(higherThan10TxtContent) > 0 {
-		higherThan10TxtContent = append([]byte(fmt.Sprintf("基于ARK基金公开的截止%s（不含）的持仓数据，以下个股在上个交易日变动超过%.0f%%：\n", r.Date, r.Percent)), higherThan10TxtContent...)
-		TheBigSwingsReportMaster.SetReport(string(higherThan10TxtContent))
-		err = utils.NewFileStoreSvc(r.HigherThan10TxtPath()).Save(higherThan10TxtContent)
+	specialTradingTxtContent := specialTradingReport.Report()
+	if len(specialTradingTxtContent) > 0 {
+		specialTradingTxtContent = append([]byte(fmt.Sprintf("基于ARK基金公开的截止%s（不含）的持仓数据，以下个股在上个交易日变动超过%.0f%%：\n", r.Date, r.Percent)), specialTradingTxtContent...)
+		TheBigSwingsReportMaster.SetReport(string(specialTradingTxtContent))
+		err = utils.NewFileStoreSvc(r.HigherThan10TxtPath()).Save(specialTradingTxtContent)
 		if err != nil {
 			glog.Errorf("failed to save txt %s, err: %v", r.HigherThan10TxtPath(), err)
 			return err
 		}
-		utils.SendAlertV2("异动股票"+r.Date, string(higherThan10TxtContent))
+		utils.SendAlertV2("异动股票"+r.Date, string(specialTradingTxtContent))
 	} else {
 		glog.V(4).Infof("No higher than 10 tradings")
 	}
