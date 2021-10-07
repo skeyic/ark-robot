@@ -67,6 +67,20 @@ func (d *Downloader) process() {
 
 }
 
+func screenshot(driver selenium.WebDriver, filename string) {
+	bytes, err := driver.Screenshot()
+	if nil != err {
+		glog.Errorf("take screenshot error, err: %s", err)
+		return
+	}
+
+	err = ioutil.WriteFile(config.Config.DataFolder+"/"+filename, bytes, 0666)
+	if nil != err {
+		glog.Errorf("save screenshot error, err: %s", err)
+		return
+	}
+}
+
 func (d *Downloader) DownloadAllARKCSVsV2() error {
 	var (
 		fileNames   []string
@@ -74,7 +88,7 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 	)
 
 	var (
-		gridURL     = "http://192.168.31.32:4444/wd/hub"
+		gridURL     = config.Config.SpiderServer.URL
 		browserName = "chrome"
 		URL         = "https://ark-funds.com/download-fund-materials/"
 		driver      selenium.WebDriver
@@ -104,11 +118,21 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 		return errDownloadCSV
 	}
 
+	//screenshot(driver, "1.jpg")
 	err = driver.ResizeWindow("", 3200, 2600)
 	if err != nil {
 		glog.Errorf("Failed to resize window, err: %+v", err)
 		return errDownloadCSV
 	}
+
+	//screenshot(driver, "2.jpg")
+	driver.WaitWithTimeoutAndInterval(func(driver selenium.WebDriver) (bool, error) {
+		_, err := driver.FindElement(selenium.ByLinkText, "Fund Holdings CSV")
+		if err != nil {
+			screenshot(driver, fmt.Sprintf("%s.jpg", time.Now().Format("15-04-05")))
+		}
+		return err == nil, nil
+	}, 100*time.Second, 10*time.Second)
 
 	navigate, err := driver.FindElement(selenium.ByLinkText, "Fund Holdings CSV")
 	if err != nil {
@@ -122,8 +146,17 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 		return errDownloadCSV
 	}
 
+	//screenshot(driver, "3.jpg")
 	for fileType, fileName := range fileNameMap {
 		for i := 0; i < 3; i++ {
+			driver.WaitWithTimeoutAndInterval(func(driver selenium.WebDriver) (bool, error) {
+				_, err := driver.FindElement(selenium.ByXPATH, "//div[contains(text(),'"+fileType+"')]/../../../div[2]//button")
+				if err != nil {
+					screenshot(driver, fmt.Sprintf("%s.jpg", time.Now().Format("15-04-05")))
+				}
+				return err == nil, nil
+			}, 100*time.Second, 10*time.Second)
+
 			e, err := driver.FindElement(selenium.ByXPATH, "//div[contains(text(),'"+fileType+"')]/../../../div[2]//button")
 			if err != nil {
 				glog.Errorf("Failed to find element, err: %+v", err)

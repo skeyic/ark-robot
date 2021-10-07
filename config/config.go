@@ -26,7 +26,7 @@ var Config = struct {
 	}
 
 	SpiderServer struct {
-		URL        string `default:"http://192.168.31.32:4444" env:"SPIDER_SERVER_URL"`
+		URL        string `default:"http://192.168.31.32:4444/wd/hub" env:"SPIDER_SERVER_URL"`
 		DataFolder string `default:"\\\\cocoa\\ubuntu\\spider\\data" env:"SPIDER_SERVER_DATA_FOLDER"`
 	}
 
