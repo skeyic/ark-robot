@@ -81,6 +81,12 @@ func screenshot(driver selenium.WebDriver, filename string) {
 	}
 }
 
+func screenshotV2(driver selenium.WebDriver) {
+	pic := fmt.Sprintf("%s.jpg", time.Now().Format("15-04-05"))
+	screenshot(driver, pic)
+	glog.V(4).Infof("TAKE PICTURE %s", pic)
+}
+
 func (d *Downloader) DownloadAllARKCSVsV2() error {
 	var (
 		fileNames   []string
@@ -125,34 +131,60 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 		return errDownloadCSV
 	}
 
-	//screenshot(driver, "2.jpg")
-	driver.WaitWithTimeoutAndInterval(func(driver selenium.WebDriver) (bool, error) {
-		_, err := driver.FindElement(selenium.ByLinkText, "Fund Holdings CSV")
-		if err != nil {
-			screenshot(driver, fmt.Sprintf("%s.jpg", time.Now().Format("15-04-05")))
-		}
-		return err == nil, nil
-	}, 100*time.Second, 10*time.Second)
-
+	//searchDoc, err := driver.FindElement(selenium.ByID, "searchDoc")
+	//if err != nil {
+	//	screenshotV2(driver)
+	//	glog.Errorf("Failed to find search, err: %+v", err)
+	//	return errDownloadCSV
+	//}
+	//err = searchDoc.Click()
+	//if err != nil {
+	//	screenshotV2(driver)
+	//	glog.Errorf("Failed to click search, err: %+v", err)
+	//	return errDownloadCSV
+	//}
+	//err = searchDoc.SendKeys("csv")
+	//if err != nil {
+	//	screenshotV2(driver)
+	//	glog.Errorf("Failed to search, err: %+v", err)
+	//	return errDownloadCSV
+	//}
+	//err = searchDoc.SendKeys(selenium.EnterKey)
+	//if err != nil {
+	//	screenshotV2(driver)
+	//	glog.Errorf("Failed to search, err: %+v", err)
+	//	return errDownloadCSV
+	//}
+	////screenshot(driver, "2.jpg")
+	//driver.WaitWithTimeoutAndInterval(func(driver selenium.WebDriver) (bool, error) {
+	//	_, err := driver.FindElement(selenium.ByLinkText, "Fund Holdings CSV")
+	//	if err != nil {
+	//		screenshot(driver, fmt.Sprintf("%s.jpg", time.Now().Format("15-04-05")))
+	//	}
+	//	return err == nil, nil
+	//}, 100*time.Second, 10*time.Second)
+	//
+	screenshotV2(driver)
 	navigate, err := driver.FindElement(selenium.ByLinkText, "Fund Holdings CSV")
 	if err != nil {
 		glog.Errorf("Failed to find element Fund Holdings CSV, err: %+v", err)
+		screenshotV2(driver)
 		return errDownloadCSV
 	}
 
 	err = navigate.Click()
 	if err != nil {
 		glog.Errorf("Failed to click element Fund Holdings CSV, err: %+v", err)
+		screenshotV2(driver)
 		return errDownloadCSV
 	}
 
-	//screenshot(driver, "3.jpg")
 	for fileType, fileName := range fileNameMap {
 		for i := 0; i < 3; i++ {
 			driver.WaitWithTimeoutAndInterval(func(driver selenium.WebDriver) (bool, error) {
 				_, err := driver.FindElement(selenium.ByXPATH, "//div[contains(text(),'"+fileType+"')]/../../../div[2]//button")
 				if err != nil {
-					screenshot(driver, fmt.Sprintf("%s.jpg", time.Now().Format("15-04-05")))
+					screenshotV2(driver)
 				}
 				return err == nil, nil
 			}, 100*time.Second, 10*time.Second)
