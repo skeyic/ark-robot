@@ -25,6 +25,11 @@ var Config = struct {
 		URL   string `default:"http://www.tanglicai.xyz:7222" env:"ES_SERVER_URL"`
 	}
 
+	SpiderServer struct {
+		URL        string `default:"http://192.168.31.32:4444" env:"SPIDER_SERVER_URL"`
+		DataFolder string `default:"\\\\cocoa\\ubuntu\\spider\\data" env:"SPIDER_SERVER_DATA_FOLDER"`
+	}
+
 	Report struct {
 		SpecialTradingPercent float64 `default:"3" env:"SPECIAL_TRADING_PERCENT"`
 		WithExcel             bool    `default:"false" env:"REPORT_WITH_EXCEL"`

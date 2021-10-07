@@ -27,7 +27,7 @@ func Download(c *gin.Context) {
 		err error
 	)
 
-	err = service.TheDownloader.DownloadAllARKCSVs()
+	err = service.TheDownloader.DownloadAllARKCSVsV2()
 	if err != nil {
 		msg := fmt.Sprintf("failed to download, err: %v", err)
 		glog.Error(msg)

@@ -320,7 +320,7 @@ func (m *Master) StartDownload() {
 			err error
 		)
 
-		err = TheDownloader.DownloadAllARKCSVs()
+		err = TheDownloader.DownloadAllARKCSVsV2()
 		if err != nil {
 			glog.Errorf("download All ARK CSVs failed, wait and retry, current time: %s, err: %v", a, err)
 			return false, err
