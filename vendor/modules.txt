@@ -13,6 +13,8 @@ github.com/PuerkitoBio/urlesc
 ## explicit
 github.com/alecthomas/template
 github.com/alecthomas/template/parse
+# github.com/blang/semver v3.5.1+incompatible
+github.com/blang/semver
 # github.com/chromedp/cdproto v0.0.0-20210323015217-0942afbea50e
 ## explicit
 github.com/chromedp/cdproto
@@ -172,6 +174,13 @@ github.com/swaggo/gin-swagger/swaggerFiles
 # github.com/swaggo/swag v1.7.0
 ## explicit
 github.com/swaggo/swag
+# github.com/tebeka/selenium v0.9.9
+## explicit
+github.com/tebeka/selenium
+github.com/tebeka/selenium/chrome
+github.com/tebeka/selenium/firefox
+github.com/tebeka/selenium/internal/zip
+github.com/tebeka/selenium/log
 # github.com/ugorji/go/codec v1.1.13
 github.com/ugorji/go/codec
 # github.com/xuri/efp v0.0.0-20201016154823-031c29024257

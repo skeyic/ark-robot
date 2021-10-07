@@ -49,11 +49,18 @@ var (
 	}
 )
 
+func trimTheColumn(source string) (result string) {
+	result = strings.TrimLeft(source, "$")
+	result = strings.TrimSuffix(result, "%")
+	result = strings.ReplaceAll(result, ",", "")
+	return
+}
+
 func NewStockHoldingFromRecord(record []string) *StockHolding {
 	date, _ := time.Parse("1/2/2006", record[0])
-	shards, _ := strconv.ParseFloat(record[5], 64)
-	marketValue, _ := strconv.ParseFloat(record[6], 64)
-	weight, _ := strconv.ParseFloat(record[7], 64)
+	shards, _ := strconv.ParseFloat(trimTheColumn(record[5]), 64)
+	marketValue, _ := strconv.ParseFloat(trimTheColumn(record[6]), 64)
+	weight, _ := strconv.ParseFloat(trimTheColumn(record[7]), 64)
 
 	ticker := record[3]
 	if ticker == "" {

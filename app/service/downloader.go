@@ -6,6 +6,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/config"
 	"github.com/skeyic/ark-robot/utils"
+	"github.com/tebeka/selenium"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	csvBaseURL = "https://ark-funds.com/wp-content/fundsiteliterature/csv/%s.csv"
+	csvBaseURL = "https://ark-funds.com/wp-content/uploads/funds-etf-csv/%s.csv"
 )
 
 var (
@@ -64,6 +65,151 @@ func (d *Downloader) Init() error {
 
 func (d *Downloader) process() {
 
+}
+
+func (d *Downloader) DownloadAllARKCSVsV2() error {
+	var (
+		fileNames   []string
+		arkHoldings = &ARKHoldings{}
+	)
+
+	var (
+		gridURL     = "http://192.168.31.32:4444/wd/hub"
+		browserName = "chrome"
+		URL         = "https://ark-funds.com/download-fund-materials/"
+		driver      selenium.WebDriver
+		fileNameMap = map[string]string{
+			"ARK Innovation ETF":                     "ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv",
+			"ARK Genomic Revolution ETF":             "ARK_INNOVATION_ETF_ARKG_HOLDINGS.csv",
+			"ARK Next Generation Internet ETF":       "ARK_INNOVATION_ETF_ARKW_HOLDINGS.csv",
+			"ARK Autonomous Tech. & Robotics ETF":    "ARK_INNOVATION_ETF_ARKQ_HOLDINGS.csv",
+			"ARK Fintech Innovation ETF":             "ARK_INNOVATION_ETF_ARKF_HOLDINGS.csv",
+			"ARK Space Exploration & Innovation ETF": "ARK_INNOVATION_ETF_ARKX_HOLDINGS.csv",
+		}
+	)
+
+	caps := selenium.Capabilities{"browserName": browserName}
+	webDriver, err := selenium.NewRemote(caps, gridURL)
+	if nil != err {
+		panic(err)
+	}
+	driver = webDriver
+
+	// teardown
+	defer driver.Quit()
+
+	err = driver.Get(URL)
+	if nil != err {
+		glog.Errorf("page open error, err: %s", err)
+		return errDownloadCSV
+	}
+
+	err = driver.ResizeWindow("", 3200, 2600)
+	if err != nil {
+		glog.Errorf("Failed to resize window, err: %+v", err)
+		return errDownloadCSV
+	}
+
+	navigate, err := driver.FindElement(selenium.ByLinkText, "Fund Holdings CSV")
+	if err != nil {
+		glog.Errorf("Failed to find element Fund Holdings CSV, err: %+v", err)
+		return errDownloadCSV
+	}
+
+	err = navigate.Click()
+	if err != nil {
+		glog.Errorf("Failed to click element Fund Holdings CSV, err: %+v", err)
+		return errDownloadCSV
+	}
+
+	for fileType, fileName := range fileNameMap {
+		for i := 0; i < 3; i++ {
+			e, err := driver.FindElement(selenium.ByXPATH, "//div[contains(text(),'"+fileType+"')]/../../../div[2]//button")
+			if err != nil {
+				glog.Errorf("Failed to find element, err: %+v", err)
+				if i == 2 {
+					return errDownloadCSV
+				}
+				time.Sleep(5 * time.Second)
+				continue
+			}
+
+			err = e.Click()
+			if err != nil {
+				glog.Errorf("Failed to click element, err: %+v", err)
+				if i == 2 {
+					return errDownloadCSV
+				}
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			break
+		}
+
+		time.Sleep(5 * time.Second)
+		fileNames = append(fileNames, config.Config.SpiderServer.DataFolder+"/"+fileName)
+		glog.V(4).Infof("Downloaded %s", fileName)
+	}
+
+	// Wait 30 seconds to make sure the download is finished
+	time.Sleep(30 * time.Second)
+
+	defer func(files []string) {
+		for _, file := range files {
+			glog.V(4).Infof("DELETE FILE %s", file)
+			os.Remove(file)
+		}
+	}(fileNames)
+
+	for _, fileName := range fileNames {
+		stockHoldings, err := ThePorter.Catalog(fileName)
+		if err != nil {
+			return err
+		}
+
+		err = arkHoldings.AddStockHoldings(stockHoldings)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !arkHoldings.Validation() {
+		return errValidateFail
+	}
+
+	if TheLibrary.GetLatestHoldingDate() == arkHoldings.Date {
+		glog.V(4).Infof("No need to update, latest date: %s", arkHoldings.Date)
+		return nil
+	}
+
+	TheLibrary.GenerateCurrentTrading(arkHoldings)
+	TheLibrary.AddStockHoldings(arkHoldings)
+	TheStockLibraryMaster.AddStockHoldings(arkHoldings)
+	TheTop10HoldingsReportMaster.Refresh()
+
+	glog.V(4).Infof("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now())
+	utils.SendAlertV2("Add to library", fmt.Sprintf("Add ark holdings of %s at %s to library", arkHoldings.Date, time.Now()))
+
+	err = TheMaster.ReportLatestTrading(true)
+	if err != nil {
+		glog.Errorf("report latest trading failed, err: %v", err)
+		return err
+	}
+
+	if config.Config.ESServer.Force {
+		err = TheMaster.IndexLatestToES()
+		if err != nil {
+			glog.Errorf("index latest data to ES failed, err: %v", err)
+			return err
+		}
+	}
+
+	glog.V(4).Infof("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now())
+	//if config.Config.DebugMode {
+	//	utils.SendAlertV2("Add to library", fmt.Sprintf("TradingsReport latest trading of %s at %s to library", arkHoldings.Date, time.Now()))
+	//}
+
+	return nil
 }
 
 func (d *Downloader) DownloadAllARKCSVs() error {

@@ -14,7 +14,7 @@ func TestCSVRead(t *testing.T) {
 	flag.Set("v", "10")
 	flag.Parse()
 
-	r := NewCSVOperator("C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data\\ARK\\20210304\\a20210304ARKF.csv")
+	r := NewCSVOperator("C:\\Users\\15902\\go\\src\\github.com\\skeyic\\ark-robot\\data\\ARK\\20211007\\20211007ARKF.csv")
 	records, err := r.Load()
 	if err != nil {
 		glog.Errorf("failed to load, error: %v", err)

@@ -42,3 +42,12 @@ func TestListAllDates(t *testing.T) {
 		glog.V(4).Infof("File: %s", theFile)
 	}
 }
+
+func TestPorter_Catalog(t *testing.T) {
+	ThePorter.Catalog("C:\\Users\\15902\\Downloads\\ARK105\\ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv")
+	ThePorter.Catalog("C:\\Users\\15902\\Downloads\\ARK105\\ARK_INNOVATION_ETF_ARKX_HOLDINGS.csv")
+	ThePorter.Catalog("C:\\Users\\15902\\Downloads\\ARK105\\ARK_INNOVATION_ETF_ARKG_HOLDINGS.csv")
+	ThePorter.Catalog("C:\\Users\\15902\\Downloads\\ARK105\\ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv")
+	ThePorter.Catalog("C:\\Users\\15902\\Downloads\\ARK105\\ARK_INNOVATION_ETF_ARKQ_HOLDINGS.csv")
+	ThePorter.Catalog("C:\\Users\\15902\\Downloads\\ARK105\\ARK_INNOVATION_ETF_ARKW_HOLDINGS.csv")
+}

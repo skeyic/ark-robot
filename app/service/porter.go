@@ -69,7 +69,8 @@ func (p *Porter) Init() error {
 }
 
 var (
-	ARKCSVTitle = strings.Join([]string{"date", "fund", "company", "ticker", "cusip", "shares", "market value($)", "weight(%)"}, ",")
+	ARKCSVTitle   = strings.Join([]string{"date", "fund", "company", "ticker", "cusip", "shares", "market value($)", "weight(%)"}, ",")
+	ARKCSVTitleV2 = strings.Join([]string{"date", "fund", "company", "ticker", "cusip", "shares", "market value ($)", "weight (%)"}, ",")
 )
 
 func ValidateARKCSV(records [][]string) bool {
@@ -78,8 +79,11 @@ func ValidateARKCSV(records [][]string) bool {
 		return false
 	}
 
-	if strings.Join(records[0], ",") != ARKCSVTitle {
-		glog.Errorf("csv does not match, title: >>%s<<, expect: >>%s<<", strings.Join(records[0], ","), ARKCSVTitle)
+	var (
+		myTitle = strings.Join(records[0], ",")
+	)
+	if myTitle != ARKCSVTitle && myTitle != ARKCSVTitleV2 {
+		glog.Errorf("csv does not match, title: >>%s<<, expect: >>%s<< or >>%s<<", strings.Join(records[0], ","), ARKCSVTitle, ARKCSVTitleV2)
 		return false
 	}
 
@@ -118,12 +122,13 @@ func (p *Porter) Catalog(csvFileName string) (*StockHoldings, error) {
 		glog.Warningf("file %s already exists, return", newPath)
 		//_ = os.Remove(newPath)
 	} else {
-		err = os.Rename(csvFileName, newPath)
-		glog.V(4).Infof("Rename %s to %s", csvFileName, newPath)
-		if err != nil {
-			glog.Errorf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err)
-			return nil, errRenameFile
-		}
+		utils.CopyFile(csvFileName, newPath)
+		//err = os.Rename(csvFileName, newPath)
+		glog.V(4).Infof("Copy %s to %s", csvFileName, newPath)
+		//if err != nil {
+		//	glog.Errorf("failed to rename csv file: %s, new path: %s, err: %v", csvFileName, newPath, err)
+		//	return nil, errRenameFile
+		//}
 	}
 
 	return NewStockHoldings(theDate, theFund, stockHolding), nil

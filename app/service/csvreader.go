@@ -23,6 +23,9 @@ func NewCSVOperator(filename string) *CSVOperator {
 }
 
 func (c *CSVOperator) Load() ([][]string, error) {
+	var (
+		records [][]string
+	)
 	f, err := os.Open(c.filepath)
 	if err != nil {
 		glog.Errorf("failed to open csv file: %s, error: %v", c.filepath, err)
@@ -31,9 +34,16 @@ func (c *CSVOperator) Load() ([][]string, error) {
 	defer f.Close()
 
 	csvReader := csv.NewReader(f)
-	records, err := csvReader.ReadAll()
-	if err != nil {
-		glog.Errorf("failed to parse as csv file: %s, error: %v", c.filepath, err)
+	for {
+		record, err := csvReader.Read()
+		if err != nil {
+			break
+		}
+		records = append(records, record)
+	}
+
+	if len(records) == 0 {
+		glog.Errorf("failed to parse as csv file: %s", c.filepath)
 		return nil, errLoadCSVFile
 	}
 

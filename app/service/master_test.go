@@ -67,7 +67,7 @@ func Test_MasterFreshInitWithDownload(t *testing.T) {
 	glog.V(4).Infof("Latest stock holding date: %s", TheLibrary.LatestStockHoldings.Date)
 	glog.V(4).Infof("Latest stock trading date: %s", TheLibrary.LatestStockTradings.Date)
 
-	err = TheDownloader.DownloadAllARKCSVs()
+	err = TheDownloader.DownloadAllARKCSVsV2()
 	if err != nil {
 		glog.Errorf("failed to download csv, err: %v", err)
 		return
@@ -92,7 +92,7 @@ func Test_MasterStaleInitWithDownload(t *testing.T) {
 	glog.V(4).Infof("Latest stock holding date: %s", TheLibrary.LatestStockHoldings.Date)
 	glog.V(4).Infof("Latest stock trading date: %s", TheLibrary.LatestStockTradings.Date)
 
-	err = TheDownloader.DownloadAllARKCSVs()
+	err = TheDownloader.DownloadAllARKCSVsV2()
 	if err != nil {
 		glog.Errorf("failed to download csv, err: %v", err)
 		return
