@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/skeyic/ark-robot/config"
+	"github.com/skeyic/ark-robot/utils"
 	"sync"
 	"time"
 )
@@ -323,6 +324,7 @@ func (m *Master) StartDownload() {
 		err = TheDownloader.DownloadAllARKCSVsV2()
 		if err != nil {
 			glog.Errorf("download All ARK CSVs failed, wait and retry, current time: %s, err: %v", a, err)
+			utils.SendAlertV2("Download CSV FAILED", fmt.Sprintf("%v", err))
 			return false, err
 		}
 
