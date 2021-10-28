@@ -97,7 +97,9 @@ func (p *Porter) Catalog(csvFileName string) (*StockHoldings, error) {
 	)
 	records, err := NewCSVOperator(csvFileName).Load()
 	if err != nil {
-		panic(fmt.Sprintf("failed to read csv file: %s, err: %v", csvFileName, err))
+		//panic(fmt.Sprintf("failed to read csv file: %s, err: %v", csvFileName, err))
+		glog.Errorf("failed to read csv file: %s, err: %v", csvFileName, err)
+		return nil, errLoadCSVFile
 	}
 
 	if !ValidateARKCSV(records) {
