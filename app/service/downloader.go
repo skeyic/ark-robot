@@ -222,7 +222,7 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 			return errDownloadCSV
 		}
 		fileNames = append(fileNames, latestFileName)
-		glog.V(4).Infof("Downloaded %s", fileName)
+		glog.V(4).Infof("Downloaded %s", latestFileName)
 	}
 
 	// Wait 30 seconds to make sure the download is finished
