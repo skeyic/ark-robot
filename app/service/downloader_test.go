@@ -229,3 +229,16 @@ func TestReadNewCSV(t *testing.T) {
 		glog.V(4).Infof("RECORD: %s", record)
 	}
 }
+
+func TestGetLatestCSV(t *testing.T) {
+	utils.EnableGlogForTesting()
+
+	var (
+		path   = "\\\\cocoa\\ubuntu\\spider\\data\\"
+		prefix = "ARK_INNOVATION_ETF_ARKK_HOLDINGS"
+		suffix = ".csv"
+	)
+
+	fn, err := GetLatestFileName(path, prefix, suffix)
+	glog.V(4).Infof("FN: %s, ERR: %v", fn, err)
+}

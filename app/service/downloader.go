@@ -10,6 +10,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -212,7 +215,13 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 		}
 
 		time.Sleep(5 * time.Second)
-		fileNames = append(fileNames, config.Config.SpiderServer.DataFolder+"/"+fileName)
+
+		latestFileName, err := GetLatestFileName(config.Config.SpiderServer.DataFolder, fileName, ".csv")
+		if err != nil {
+			glog.Errorf("failed to get latest file name, err: %v", err)
+			return errDownloadCSV
+		}
+		fileNames = append(fileNames, latestFileName)
 		glog.V(4).Infof("Downloaded %s", fileName)
 	}
 
@@ -275,6 +284,67 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 	//}
 
 	return nil
+}
+
+func GetLatestFileName(dirPath, prefix, suffix string) (string, error) {
+	var (
+		filesets        []string
+		latestTimestamp int64
+		latestFile      string
+	)
+
+	Listfunc := func(path string, f os.FileInfo, err error) error {
+		//ostype := os.Getenv("GOOS") // windows, linux
+
+		if f == nil {
+			return err
+		}
+		if f.IsDir() {
+			return nil
+		}
+
+		if prefix != "" {
+			ok := strings.HasPrefix(f.Name(), prefix)
+			if !ok {
+				return nil
+			}
+		}
+
+		if suffix != "" {
+			ok := strings.HasSuffix(f.Name(), suffix)
+			if !ok {
+				return nil
+			}
+		}
+
+		filesets = append(filesets, path)
+
+		return nil
+	}
+
+	err := filepath.Walk(dirPath, Listfunc)
+	if err != nil {
+		glog.Errorf("failed to walk dir: %s, err: %v", dirPath, err)
+		return "", errDownloadCSV
+	}
+
+	if len(filesets) == 1 {
+		return filesets[0], nil
+	}
+
+	for _, theFile := range filesets {
+		theList := strings.Split(theFile, "_")
+		if len(theList) == 6 {
+			theTS := strings.TrimSuffix(theList[5], suffix)
+			theTSInt, _ := strconv.ParseInt(theTS, 10, 64)
+			if theTSInt > latestTimestamp {
+				latestTimestamp = theTSInt
+				latestFile = theFile
+			}
+		}
+	}
+
+	return latestFile, nil
 }
 
 func (d *Downloader) DownloadAllARKCSVs() error {
