@@ -102,12 +102,12 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 		URL         = "https://ark-funds.com/download-fund-materials/"
 		driver      selenium.WebDriver
 		fileNameMap = map[string]string{
-			"ARK Innovation ETF":                     "ARK_INNOVATION_ETF_ARKK_HOLDINGS.csv",
-			"ARK Genomic Revolution ETF":             "ARK_INNOVATION_ETF_ARKG_HOLDINGS.csv",
-			"ARK Next Generation Internet ETF":       "ARK_INNOVATION_ETF_ARKW_HOLDINGS.csv",
-			"ARK Autonomous Tech. & Robotics ETF":    "ARK_INNOVATION_ETF_ARKQ_HOLDINGS.csv",
-			"ARK Fintech Innovation ETF":             "ARK_INNOVATION_ETF_ARKF_HOLDINGS.csv",
-			"ARK Space Exploration & Innovation ETF": "ARK_INNOVATION_ETF_ARKX_HOLDINGS.csv",
+			"ARK Innovation ETF":                     "ARK_INNOVATION_ETF_ARKK_HOLDINGS",
+			"ARK Genomic Revolution ETF":             "ARK_INNOVATION_ETF_ARKG_HOLDINGS",
+			"ARK Next Generation Internet ETF":       "ARK_INNOVATION_ETF_ARKW_HOLDINGS",
+			"ARK Autonomous Tech. & Robotics ETF":    "ARK_INNOVATION_ETF_ARKQ_HOLDINGS",
+			"ARK Fintech Innovation ETF":             "ARK_INNOVATION_ETF_ARKF_HOLDINGS",
+			"ARK Space Exploration & Innovation ETF": "ARK_INNOVATION_ETF_ARKX_HOLDINGS",
 		}
 	)
 
@@ -327,6 +327,8 @@ func GetLatestFileName(dirPath, prefix, suffix string) (string, error) {
 		glog.Errorf("failed to walk dir: %s, err: %v", dirPath, err)
 		return "", errDownloadCSV
 	}
+
+	glog.V(4).Infof("The FILE LIST: %v", filesets)
 
 	if len(filesets) == 1 {
 		return filesets[0], nil
