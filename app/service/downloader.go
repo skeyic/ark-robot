@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -341,6 +342,25 @@ func GetLatestFileName(dirPath, prefix, suffix string) (string, error) {
 			theTSInt, _ := strconv.ParseInt(theTS, 10, 64)
 			if theTSInt > latestTimestamp {
 				latestTimestamp = theTSInt
+				latestFile = theFile
+			}
+		}
+	}
+
+	if latestFile != "" {
+		return latestFile, nil
+	}
+
+	var (
+		pattern = regexp.MustCompile(`.*\((\d)\)\.csv`)
+		maxNum  int
+	)
+	for _, theFile := range filesets {
+		p := pattern.FindSubmatch([]byte(theFile))
+		if len(p) > 1 {
+			myNum, _ := strconv.Atoi(string(p[1]))
+			if myNum > maxNum {
+				maxNum = myNum
 				latestFile = theFile
 			}
 		}

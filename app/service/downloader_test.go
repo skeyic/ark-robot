@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -241,4 +243,34 @@ func TestGetLatestCSV(t *testing.T) {
 
 	fn, err := GetLatestFileName(path, prefix, suffix)
 	glog.V(4).Infof("FN: %s, ERR: %v", fn, err)
+}
+
+func TestGetLatestCSVv2(t *testing.T) {
+	utils.EnableGlogForTesting()
+	var (
+		filesets = []string{
+			"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (1).csv",
+			"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (2).csv",
+			"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (3).csv",
+			"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS.csv",
+		}
+		pattern    = regexp.MustCompile(`.*\((\d)\)\.csv`)
+		latestFile string
+	)
+
+	var (
+		maxNum int
+	)
+	for _, theFile := range filesets {
+		p := pattern.FindSubmatch([]byte(theFile))
+		if len(p) > 1 {
+			myNum, _ := strconv.Atoi(string(p[1]))
+			if myNum > maxNum {
+				maxNum = myNum
+				latestFile = theFile
+			}
+		}
+	}
+
+	glog.V(4).Infof("%s", latestFile)
 }
