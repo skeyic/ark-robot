@@ -101,13 +101,13 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 		browserName = "chrome"
 		URL         = "https://ark-funds.com/download-fund-materials/"
 		driver      selenium.WebDriver
-		fileNameMap = map[string]string{
+		fundNameMap = map[string]string{
 			"ARK Innovation ETF":                     "ARK_INNOVATION_ETF_ARKK_HOLDINGS",
-			"ARK Genomic Revolution ETF":             "ARK_INNOVATION_ETF_ARKG_HOLDINGS",
-			"ARK Next Generation Internet ETF":       "ARK_INNOVATION_ETF_ARKW_HOLDINGS",
-			"ARK Autonomous Tech. & Robotics ETF":    "ARK_INNOVATION_ETF_ARKQ_HOLDINGS",
-			"ARK Fintech Innovation ETF":             "ARK_INNOVATION_ETF_ARKF_HOLDINGS",
-			"ARK Space Exploration & Innovation ETF": "ARK_INNOVATION_ETF_ARKX_HOLDINGS",
+			"ARK Genomic Revolution ETF":             "ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS",
+			"ARK Next Generation Internet ETF":       "ARK_NEXT_GENERATION_INTERNET_ETF_ARKW_HOLDINGS",
+			"ARK Autonomous Tech. & Robotics ETF":    "ARK_AUTONOMOUS_TECH._&_ROBOTICS_ETF_ARKQ_HOLDINGS",
+			"ARK Fintech Innovation ETF":             "ARK_FINTECH_INNOVATION_ETF_ARKF_HOLDINGS",
+			"ARK Space Exploration & Innovation ETF": "ARK_SPACE_EXPLORATION_&_INNOVATION_ETF_ARKX_HOLDINGS",
 		}
 	)
 
@@ -182,7 +182,7 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 		return errDownloadCSV
 	}
 
-	for fileType, fileName := range fileNameMap {
+	for fileType, fileName := range fundNameMap {
 		for i := 0; i < 3; i++ {
 			driver.WaitWithTimeoutAndInterval(func(driver selenium.WebDriver) (bool, error) {
 				_, err := driver.FindElement(selenium.ByXPATH, "//div[contains(text(),'"+fileType+"')]/../../../div[2]//button")

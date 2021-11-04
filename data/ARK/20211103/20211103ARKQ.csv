@@ -1,0 +1,40 @@
+date,fund,company,ticker,cusip,shares,"market value ($)","weight (%)"
+11/03/2021,ARKQ,"TESLA INC",TSLA,88160R101,"292,640","$342,974,080.00",12.57%
+11/03/2021,ARKQ,"TRIMBLE INC",TRMB,896239100,"2,088,925","$184,723,637.75",6.77%
+11/03/2021,ARKQ,"KRATOS DEFENSE & SECURITY",KTOS,50077B207,"8,080,929","$183,356,279.01",6.72%
+11/03/2021,ARKQ,"UIPATH INC - CLASS A",PATH,90364P105,"3,474,100","$183,119,811.00",6.71%
+11/03/2021,ARKQ,"UNITY SOFTWARE INC",U,91332U101,"1,058,164","$152,248,636.32",5.58%
+11/03/2021,ARKQ,"IRIDIUM COMMUNICATIONS INC",IRDM,46269C102,"2,858,637","$118,347,571.80",4.34%
+11/03/2021,ARKQ,"3D SYSTEMS CORP",DDD,88554D205,"3,572,639","$111,930,779.87",4.10%
+11/03/2021,ARKQ,"KOMATSU LTD -SPONS ADR",KMTUY,500458401,"3,790,147","$101,234,826.37",3.71%
+11/03/2021,ARKQ,"JD.COM INC-ADR",JD,47215P106,"1,230,058","$99,265,680.60",3.64%
+11/03/2021,ARKQ,"DEERE & CO",DE,244199105,"227,192","$80,721,317.60",2.96%
+11/03/2021,ARKQ,"LOCKHEED MARTIN CORP",LMT,539830109,"235,186","$76,743,543.66",2.81%
+11/03/2021,ARKQ,"NIU TECHNOLOGIES-SPONS ADR",NIU,65481N100,"2,831,047","$74,456,536.10",2.73%
+11/03/2021,ARKQ,"TUSIMPLE HOLDINGS INC - A",TSP,90089L108,"1,792,143","$70,234,084.17",2.57%
+11/03/2021,ARKQ,"MARKFORGED HOLDING CORP",MKFG,57064N102,"9,456,228","$67,990,279.32",2.49%
+11/03/2021,ARKQ,"TERADYNE INC",TER,880770102,"468,714","$65,315,295.90",2.39%
+11/03/2021,ARKQ,"AEROVIRONMENT INC",AVAV,008073108,"693,654","$64,301,725.80",2.36%
+11/03/2021,ARKQ,"ALPHABET INC-CL C",GOOG,02079K107,"21,029","$61,347,060.54",2.25%
+11/03/2021,ARKQ,"NANO DIMENSION LTD - ADR",NNDM,63008G203,"9,773,356","$61,278,942.12",2.25%
+11/03/2021,ARKQ,"MAGNA INTERNATIONAL INC",MGA,559222401,"688,319","$56,676,186.46",2.08%
+11/03/2021,ARKQ,"BLADE AIR MOBILITY INC",BLDE,092667104,"5,217,878","$52,387,495.12",1.92%
+11/03/2021,ARKQ,"ARCHER AVIATION INC-A",ACHR,03945R102,"7,774,130","$50,531,845.00",1.85%
+11/03/2021,ARKQ,"CATERPILLAR INC",CAT,149123101,"212,409","$43,994,152.08",1.61%
+11/03/2021,ARKQ,"VELO3D INC",VLD,92259N104,"3,911,112","$42,983,120.88",1.58%
+11/03/2021,ARKQ,"BAIDU INC - SPON ADR",BIDU,056752108,"229,028","$37,164,373.56",1.36%
+11/03/2021,ARKQ,"MATERIALISE NV-ADR",MTLS,57667T100,"1,366,603","$35,231,025.34",1.29%
+11/03/2021,ARKQ,"ELBIT SYSTEMS LTD",ESLT,M3760D101,"229,572","$35,122,220.28",1.29%
+11/03/2021,ARKQ,"STRATASYS LTD",SSYS,M85548101,"1,014,330","$33,878,622.00",1.24%
+11/03/2021,ARKQ,"TELEDYNE TECHNOLOGIES INC",TDY,879360105,"70,898","$31,830,366.08",1.17%
+11/03/2021,ARKQ,"VUZIX CORP",VUZI,92921W300,"2,327,359","$29,417,817.76",1.08%
+11/03/2021,ARKQ,"SYNOPSYS INC",SNPS,871607107,"86,578","$28,846,923.82",1.06%
+11/03/2021,ARKQ,"ANSYS INC",ANSS,03662Q105,"71,576","$27,497,351.92",1.01%
+11/03/2021,ARKQ,"PALANTIR TECHNOLOGIES INC-A",PLTR,69608A108,"1,038,318","$26,913,202.56",0.99%
+11/03/2021,ARKQ,"INTUITIVE SURGICAL INC",ISRG,46120E602,"73,062","$26,329,352.94",0.96%
+11/03/2021,ARKQ,"2U INC",TWOU,90214J101,"847,407","$23,973,144.03",0.88%
+11/03/2021,ARKQ,"PROTO LABS INC",PRLB,743713109,"375,861","$22,664,418.30",0.83%
+11/03/2021,ARKQ,"BYD CO LTD-UNSPONSORED ADR",BYDDY,05606L100,"211,623","$16,172,229.66",0.59%
+11/03/2021,ARKQ,"DREYFUS GOVT CASH MAN INS",,X9USDDGCM,"6,454,736","$6,454,735.90",0.24%
+11/03/2021,ARKQ,"ORGANOVO HOLDINGS INC","ONVO ",68620A203,"131,632","$824,016.32",0.03%
+"The principal risks of investing in ARK ETFs include equity, market, management and non-diversification risks, as well as fluctuations in market value and net asset value ('NAV'). Investors should carefully consider the investment objectives and risks as well as charges and expenses of an ETF before investing. This and other information are contained in each ETF's prospectus, which may be obtained by contacting the ETF's transfer agent The Bank of New York Mellon or by clicking here. Please read the prospectus carefully before you invest. The market price of ETF shares may differ significantly from their NAV during periods of market volatility. ETF shares may only be redeemed directly with the ETF at NAV by Authorized Participants, in very large creation units. Holdings are subject to change without notice and are not a recommendation to buy or sell any security. There can be no guarantee that an active trading market for ETF shares will develop or be maintained, or that their listing will continue or remain unchanged. Buying or selling ETF shares on an exchange may require the payment of brokerage commissions and frequent trading may incur brokerage costs that detract significantly from investment returns. Copyright 2021, ARK Investment Management LLC. All content is original and has been researched and produced by ARK Investment Management LLC unless otherwise stated. No part of this content may be reproduced in any form, or referred to in any other publication, without the express written permission of ARK Investment Management LLC. All statements made regarding companies, securities or other financial information on this site or any sites or articles relating to ARK Investment Management LLC are strictly beliefs and points of view held by ARK Investment Management and are subject to change without notice. Information contained herein has been obtained from sources believed to be reliable, but not guaranteed. This material has been distributed for informational purposes only and should not be considered as investment advice or a recommendation of any particular security, strategy or investment product."

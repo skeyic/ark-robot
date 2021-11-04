@@ -1,0 +1,55 @@
+date,fund,company,ticker,cusip,shares,"market value ($)","weight (%)"
+11/03/2021,ARKG,"TELADOC HEALTH INC",TDOC,87918A105,"4,346,468","$640,756,312.56",8.61%
+11/03/2021,ARKG,"EXACT SCIENCES CORP",EXAS,30063P105,"4,438,027","$424,408,522.01",5.70%
+11/03/2021,ARKG,"PACIFIC BIOSCIENCES OF CALIF",PACB,69404D108,"14,584,809","$407,645,411.55",5.48%
+11/03/2021,ARKG,"TWIST BIOSCIENCE CORP",TWST,90184D100,"2,224,365","$286,876,354.05",3.85%
+11/03/2021,ARKG,"IONIS PHARMACEUTICALS INC",IONS,462222100,"8,586,266","$283,089,190.02",3.80%
+11/03/2021,ARKG,"FATE THERAPEUTICS INC",FATE,31189P102,"4,832,889","$279,630,957.54",3.76%
+11/03/2021,ARKG,"VERTEX PHARMACEUTICALS INC",VRTX,92532F100,"1,473,380","$267,271,132.00",3.59%
+11/03/2021,ARKG,"INTELLIA THERAPEUTICS INC",NTLA,45826J105,"1,726,084","$234,195,077.12",3.15%
+11/03/2021,ARKG,"ACCOLADE INC",ACCD,00437E102,"5,632,524","$224,005,479.48",3.01%
+11/03/2021,ARKG,"BEAM THERAPEUTICS INC",BEAM,07373V105,"2,292,954","$221,728,651.80",2.98%
+11/03/2021,ARKG,"GINKGO BIOWORKS HOLDINGS INC",DNA,37611X100,"15,918,656","$213,309,990.40",2.87%
+11/03/2021,ARKG,"CRISPR THERAPEUTICS AG",CRSP,H17182108,"2,225,796","$213,320,288.64",2.87%
+11/03/2021,ARKG,"CAREDX INC",CDNA,14167L103,"4,261,811","$209,894,191.75",2.82%
+11/03/2021,ARKG,"REGENERON PHARMACEUTICALS",REGN,75886F107,"298,344","$190,573,196.88",2.56%
+11/03/2021,ARKG,"ADAPTIVE BIOTECHNOLOGIES",ADPT,00650F109,"5,374,031","$185,619,030.74",2.49%
+11/03/2021,ARKG,"INCYTE CORP",INCY,45337C102,"2,897,874","$183,957,041.52",2.47%
+11/03/2021,ARKG,"TAKEDA PHARMACEUTIC-SP ADR","TAK UN",874060205,"12,612,606","$179,225,131.26",2.41%
+11/03/2021,ARKG,"CODEXIS INC",CDXS,192005106,"4,919,873","$165,750,521.37",2.23%
+11/03/2021,ARKG,"INVITAE CORP",NVTA,46185L103,"6,085,793","$165,472,711.67",2.22%
+11/03/2021,ARKG,"UIPATH INC - CLASS A",PATH,90364P105,"2,960,213","$156,032,827.23",2.10%
+11/03/2021,ARKG,"SIGNIFY HEALTH INC -CLASS A",SGFY,82671G100,"9,082,337","$150,675,970.83",2.02%
+11/03/2021,ARKG,"ARCTURUS THERAPEUTICS HOLDIN","ARCT UQ",03969T109,"2,881,489","$134,277,387.40",1.80%
+11/03/2021,ARKG,"CASTLE BIOSCIENCES INC",CSTL,14843C105,"2,037,611","$127,941,594.69",1.72%
+11/03/2021,ARKG,"SCHRODINGER INC",SDGR,80810D103,"2,186,164","$126,382,140.84",1.70%
+11/03/2021,ARKG,"IOVANCE BIOTHERAPEUTICS INC",IOVA,462260100,"4,911,748","$121,025,470.72",1.63%
+11/03/2021,ARKG,"VERACYTE INC",VCYT,92337F107,"2,188,411","$114,957,229.83",1.54%
+11/03/2021,ARKG,"VEEVA SYSTEMS INC-CLASS A",VEEV,922475108,"361,228","$114,158,884.84",1.53%
+11/03/2021,ARKG,"PERSONALIS INC",PSNL,71535D106,"5,314,031","$106,758,882.79",1.43%
+11/03/2021,ARKG,"PFIZER INC",PFE,717081103,"2,236,119","$101,631,608.55",1.37%
+11/03/2021,ARKG,"SOMALOGIC INC",SLGC,83444K105,"7,553,312","$101,894,178.88",1.37%
+11/03/2021,ARKG,"QUANTUM-SI INC",QSI,74765K105,"11,830,123","$99,373,033.20",1.33%
+11/03/2021,ARKG,"908 DEVICES INC",MASS,65443P102,"2,809,208","$95,344,519.52",1.28%
+11/03/2021,ARKG,"10X GENOMICS INC-CLASS A",TXG,88025U109,"582,740","$94,403,880.00",1.27%
+11/03/2021,ARKG,"BERKELEY LIGHTS INC",BLI,084310101,"3,910,586","$93,345,687.82",1.25%
+11/03/2021,ARKG,"REPARE THERAPEUTICS INC",RPTX,760273102,"3,494,721","$90,618,115.53",1.22%
+11/03/2021,ARKG,"VERVE THERAPEUTICS INC",VERV,92539P101,"1,489,833","$78,871,759.02",1.06%
+11/03/2021,ARKG,"1LIFE HEALTHCARE INC",ONEM,68269G107,"3,619,478","$77,493,023.98",1.04%
+11/03/2021,ARKG,"BUTTERFLY NETWORK INC",BFLY,124155102,"7,252,940","$76,010,811.20",1.02%
+11/03/2021,ARKG,"RECURSION PHARMACEUTICALS-A",RXRX,75629V104,"2,616,328","$54,105,663.04",0.73%
+11/03/2021,ARKG,"CELLECTIS - ADR",CLLS,15117K103,"3,605,719","$45,468,116.59",0.61%
+11/03/2021,ARKG,"EDITAS MEDICINE INC",EDIT,28106W103,"1,175,674","$44,934,260.28",0.60%
+11/03/2021,ARKG,"ZYMERGEN INC",ZY,98985X100,"3,813,419","$43,015,366.32",0.58%
+11/03/2021,ARKG,"PALANTIR TECHNOLOGIES INC-A",PLTR,69608A108,"1,643,449","$42,598,198.08",0.57%
+11/03/2021,ARKG,"SURFACE ONCOLOGY INC",SURF,86877M209,"5,495,673","$41,931,984.99",0.56%
+11/03/2021,ARKG,"CERUS CORP",CERS,157085101,"5,333,861","$35,683,530.09",0.48%
+11/03/2021,ARKG,"AQUABOUNTY TECHNOLOGIES",AQB,03842K200,"6,284,536","$26,897,814.08",0.36%
+11/03/2021,ARKG,"DYNAMICS SPECIAL PURPOSE C-A",DYNS,268010105,"2,409,163","$24,669,829.12",0.33%
+11/03/2021,ARKG,"COMPUGEN LTD",CGEN,M25722105,"3,657,232","$24,466,882.08",0.33%
+11/03/2021,ARKG,"EVOGENE LTD",EVGN,M4119S104,"2,967,972","$8,221,282.44",0.11%
+11/03/2021,ARKG,"ALLOGENE THERAPEUTICS INC",ALLO,019770106,"320,375","$6,269,738.75",0.08%
+11/03/2021,ARKG,"DREYFUS GOVT CASH MAN INS",,X9USDDGCM,"6,252,263","$6,252,262.69",0.08%
+11/03/2021,ARKG,"ORGANOVO HOLDINGS INC","ONVO ",68620A203,"246,519","$1,543,208.94",0.02%
+11/03/2021,ARKG,"NANOSTRING TECHNOLOGIES INC",NSTG,63009R109,"16,130","$761,658.60",0.01%
+"The principal risks of investing in ARK ETFs include equity, market, management and non-diversification risks, as well as fluctuations in market value and net asset value ('NAV'). Investors should carefully consider the investment objectives and risks as well as charges and expenses of an ETF before investing. This and other information are contained in each ETF's prospectus, which may be obtained by contacting the ETF's transfer agent The Bank of New York Mellon or by clicking here. Please read the prospectus carefully before you invest. The market price of ETF shares may differ significantly from their NAV during periods of market volatility. ETF shares may only be redeemed directly with the ETF at NAV by Authorized Participants, in very large creation units. Holdings are subject to change without notice and are not a recommendation to buy or sell any security. There can be no guarantee that an active trading market for ETF shares will develop or be maintained, or that their listing will continue or remain unchanged. Buying or selling ETF shares on an exchange may require the payment of brokerage commissions and frequent trading may incur brokerage costs that detract significantly from investment returns. Copyright 2021, ARK Investment Management LLC. All content is original and has been researched and produced by ARK Investment Management LLC unless otherwise stated. No part of this content may be reproduced in any form, or referred to in any other publication, without the express written permission of ARK Investment Management LLC. All statements made regarding companies, securities or other financial information on this site or any sites or articles relating to ARK Investment Management LLC are strictly beliefs and points of view held by ARK Investment Management and are subject to change without notice. Information contained herein has been obtained from sources believed to be reliable, but not guaranteed. This material has been distributed for informational purposes only and should not be considered as investment advice or a recommendation of any particular security, strategy or investment product."
