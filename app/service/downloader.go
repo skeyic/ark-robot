@@ -242,6 +242,7 @@ func (d *Downloader) DownloadAllARKCSVsV2() error {
 			return err
 		}
 
+		glog.V(4).Infof("FUNDS: %s, FILENAME: %s, DATE: %s", stockHoldings.Fund, fileName, stockHoldings.Date)
 		err = arkHoldings.AddStockHoldings(stockHoldings)
 		if err != nil {
 			return err

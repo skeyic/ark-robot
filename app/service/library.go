@@ -84,6 +84,7 @@ func (a *ARKHoldings) AddStockHoldings(s *StockHoldings) error {
 		a.Date = s.Date
 	} else {
 		if a.Date != s.Date {
+			glog.Errorf("MY DATE: %s, NEW ADDED DATE: %s", a.Date, s.Date)
 			return errDateNotMatch
 		}
 	}

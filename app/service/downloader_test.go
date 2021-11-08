@@ -248,12 +248,17 @@ func TestGetLatestCSV(t *testing.T) {
 func TestGetLatestCSVv2(t *testing.T) {
 	utils.EnableGlogForTesting()
 	var (
+		//filesets = []string{
+		//	"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (1).csv",
+		//	"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (2).csv",
+		//	"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (3).csv",
+		//	"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS.csv",
+		//}
 		filesets = []string{
-			"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (1).csv",
-			"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (2).csv",
-			"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS (3).csv",
-			"/spider/ARK_GENOMIC_REVOLUTION_ETF_ARKG_HOLDINGS.csv",
+			"/spider/ARK_AUTONOMOUS_TECH._&_ROBOTICS_ETF_ARKQ_HOLDINGS.csv",
+			"/spider/history/ARK_AUTONOMOUS_TECH._&_ROBOTICS_ETF_ARKQ_HOLDINGS.csv",
 		}
+
 		pattern    = regexp.MustCompile(`.*\((\d)\)\.csv`)
 		latestFile string
 	)
