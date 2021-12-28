@@ -367,7 +367,7 @@ func (r *StockDateRangeReport) Load() error {
 				holding := holdings.GetFundHolding(fund)
 				if holding != nil {
 					fundList = append(fundList, fund)
-					break
+					continue
 				}
 			}
 		}
